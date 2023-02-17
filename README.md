@@ -1,7 +1,7 @@
-# Hashi
-
 [![Open in Gitpod][gitpod-badge]][gitpod] [![Github Actions][gha-badge]][gha] [![Hardhat][hardhat-badge]][hardhat]
 [![License: LGPL-3.0-only][license-badge]][license]
+
+# Hashi
 
 [gitpod]: https://gitpod.io/#https://github.com/gnosis/hashi
 [gitpod-badge]: https://img.shields.io/badge/Gitpod-Open%20in%20Gitpod-FFB45B?logo=gitpod
