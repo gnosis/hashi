@@ -35,8 +35,6 @@ pragma solidity ^0.8.17;
 import "./IOracleAdapter.sol";
 
 contract Hashi {
-    mapping(bytes32 => uint256) public counts;
-
     error NoOracleAdaptersGiven(address emitter);
     error OracleDidNotReport(address emitter, IOracleAdapter oracleAdapter);
     error OraclesDisagree(address emitter, IOracleAdapter oracleOne, IOracleAdapter oracleTwo);
@@ -98,39 +96,67 @@ contract Hashi {
         blockHeader = currentHeader;
     }
 
-    // TODO: figure out how to make this 👇 a view function.
-
     /// @dev Returns the blockheader agreed upon by a threshold of given header oracles.
     /// @param oracleAdapters Array of address for the oracle adapters to query.
     /// @param chainId Id of the chain to query.
     /// @param blockNumber Block number for which to return headers.
-    /// @param threshold Threshold of oracles that must report the same header for the given block. `threshold` MUST be `<= oracleAdapters.length && > oracleAdapters.length / 2`.
+    /// @param threshold Threshold of oracles that must report the same header for the given block.
     /// @return blockHeader Block header reported by the required threshold of given oracle adapters for the given block number.
     function getHeaderFromThreshold(
         IOracleAdapter[] memory oracleAdapters,
         uint256 chainId,
         uint256 blockNumber,
         uint256 threshold
-    ) public returns (bytes32 blockHeader) {
+    ) public view returns (bytes32 blockHeader) {
         bytes32[] memory blockHeaders = getHeadersFromOracles(oracleAdapters, chainId, blockNumber);
-        for (uint256 i = 0; i < blockHeaders.length; i++) {
-            counts[blockHeaders[i]] += 1;
+        for (uint256 i = 1; i < blockHeaders.length; i++) {
+            bytes32 key = blockHeaders[i];
+            uint256 j = i - 1;
+            bytes32 comp = blockHeaders[j];
+            while (comp >= bytes32(0) && (comp > key)) {
+                blockHeaders[j + 1] = comp;
+                j--;
+            }
+            blockHeaders[j + 1] = key;
         }
-        uint256 highestCount;
-        for (uint256 i = 0; i < blockHeaders.length; i++) {
-            bytes32 currentHeader = blockHeaders[i];
-            uint256 currentCount = counts[currentHeader];
-            if (currentCount > highestCount) {
-                highestCount = currentCount;
-                if (blockHeader != currentHeader) {
-                    blockHeader = currentHeader;
-                }
+        bytes32[] memory indexedHeaders;
+        uint256[] memory indexedCounts;
+        uint256 currentCountIndex = 0;
+        indexedCounts[0] = 1;
+        indexedHeaders[0] = blockHeaders[0];
+        for (uint i = 1; i < blockHeaders.length; i++) {
+            bytes32 currentBlockHeader;
+            if (currentBlockHeader != indexedHeaders[currentCountIndex]) {
+                currentCountIndex++;
+                indexedHeaders[currentCountIndex] = currentBlockHeader;
+            }
+            indexedCounts[currentCountIndex]++;
+        }
+        blockHeader = blockHeaders[0];
+        currentCountIndex = 0;
+        for (uint i = 1; i < indexedHeaders.length; i++) {
+            bytes32 currentBlockHeader = blockHeaders[i];
+            if (indexedCounts[currentCountIndex] < indexedCounts[i]) {
+                blockHeader = currentBlockHeader;
+                currentCountIndex = i;
             }
         }
-        for (uint256 i = 0; i < blockHeaders.length; i++) {
-            delete counts[blockHeader[i]];
-        }
+
+        // for (uint256 i = 0; i < blockHeaders.length; i++) {
+        //     bytes32 currentHeader = blockHeaders[i];
+        //     uint256 currentCount = counts[currentHeader];
+        //     if (currentCount > highestCount) {
+        //         highestCount = currentCount;
+        //         if (blockHeader != currentHeader) {
+        //             blockHeader = currentHeader;
+        //         }
+        //     }
+        // }
+        // for (uint256 i = 0; i < blockHeaders.length; i++) {
+        //     delete counts[blockHeader[i]];
+        // }
         if (blockHeader == bytes32(0)) revert HighestCountDidNotReport(address(this));
-        if (highestCount < threshold) revert ThresholdNotMet(address(this), highestCount, blockHeader);
+        if (indexedCounts[currentCountIndex] < threshold)
+            revert ThresholdNotMet(address(this), indexedCounts[currentCountIndex], blockHeader);
     }
 }
