@@ -27,8 +27,9 @@
                   ███▌         ▐███⌐      ███▌       ▀▀_        ████
                   ███▌         ▐███⌐      ▀▀_             ▀▀▀███████
                   ███^         ▐███_                          ▐██▀▀　
-*/
 
+                                           Made with ❤️ by Gnosis Guild
+*/
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity ^0.8.17;
 
@@ -38,8 +39,6 @@ contract Hashi {
     error NoOracleAdaptersGiven(address emitter);
     error OracleDidNotReport(address emitter, IOracleAdapter oracleAdapter);
     error OraclesDisagree(address emitter, IOracleAdapter oracleOne, IOracleAdapter oracleTwo);
-    error HighestCountDidNotReport(address emitter);
-    error ThresholdNotMet(address, uint256 highestCount, bytes32 blockHeader);
 
     /// @dev Returns the block header reported by a given oracle for a given block.
     /// @param oracleAdapter Address of the oracle adapter to query.
@@ -96,74 +95,5 @@ contract Hashi {
             previousHeader = currentHeader;
         }
         blockHeader = currentHeader;
-    }
-
-    /// @dev Returns the blockheader agreed upon by a threshold of given header oracles.
-    /// @param oracleAdapters Array of address for the oracle adapters to query.
-    /// @param chainId Id of the chain to query.
-    /// @param blockNumber Block number for which to return headers.
-    /// @param threshold Threshold of oracles that must report the same header for the given block.
-    /// @return blockHeader Block header reported by the required threshold of given oracle adapters for the given block number.
-    function getHeaderFromThreshold(
-        IOracleAdapter[] memory oracleAdapters,
-        uint256 chainId,
-        uint256 blockNumber,
-        uint256 threshold
-    ) public view returns (bytes32 blockHeader) {
-        bytes32[] memory blockHeaders = getHeadersFromOracles(oracleAdapters, chainId, blockNumber);
-        /// sort block headers
-        for (uint256 i = 1; i < blockHeaders.length; i++) {
-            bytes32 key = blockHeaders[i];
-            uint256 j = i - 1;
-            bytes32 comp = blockHeaders[j];
-            while (comp > key && j > blockHeaders.length) {
-                blockHeaders[j + 1] = comp;
-                j--;
-            }
-            blockHeaders[j + 1] = key;
-        }
-
-        /// count count how many different results are reported
-        uint256 numberOfResults = 1;
-        for (uint i = 1; i < blockHeaders.length; i++) {
-            if (blockHeaders[i - 1] != blockHeaders[i]) {
-                numberOfResults++;
-            }
-        }
-        /// return first block header if unanimous
-        if (numberOfResults == 1) {
-            return blockHeader[0];
-        }
-
-        /// index and count results
-        bytes32[] memory indexedHeaders = new bytes32[](numberOfResults);
-        uint256[] memory indexedCounts = new uint256[](numberOfResults);
-        indexedCounts[0] = 1;
-        indexedHeaders[0] = blockHeaders[0];
-        uint256 currentCountIndex = 0;
-        for (uint i = 1; i < blockHeaders.length; i++) {
-            bytes32 currentBlockHeader;
-            if (currentBlockHeader != indexedHeaders[currentCountIndex]) {
-                currentCountIndex++;
-                indexedHeaders[currentCountIndex] = currentBlockHeader;
-            }
-            indexedCounts[currentCountIndex]++;
-        }
-
-        /// pick highest count
-        blockHeader = blockHeaders[0];
-        currentCountIndex = 0;
-        for (uint i = 1; i < indexedHeaders.length; i++) {
-            bytes32 currentBlockHeader = blockHeaders[i];
-            if (indexedCounts[currentCountIndex] < indexedCounts[i]) {
-                blockHeader = currentBlockHeader;
-                currentCountIndex = i;
-            }
-        }
-
-        /// revert if highest count did not report
-        if (blockHeader == bytes32(0)) revert HighestCountDidNotReport(address(this));
-        if (indexedCounts[currentCountIndex] < threshold)
-            revert ThresholdNotMet(address(this), indexedCounts[currentCountIndex], blockHeader);
     }
 }
