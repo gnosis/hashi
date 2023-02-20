@@ -64,20 +64,22 @@ contract Hashi {
         IOracleAdapter[] memory oracleAdapters,
         uint256 chainId,
         uint256 blockNumber
-    ) public view returns (bytes32[] memory blockHeaders) {
+    ) public view returns (bytes32[] memory) {
         if (oracleAdapters.length == 0) revert NoOracleAdaptersGiven(address(this));
+        bytes32[] memory blockHeaders = new bytes32[](oracleAdapters.length);
         for (uint256 i = 0; i < oracleAdapters.length; i++) {
             blockHeaders[i] = getHeaderFromOracle(oracleAdapters[i], chainId, blockNumber);
         }
+        return blockHeaders;
     }
 
-    /// @dev Returns the blockheader universally agreed upon by a given set of oracles.
+    /// @dev Returns the block header unanimously agreed upon by a given set of oracles.
     /// @param oracleAdapters Array of address for the oracle adapters to query.
     /// @param chainId Id of the chain to query.
     /// @param blockNumber Block number for which to return headers.
     /// @return blockHeader Block header agreed on by the given set of oracle adapters.
     /// @notice MUST revert if oracles disagree on the header or if an oracle does not report.
-    function getAgreedOnHeader(
+    function getUnanimousHeader(
         IOracleAdapter[] memory oracleAdapters,
         uint256 chainId,
         uint256 blockNumber
@@ -109,21 +111,36 @@ contract Hashi {
         uint256 threshold
     ) public view returns (bytes32 blockHeader) {
         bytes32[] memory blockHeaders = getHeadersFromOracles(oracleAdapters, chainId, blockNumber);
+        /// sort block headers
         for (uint256 i = 1; i < blockHeaders.length; i++) {
             bytes32 key = blockHeaders[i];
             uint256 j = i - 1;
             bytes32 comp = blockHeaders[j];
-            while (comp >= bytes32(0) && (comp > key)) {
+            while (comp > key && j > blockHeaders.length) {
                 blockHeaders[j + 1] = comp;
                 j--;
             }
             blockHeaders[j + 1] = key;
         }
-        bytes32[] memory indexedHeaders;
-        uint256[] memory indexedCounts;
-        uint256 currentCountIndex = 0;
+
+        /// count count how many different results are reported
+        uint256 numberOfResults = 1;
+        for (uint i = 1; i < blockHeaders.length; i++) {
+            if (blockHeaders[i - 1] != blockHeaders[i]) {
+                numberOfResults++;
+            }
+        }
+        /// return first block header if unanimous
+        if (numberOfResults == 1) {
+            return blockHeader[0];
+        }
+
+        /// index and count results
+        bytes32[] memory indexedHeaders = new bytes32[](numberOfResults);
+        uint256[] memory indexedCounts = new uint256[](numberOfResults);
         indexedCounts[0] = 1;
         indexedHeaders[0] = blockHeaders[0];
+        uint256 currentCountIndex = 0;
         for (uint i = 1; i < blockHeaders.length; i++) {
             bytes32 currentBlockHeader;
             if (currentBlockHeader != indexedHeaders[currentCountIndex]) {
@@ -132,6 +149,8 @@ contract Hashi {
             }
             indexedCounts[currentCountIndex]++;
         }
+
+        /// pick highest count
         blockHeader = blockHeaders[0];
         currentCountIndex = 0;
         for (uint i = 1; i < indexedHeaders.length; i++) {
@@ -142,19 +161,7 @@ contract Hashi {
             }
         }
 
-        // for (uint256 i = 0; i < blockHeaders.length; i++) {
-        //     bytes32 currentHeader = blockHeaders[i];
-        //     uint256 currentCount = counts[currentHeader];
-        //     if (currentCount > highestCount) {
-        //         highestCount = currentCount;
-        //         if (blockHeader != currentHeader) {
-        //             blockHeader = currentHeader;
-        //         }
-        //     }
-        // }
-        // for (uint256 i = 0; i < blockHeaders.length; i++) {
-        //     delete counts[blockHeader[i]];
-        // }
+        /// revert if highest count did not report
         if (blockHeader == bytes32(0)) revert HighestCountDidNotReport(address(this));
         if (indexedCounts[currentCountIndex] < threshold)
             revert ThresholdNotMet(address(this), indexedCounts[currentCountIndex], blockHeader);

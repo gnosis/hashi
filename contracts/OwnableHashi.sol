@@ -27,7 +27,7 @@ contract OwnableHashi is OwnableUpgradeable {
         emit Initialized(address(this), _owner, _hashi);
     }
 
-    /// @dev Returns the block header agreed on by all of the oraclesAdapters for a given block on a given chainId.
+    /// @dev Returns the block header unanimously agreed upon by all of the oraclesAdapters for a given block on a given chainId.
     /// @param chainId Uint256 identifier for the chain to query.
     /// @param blockNumber Uint256 identifier for the block number to query.
     /// @return blockHeader Bytes32 block header agreed upon by the oracles for the given chainId.
@@ -35,7 +35,7 @@ contract OwnableHashi is OwnableUpgradeable {
     /// @notice Reverts if oracles have not yet reported the header for the given block.
     /// @notice Reverts if the no oracles are set for the given chainId.
     function getHeader(uint256 chainId, uint256 blockNumber) public view returns (bytes32 blockHeader) {
-        blockHeader = hashi.getAgreedOnHeader(oracleAdapters[chainId], chainId, blockNumber);
+        blockHeader = hashi.getUnanimousHeader(oracleAdapters[chainId], chainId, blockNumber);
     }
 
     /// @dev Sets the address of the Hashi contract.
