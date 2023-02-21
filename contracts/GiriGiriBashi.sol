@@ -142,10 +142,10 @@ contract GiriGiriBashi is OwnableUpgradeable {
             IOracleAdapter adapter = _adapters[i];
             if (adapter == IOracleAdapter(address(0)) || adapter == LIST_END)
                 revert InvalidAdapter(address(this), adapter);
-            if (adapters[chainId][adapter].next == IOracleAdapter(address(0)))
-                revert AdapterNotEnabled(address(this), adapter);
-            IOracleAdapter next = adapters[chainId][adapter].next;
-            IOracleAdapter previous = adapters[chainId][adapter].previous;
+            Link memory current = adapters[chainId][adapter];
+            if (current.next == IOracleAdapter(address(0))) revert AdapterNotEnabled(address(this), adapter);
+            IOracleAdapter next = current.next;
+            IOracleAdapter previous = current.previous;
             adapters[chainId][next].previous = previous;
             adapters[chainId][previous].next = next;
             delete adapters[chainId][adapter].next;
