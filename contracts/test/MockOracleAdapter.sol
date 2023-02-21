@@ -4,7 +4,7 @@ pragma solidity ^0.8.17;
 import "../IOracleAdapter.sol";
 
 contract MockOracleAdapter is IOracleAdapter {
-    mapping(uint256 => mapping(uint256 => bytes32)) blockHeaders;
+    mapping(uint256 => mapping(uint256 => bytes32)) public blockHeaders;
 
     error LengthMismatch(address emitter);
 

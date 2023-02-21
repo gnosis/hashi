@@ -54,7 +54,7 @@ contract Hashi {
     }
 
     /// @dev Returns the block headers for a given block reported by a given set of oracles.
-    /// @param oracleAdapters Array of address for the oracle adapters to query, MUST be provided in numerical order from smallest to largest.
+    /// @param oracleAdapters Array of address for the oracle adapters to query.
     /// @param chainId Id of the chain to query.
     /// @param blockNumber Block number for which to return headers.
     /// @return blockHeaders Array of block header reported by the given oracle adapters for the given block number.

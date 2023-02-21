@@ -41,7 +41,7 @@ struct Link {
     IOracleAdapter next;
 }
 
-struct chain {
+struct Chain {
     uint256 threshold;
     uint256 count;
 }
@@ -51,7 +51,7 @@ contract ShikichiBashi is OwnableUpgradeable {
 
     Hashi public hashi;
     mapping(uint256 => mapping(IOracleAdapter => Link)) public adapters;
-    mapping(uint256 => chain) public chains;
+    mapping(uint256 => Chain) public chains;
 
     event HashiSet(address indexed emitter, Hashi indexed hashi);
     event Init(address indexed emitter, address indexed owner, Hashi indexed hashi);
@@ -104,7 +104,7 @@ contract ShikichiBashi is OwnableUpgradeable {
 
     /// @dev Enables the given adapters for a given chainId.
     /// @param chainId Uint256 identifier for the chain for which to set oracle adapters.
-    /// @param _adapters Arracy of oracleAdapter addresses. Must be in numberical order from smallest to largest and contain no duplicates.
+    /// @param _adapters Arracy of oracleAdapter addresses.
     /// @notice Reverts if _adapters are out of order or contain duplicates.
     /// @notice Only callable by the owner of this contract.
     function enableOracleAdapters(uint256 chainId, IOracleAdapter[] memory _adapters) public onlyOwner {
@@ -117,8 +117,6 @@ contract ShikichiBashi is OwnableUpgradeable {
             IOracleAdapter adapter = _adapters[i];
             if (adapter == IOracleAdapter(address(0)) || adapter == LIST_END)
                 revert InvalidAdapter(address(this), adapter);
-            // if (i > 0 && adapter <= _adapters[i - 1])
-            //     revert DuplicateOrOutOfOrderAdapters(address(this), adapter, _adapters[i - 1]);
             if (adapters[chainId][adapter].next != IOracleAdapter(address(0)))
                 revert AdapterAlreadyEnabled(address(this), adapter);
             IOracleAdapter previous = adapters[chainId][LIST_END].previous;
@@ -133,7 +131,7 @@ contract ShikichiBashi is OwnableUpgradeable {
 
     /// @dev Disables the given adapters for a given chainId.
     /// @param chainId Uint256 identifier for the chain for which to set oracle adapters.
-    /// @param _adapters Arracy of oracleAdapter addresses. Must be in numberical order from smallest to largest and contain no duplicates.
+    /// @param _adapters Arracy of oracleAdapter addresses.
     /// @notice Reverts if _adapters are out of order or contain duplicates.
     /// @notice Only callable by the owner of this contract.
     function disableOracleAdapters(uint256 chainId, IOracleAdapter[] memory _adapters) public onlyOwner {
@@ -143,8 +141,6 @@ contract ShikichiBashi is OwnableUpgradeable {
             IOracleAdapter adapter = _adapters[i];
             if (adapter == IOracleAdapter(address(0)) || adapter == LIST_END)
                 revert InvalidAdapter(address(this), adapter);
-            // if (i > 0 && adapter <= _adapters[i - 1])
-            //     revert DuplicateOrOutOfOrderAdapters(address(this), adapter, _adapters[i - 1]);
             if (adapters[chainId][adapter].next == IOracleAdapter(address(0)))
                 revert AdapterNotEnabled(address(this), adapter);
             IOracleAdapter next = adapters[chainId][adapter].next;
@@ -170,11 +166,11 @@ contract ShikichiBashi is OwnableUpgradeable {
         return _adapters;
     }
 
-    /// @dev Returns the block header unanimously agreed upon by ALL of the enabled oraclesAdapters for a given block on a given chainId.
+    /// @dev Returns the block header unanimously agreed upon by ALL of the enabled oraclesAdapters.
     /// @param chainId Uint256 identifier for the chain to query.
     /// @param blockNumber Uint256 identifier for the block number to query.
     /// @return blockHeader Bytes32 block header agreed upon by the oracles for the given chainId.
-    /// @notice Reverts if _adapters are out of order or contain duplicates.
+    /// @notice Reverts if _adapters are out of order or contain duplicates.`
     /// @notice Reverts if oracles disagree.
     /// @notice Reverts if oracles have not yet reported the header for the given block.
     /// @notice Reverts if the no oracles are set for the given chainId.
@@ -185,11 +181,12 @@ contract ShikichiBashi is OwnableUpgradeable {
         blockHeader = hashi.getUnanimousHeader(_adapters, chainId, blockNumber);
     }
 
-    /// @dev Returns the block header unanimously agreed upon by all of the given oraclesAdapters for a given block on a given chainId.
+    /// @dev Returns the block header unanimously agreed upon by all of the given oraclesAdapters..
     /// @param chainId Uint256 identifier for the chain to query.
-    /// @param _adapters Array of oracle adapter addresses to query. Must be in numberical order from smallest to largest and contain no duplicates.
+    /// @param _adapters Array of oracle adapter addresses to query.
     /// @param blockNumber Uint256 identifier for the block number to query.
     /// @return blockHeader Bytes32 block header agreed upon by the oracles for the given chainId.
+    /// @notice _adapters must be in numberical order from smallest to largest and contain no duplicates.
     /// @notice Reverts if _adapters are out of order or contain duplicates.
     /// @notice Reverts if oracles disagree.
     /// @notice Reverts if oracles have not yet reported the header for the given block.
