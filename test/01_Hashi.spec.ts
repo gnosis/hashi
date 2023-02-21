@@ -32,7 +32,7 @@ describe("Hashi", function () {
   describe("Deploy", function () {
     it("Successfully deploys contract", async function () {
       const { hashi } = await setup()
-      expect(hashi.deployed(), "something?")
+      expect(await hashi.deployed())
     })
   })
   describe("getHeaderFromOracle()", function () {
