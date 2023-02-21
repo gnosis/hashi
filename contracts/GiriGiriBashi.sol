@@ -148,7 +148,7 @@ contract GiriGiriBashi is OwnableUpgradeable {
             IOracleAdapter previous = adapters[chainId][adapter].previous;
             adapters[chainId][next].previous = previous;
             adapters[chainId][previous].next = next;
-            adapters[chainId][adapter].next;
+            delete adapters[chainId][adapter].next;
             delete adapters[chainId][adapter].previous;
             chains[chainId].count--;
         }
