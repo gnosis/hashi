@@ -27,9 +27,9 @@ validated by multiple independent mechanisms, rather than by just one.
 
 Hashi allows users to:
 
-- Build custom oracle adapter contracts for any header relay mechanism they would like to use.
-- Query a header relay for the block header for a given block on a given chain.
-- Query a set of header relays the block headers for a given block on a given chain.
+- Build custom oracle adapter contracts for any header oracle mechanism they would like to use.
+- Query a header oracle for the block header for a given block on a given chain.
+- Query a set of header oracles the block headers for a given block on a given chain.
 - Query for a unanimously agreed upon block header from a set of oracles for a given block on a given chain.
 
 GiriGiriBashi allows users to:
