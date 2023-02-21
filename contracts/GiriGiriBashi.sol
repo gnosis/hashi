@@ -96,6 +96,7 @@ contract GiriGiriBashi is OwnableUpgradeable {
     /// @param chainId Uint256 identifier for the chain for which to set the threshold.
     /// @param threshold Uint256 threshold to set for the given chain.
     /// @notice Only callable by the owner of this contract.
+    /// @notice Reverts if threshold is already set to the given value.
     function setThreshold(uint256 chainId, uint256 threshold) public onlyOwner {
         if (chains[chainId].threshold == threshold) revert DuplicateThreashold(address(this), threshold);
         chains[chainId].threshold = threshold;
@@ -147,8 +148,8 @@ contract GiriGiriBashi is OwnableUpgradeable {
             IOracleAdapter previous = adapters[chainId][adapter].previous;
             adapters[chainId][next].previous = previous;
             adapters[chainId][previous].next = next;
-            adapters[chainId][adapter].next = IOracleAdapter(address(0));
-            adapters[chainId][adapter].previous = IOracleAdapter(address(0));
+            adapters[chainId][adapter].next;
+            delete adapters[chainId][adapter].previous;
             chains[chainId].count--;
         }
         emit OracleAdaptersDisabled(address(this), chainId, _adapters);
@@ -166,6 +167,18 @@ contract GiriGiriBashi is OwnableUpgradeable {
         return _adapters;
     }
 
+    /// @dev Returns the threshold and count for a given chainId
+    /// @param chainId Uint256 identifier for the chain.
+    /// @return threshold Uint256 oracle threshold for the given chainId.
+    /// @return count Uint256 oracle count for the given chainId.
+    /// @notice If the threshold for a chain has not been set, or is explicitly set to 0, this function will return a
+    /// threshold equal to the oracle count for the given chain.
+    function getThresholdAndCount(uint256 chainId) public view returns (uint256 threshold, uint256 count) {
+        threshold = chains[chainId].threshold;
+        count = chains[chainId].count;
+        if (threshold == 0) threshold = count;
+    }
+
     /// @dev Returns the block header unanimously agreed upon by ALL of the enabled oraclesAdapters.
     /// @param chainId Uint256 identifier for the chain to query.
     /// @param blockNumber Uint256 identifier for the block number to query.
@@ -176,8 +189,9 @@ contract GiriGiriBashi is OwnableUpgradeable {
     /// @notice Reverts if the no oracles are set for the given chainId.
     function getUnanimousHeader(uint256 chainId, uint256 blockNumber) public view returns (bytes32 blockHeader) {
         IOracleAdapter[] memory _adapters = getOracleAdapters(chainId);
-        if (chains[chainId].count == 0) revert NoAdaptersEnabled(address(this), chainId);
-        if (_adapters.length < chains[chainId].threshold) revert ThresholdNotMet(address(this));
+        (uint256 threshold, uint256 count) = getThresholdAndCount(chainId);
+        if (count == 0) revert NoAdaptersEnabled(address(this), chainId);
+        if (_adapters.length < threshold) revert ThresholdNotMet(address(this));
         blockHeader = hashi.getUnanimousHeader(_adapters, chainId, blockNumber);
     }
 
@@ -191,15 +205,19 @@ contract GiriGiriBashi is OwnableUpgradeable {
     /// @notice Reverts if oracles disagree.
     /// @notice Reverts if oracles have not yet reported the header for the given block.
     /// @notice Reverts if the no oracles are set for the given chainId.
+    /// @notice Reverts if the no oracles are set for the given chainId.
     function getHeader(
         uint256 chainId,
         uint256 blockNumber,
         IOracleAdapter[] memory _adapters
     ) public view returns (bytes32 blockHeader) {
-        if (_adapters.length < chains[chainId].threshold) revert ThresholdNotMet(address(this));
-        for (uint i = 1; i < _adapters.length; i++) {
+        (uint256 threshold, uint256 count) = getThresholdAndCount(chainId);
+        if (_adapters.length == 0) revert NoAdaptersGiven(address(this));
+        if (count == 0) revert NoAdaptersEnabled(address(this), chainId);
+        if (_adapters.length < threshold) revert ThresholdNotMet(address(this));
+        for (uint i = 0; i < _adapters.length; i++) {
             IOracleAdapter adapter = _adapters[i];
-            if (adapter <= _adapters[i - 1])
+            if (i > 0 && adapter <= _adapters[i - 1])
                 revert DuplicateOrOutOfOrderAdapters(address(this), adapter, _adapters[i - 1]);
             if (adapters[chainId][adapter].next == IOracleAdapter(address(0)))
                 revert InvalidAdapter(address(this), adapter);

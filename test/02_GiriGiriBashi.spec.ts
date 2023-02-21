@@ -127,18 +127,6 @@ describe("GiriGiriBashi", function () {
         "InvalidAdapter",
       )
     })
-    // it("Reverts if given oracle adapters are duplicate", async function () {
-    //   const { giriGiriBashi, mockOracleAdapter } = await setup()
-    //   await expect(
-    //     giriGiriBashi.enableOracleAdapters(CHAIN_ID, [mockOracleAdapter.address, mockOracleAdapter.address]),
-    //   ).to.be.revertedWithCustomError(giriGiriBashi, "DuplicateOrOutOfOrderAdapters")
-    // })
-    // it("Reverts if given oracle adapters are out of order", async function () {
-    //   const { giriGiriBashi } = await setup()
-    //   await expect(
-    //     giriGiriBashi.enableOracleAdapters(CHAIN_ID, [ADDRESS_THREE, ADDRESS_TWO]),
-    //   ).to.be.revertedWithCustomError(giriGiriBashi, "DuplicateOrOutOfOrderAdapters")
-    // })
     it("Reverts if adapter is already enabled", async function () {
       const { giriGiriBashi } = await setup()
       await expect(giriGiriBashi.enableOracleAdapters(CHAIN_ID, [ADDRESS_TWO]))
@@ -167,7 +155,7 @@ describe("GiriGiriBashi", function () {
         .withArgs(giriGiriBashi.address, CHAIN_ID, [ADDRESS_TWO, ADDRESS_THREE])
     })
   })
-  describe("OracleAdaptersDisabled()", function () {
+  describe("disableOracleAdapters()", function () {
     it("Reverts if called by non-owner account", async function () {
       const { giriGiriBashi } = await setup()
       await giriGiriBashi.transferOwnership(giriGiriBashi.address)
@@ -206,20 +194,6 @@ describe("GiriGiriBashi", function () {
         "InvalidAdapter",
       )
     })
-    // it("Reverts if given oracle adapters are duplicate", async function () {
-    //   const { giriGiriBashi } = await setup()
-    //   await giriGiriBashi.enableOracleAdapters(CHAIN_ID, [ADDRESS_TWO])
-    //   await expect(
-    //     giriGiriBashi.disableOracleAdapters(CHAIN_ID, [ADDRESS_TWO, ADDRESS_TWO]),
-    //   ).to.be.revertedWithCustomError(giriGiriBashi, "DuplicateOrOutOfOrderAdapters")
-    // })
-    // it("Reverts if given oracle adapters are out of order", async function () {
-    //   const { giriGiriBashi } = await setup()
-    //   await giriGiriBashi.enableOracleAdapters(CHAIN_ID, [ADDRESS_TWO, ADDRESS_THREE])
-    //   await expect(
-    //     giriGiriBashi.disableOracleAdapters(CHAIN_ID, [ADDRESS_THREE, ADDRESS_TWO]),
-    //   ).to.be.revertedWithCustomError(giriGiriBashi, "DuplicateOrOutOfOrderAdapters")
-    // })
     it("Reverts if adapter is not enabled", async function () {
       const { giriGiriBashi } = await setup()
       await giriGiriBashi.enableOracleAdapters(CHAIN_ID, [ADDRESS_TWO])
@@ -257,6 +231,21 @@ describe("GiriGiriBashi", function () {
       const adapters = await giriGiriBashi.getOracleAdapters(CHAIN_ID)
       expect(adapters[0]).to.equal(ADDRESS_TWO)
       expect(adapters[1]).to.equal(ADDRESS_THREE)
+    })
+  })
+  describe("getThresholdAndCount()", function () {
+    it("Returns threshold equal to count if threshold not explicitly set", async function () {
+      const { giriGiriBashi } = await setup()
+      await giriGiriBashi.enableOracleAdapters(CHAIN_ID, [ADDRESS_TWO, ADDRESS_THREE])
+      const [threshold, count] = await giriGiriBashi.getThresholdAndCount(CHAIN_ID)
+      await expect(threshold).to.equal(count)
+    })
+    it("Returns threshold and count", async function () {
+      const { giriGiriBashi } = await setup()
+      await giriGiriBashi.enableOracleAdapters(CHAIN_ID, [ADDRESS_TWO, ADDRESS_THREE])
+      await giriGiriBashi.setThreshold(CHAIN_ID, 1)
+      const [threshold] = await giriGiriBashi.getThresholdAndCount(CHAIN_ID)
+      await expect(threshold).to.equal(1)
     })
   })
   describe("getUnanimousHeader()", function () {
@@ -312,6 +301,21 @@ describe("GiriGiriBashi", function () {
       await expect(giriGiriBashi.getHeader(CHAIN_ID, 1, [ADDRESS_TWO, ADDRESS_THREE])).to.be.revertedWithCustomError(
         giriGiriBashi,
         "InvalidAdapter",
+      )
+    })
+    it("Reverts if no oracle adapters are enabled", async function () {
+      const { giriGiriBashi } = await setup()
+      await expect(giriGiriBashi.getHeader(CHAIN_ID, 1, [ADDRESS_TWO, ADDRESS_THREE])).to.be.revertedWithCustomError(
+        giriGiriBashi,
+        "NoAdaptersEnabled",
+      )
+    })
+    it("Reverts if no oracle adapters are given", async function () {
+      const { giriGiriBashi } = await setup()
+      await giriGiriBashi.enableOracleAdapters(CHAIN_ID, [ADDRESS_TWO])
+      await expect(giriGiriBashi.getHeader(CHAIN_ID, 1, [])).to.be.revertedWithCustomError(
+        giriGiriBashi,
+        "NoAdaptersGiven",
       )
     })
     it("Returns unanimous agreed on header", async function () {
