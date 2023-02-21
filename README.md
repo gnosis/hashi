@@ -7,7 +7,7 @@
 # Hashi 橋
 
 [coveralls]: https://coveralls.io/github/gnosis/hashi?branch=master
-[coveralls-badge]: https://coveralls.io/repos/github/gnosis/hashi/badge.svg?branch=master
+[coveralls-badge]: https://coveralls.io/repos/github/gnosis/hashi/badge.svg?branch=main
 [gitpod]: https://gitpod.io/#https://github.com/gnosis/hashi
 [gitpod-badge]: https://img.shields.io/badge/Gitpod-Open%20in%20Gitpod-FFB45B?logo=gitpod
 [gha]: https://github.com/gnosis/hashi/actions
