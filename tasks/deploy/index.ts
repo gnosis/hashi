@@ -1,1 +1,1 @@
-import "./greeter";
+import "./greeter"

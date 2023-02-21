@@ -1,24 +1,24 @@
-import "@nomicfoundation/hardhat-toolbox";
-import { config as dotenvConfig } from "dotenv";
-import type { HardhatUserConfig } from "hardhat/config";
-import type { NetworkUserConfig } from "hardhat/types";
-import { resolve } from "path";
+import "@nomicfoundation/hardhat-toolbox"
+import { config as dotenvConfig } from "dotenv"
+import type { HardhatUserConfig } from "hardhat/config"
+import type { NetworkUserConfig } from "hardhat/types"
+import { resolve } from "path"
 
-import "./tasks/accounts";
-import "./tasks/deploy";
+import "./tasks/accounts"
+import "./tasks/deploy"
 
-const dotenvConfigPath: string = process.env.DOTENV_CONFIG_PATH || "./.env";
-dotenvConfig({ path: resolve(__dirname, dotenvConfigPath) });
+const dotenvConfigPath: string = process.env.DOTENV_CONFIG_PATH || "./.env"
+dotenvConfig({ path: resolve(__dirname, dotenvConfigPath) })
 
 // Ensure that we have all the environment variables we need.
-const mnemonic: string | undefined = process.env.MNEMONIC;
+const mnemonic: string | undefined = process.env.MNEMONIC
 if (!mnemonic) {
-  throw new Error("Please set your MNEMONIC in a .env file");
+  throw new Error("Please set your MNEMONIC in a .env file")
 }
 
-const infuraApiKey: string | undefined = process.env.INFURA_API_KEY;
+const infuraApiKey: string | undefined = process.env.INFURA_API_KEY
 if (!infuraApiKey) {
-  throw new Error("Please set your INFURA_API_KEY in a .env file");
+  throw new Error("Please set your INFURA_API_KEY in a .env file")
 }
 
 const chainIds = {
@@ -32,19 +32,19 @@ const chainIds = {
   "polygon-mainnet": 137,
   "polygon-mumbai": 80001,
   sepolia: 11155111,
-};
+}
 
 function getChainConfig(chain: keyof typeof chainIds): NetworkUserConfig {
-  let jsonRpcUrl: string;
+  let jsonRpcUrl: string
   switch (chain) {
     case "avalanche":
-      jsonRpcUrl = "https://api.avax.network/ext/bc/C/rpc";
-      break;
+      jsonRpcUrl = "https://api.avax.network/ext/bc/C/rpc"
+      break
     case "bsc":
-      jsonRpcUrl = "https://bsc-dataseed1.binance.org";
-      break;
+      jsonRpcUrl = "https://bsc-dataseed1.binance.org"
+      break
     default:
-      jsonRpcUrl = "https://" + chain + ".infura.io/v3/" + infuraApiKey;
+      jsonRpcUrl = "https://" + chain + ".infura.io/v3/" + infuraApiKey
   }
   return {
     accounts: {
@@ -54,7 +54,7 @@ function getChainConfig(chain: keyof typeof chainIds): NetworkUserConfig {
     },
     chainId: chainIds[chain],
     url: jsonRpcUrl,
-  };
+  }
 }
 
 const config: HardhatUserConfig = {
@@ -121,6 +121,6 @@ const config: HardhatUserConfig = {
     outDir: "types",
     target: "ethers-v5",
   },
-};
+}
 
-export default config;
+export default config

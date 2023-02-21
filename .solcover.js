@@ -4,4 +4,4 @@ module.exports = {
     mnemonic: process.env.MNEMONIC,
   },
   skipFiles: ["test"],
-};
+}
