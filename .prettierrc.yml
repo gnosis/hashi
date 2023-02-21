@@ -4,6 +4,7 @@ proseWrap: "always"
 singleQuote: false
 tabWidth: 2
 trailingComma: "all"
+semi: false
 
 overrides:
   - files: "*.sol"

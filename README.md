@@ -25,9 +25,16 @@ Hashi allows users to:
 - Build custom oracle adapter contracts for any header relay mechanism they would like to use.
 - Query a header relay for the block header for a given block on a given chain.
 - Query a set of header relays the block headers for a given block on a given chain.
-- Query for a unanimously agreed upon block header from a set of header relays for a given block on a given chain.
-- Query for a block header agreed upon by a threshold of header relays for a given block on a given chain; M/N oracles
-  must report the same header for it to be considered valid.
+- Query for a unanimously agreed upon block header from a set of oracles for a given block on a given chain.
+
+ShikichiBashi allows users to:
+
+- Define a set of oracles for each chainId.
+- Define a threshold of oracles that must agree on a block header for each chain.
+- Query for a unanimously agreed on header from that full set of oracles.
+- Query for a block header agreed upon by a threshold of oracles for a given block on a given chain; the provided
+  oracles must all agree on the header for the given block, must all be enabled as oracles for the given chain, and must
+  exceed the threshold for the chain.
 
 Hashi's additional redundancy obviously comes with a higher gas cost, along with moving only as quickly as the slowest
 oracle in a given set. However, this trade-off seems well worth it given the scope and frequency of past bridge-related
@@ -35,7 +42,7 @@ security incidents.
 
 ## Audits
 
-Hashi is currently unaudited. Proceed with caution, there may be dragons. 🐲
+Hashi is currently unaudited. Proceed with caution, there is probably dragons. 🐲
 
 ## Security and Liability
 
