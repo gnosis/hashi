@@ -46,7 +46,7 @@ struct chain {
     uint256 count;
 }
 
-contract ThresholdHashi is OwnableUpgradeable {
+contract ShikichiBashi is OwnableUpgradeable {
     IOracleAdapter internal constant LIST_END = IOracleAdapter(address(0x1));
 
     Hashi public hashi;
