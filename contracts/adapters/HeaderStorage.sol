@@ -2,7 +2,7 @@
 pragma solidity ^0.8.17;
 
 contract HeaderStorage {
-    mapping(uint256 => bytes32) headers;
+    mapping(uint256 => bytes32) public headers;
 
     event HeaderStored(uint256 indexed blockNumber, bytes32 indexed blockHeader);
 
