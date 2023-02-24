@@ -12,6 +12,8 @@ contract AMBAdapter {
 
     event HeaderStored(uint256 indexed blockNumber, bytes32 indexed blockHeader);
 
+    error ArrayLengthMissmatch(address emitter);
+
     constructor(IAMB _amb, address _headerReporter, bytes32 _chainId) {
         amb = _amb;
         headerReporter = _headerReporter;
@@ -31,6 +33,22 @@ contract AMBAdapter {
     /// @param newBlockHeader Header to set for the given block.
     /// @notice Only callable by `amb` with a message passed from `headerReporter.
     function storeBlockHeader(uint256 blockNumber, bytes32 newBlockHeader) public onlyValid {
+        _storeBlockHeader(blockNumber, newBlockHeader);
+    }
+
+    /// @dev Stores the block headers for a given array of blocks.
+    /// @param blockNumbers Array of block number for which to set the headers.
+    /// @param newBlockHeaders Array of block headers to set for the given blocks.
+    /// @notice Only callable by `amb` with a message passed from `headerReporter.
+    /// @notice Will revert if given array lengths do not match.
+    function storeBlockHeaders(uint256[] memory blockNumbers, bytes32[] memory newBlockHeaders) public onlyValid {
+        if (blockNumbers.length != newBlockHeaders.length) revert ArrayLengthMissmatch(address(this));
+        for (uint i = 0; i < blockNumbers.length; i++) {
+            _storeBlockHeader(blockNumbers[i], newBlockHeaders[i]);
+        }
+    }
+
+    function _storeBlockHeader(uint256 blockNumber, bytes32 newBlockHeader) internal {
         bytes32 currentBlockHeader = headers[blockNumber];
         if (currentBlockHeader != newBlockHeader) {
             headers[blockNumber] = newBlockHeader;

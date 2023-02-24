@@ -22,4 +22,17 @@ contract AMBHeaderReporter {
         bytes memory data = abi.encodeWithSignature("storeBlockHeader(uint256,bytes32)", blockNumber, blockHeader);
         receipt = amb.requireToPassMessage(oracleAdapter, data, gas);
     }
+
+    /// @dev Reports the given block headers to the oracleAdapter via the AMB.
+    /// @param blockNumbers Uint256 array of block number to pass over the AMB.
+    /// @param receipt Bytes32 receipt for the transaction.
+    function reportHeaders(uint256[] memory blockNumbers, uint256 gas) public returns (bytes32 receipt) {
+        bytes32[] memory blockHeaders = headerStorage.storeBlockHeaders(blockNumbers);
+        bytes memory data = abi.encodeWithSignature(
+            "storeBlockHeaders(uint256[],bytes32[])",
+            blockNumbers,
+            blockHeaders
+        );
+        receipt = amb.requireToPassMessage(oracleAdapter, data, gas);
+    }
 }

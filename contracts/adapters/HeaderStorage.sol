@@ -23,4 +23,16 @@ contract HeaderStorage {
             emit HeaderStored(blockNumber, blockHeader);
         }
     }
+
+    /// @dev Stores and returns the header for an array of given blocks.
+    /// @param blockNumbers Array of block numbers.
+    /// @return Array of block headers.
+    /// @notice Reverts if the given block header was not previously stored and is now out of range.
+    function storeBlockHeaders(uint256[] memory blockNumbers) public returns (bytes32[] memory) {
+        bytes32[] memory blockHeaders = new bytes32[](blockNumbers.length);
+        for (uint i = 0; i < blockNumbers.length; i++) {
+            blockHeaders[i] = storeBlockHeader(blockNumbers[i]);
+        }
+        return blockHeaders;
+    }
 }
