@@ -35,6 +35,7 @@ describe("Hashi", function () {
       expect(await hashi.deployed())
     })
   })
+
   describe("getHeaderFromOracle()", function () {
     it("Returns correct block header", async function () {
       const { hashi, mockOracleAdapter } = await setup()
@@ -42,6 +43,7 @@ describe("Hashi", function () {
       expect(await hashi.getHeaderFromOracle(mockOracleAdapter.address, CHAIN_ID, 1)).to.equal(HEADER_GOOD)
     })
   })
+
   describe("getHeadersFromOracles()", function () {
     it("Reverts if oracleAdapters length is zero", async function () {
       const { hashi } = await setup()
@@ -65,6 +67,7 @@ describe("Hashi", function () {
       expect(returnData[1]).to.equal(HEADER_ZERO)
     })
   })
+
   describe("getUnanimousHeader()", function () {
     it("Reverts if oracleAdapters length is zero", async function () {
       const { hashi, mockOracleAdapter, nonReportingMockOracleAdapter } = await setup()
@@ -92,39 +95,4 @@ describe("Hashi", function () {
       ).to.equal(HEADER_GOOD)
     })
   })
-  // describe("getHeaderFromThreshold()", function () {
-  //   it("Reverts if highest count did not report() and next highest does not meet threshold", async function () {
-  //     const { hashi, mockOracleAdapter, nonReportingMockOracleAdapter } = await setup()
-  //     await expect(
-  //       hashi.getHeaderFromThreshold(
-  //         [mockOracleAdapter.address, nonReportingMockOracleAdapter.address, nonReportingMockOracleAdapter.address],
-  //         CHAIN_ID,
-  //         1,
-  //         2,
-  //       ),
-  //     ).to.revertedWithCustomError(hashi, "HighestCountDidNotReport")
-  //   })
-  //   it("Returns header if threshold agree", async function () {
-  //     const { hashi, mockOracleAdapter, nonReportingMockOracleAdapter } = await setup()
-  //     await expect(
-  //       hashi.getHeaderFromThreshold(
-  //         [mockOracleAdapter.address, mockOracleAdapter.address, nonReportingMockOracleAdapter.address],
-  //         CHAIN_ID,
-  //         1,
-  //         3,
-  //       ),
-  //     ).to.revertedWithCustomError(hashi, "ThresholdNotMet")
-  //   })
-  //   it("Returns header if threshold agree", async function () {
-  //     const { hashi, mockOracleAdapter, nonReportingMockOracleAdapter } = await setup()
-  //     expect(
-  //       await hashi.getHeaderFromThreshold(
-  //         [mockOracleAdapter.address, mockOracleAdapter.address, nonReportingMockOracleAdapter.address],
-  //         CHAIN_ID,
-  //         1,
-  //         2,
-  //       ),
-  //     ).to.equal(HEADER_GOOD)
-  //   })
-  // })
 })

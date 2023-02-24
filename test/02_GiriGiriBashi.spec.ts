@@ -48,6 +48,7 @@ describe("GiriGiriBashi", function () {
       await expect(event.address).to.equal(giriGiriBashi.address)
     })
   })
+
   describe("setHashi()", function () {
     it("Reverts if called by non-owner account", async function () {
       const { giriGiriBashi, wallet } = await setup()
@@ -73,6 +74,7 @@ describe("GiriGiriBashi", function () {
         .withArgs(giriGiriBashi.address, wallet.address)
     })
   })
+
   describe("setThreshold()", function () {
     it("Reverts if called by non-owner account", async function () {
       const { giriGiriBashi } = await setup()
@@ -98,6 +100,7 @@ describe("GiriGiriBashi", function () {
         .withArgs(giriGiriBashi.address, CHAIN_ID, 3)
     })
   })
+
   describe("enableOracleAdapters()", function () {
     it("Reverts if called by non-owner account", async function () {
       const { giriGiriBashi } = await setup()
@@ -155,6 +158,7 @@ describe("GiriGiriBashi", function () {
         .withArgs(giriGiriBashi.address, CHAIN_ID, [ADDRESS_TWO, ADDRESS_THREE])
     })
   })
+
   describe("disableOracleAdapters()", function () {
     it("Reverts if called by non-owner account", async function () {
       const { giriGiriBashi } = await setup()
@@ -216,6 +220,7 @@ describe("GiriGiriBashi", function () {
         .withArgs(giriGiriBashi.address, CHAIN_ID, [ADDRESS_THREE, ADDRESS_TWO])
     })
   })
+
   describe("getOracleAdapters()", function () {
     it("Returns empty array if no adapters are enabled", async function () {
       const { giriGiriBashi } = await setup()
@@ -233,6 +238,7 @@ describe("GiriGiriBashi", function () {
       expect(adapters[1]).to.equal(ADDRESS_THREE)
     })
   })
+
   describe("getThresholdAndCount()", function () {
     it("Returns threshold equal to count if threshold not explicitly set", async function () {
       const { giriGiriBashi } = await setup()
@@ -248,6 +254,7 @@ describe("GiriGiriBashi", function () {
       await expect(threshold).to.equal(1)
     })
   })
+
   describe("getUnanimousHeader()", function () {
     it("Reverts if no adapters are enabled", async function () {
       const { giriGiriBashi } = await setup()
@@ -270,6 +277,7 @@ describe("GiriGiriBashi", function () {
       expect(await giriGiriBashi.getUnanimousHeader(CHAIN_ID, 1)).to.equal(HEADER_GOOD)
     })
   })
+
   describe("getHeader()", function () {
     it("Reverts if threshold is not met", async function () {
       const { giriGiriBashi, mockOracleAdapter } = await setup()
