@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity ^0.8.17;
 
-import "../IOracleAdapter.sol";
+import "../adapters/IOracleAdapter.sol";
 
 contract MockOracleAdapter is IOracleAdapter {
     mapping(uint256 => mapping(uint256 => bytes32)) public blockHeaders;
