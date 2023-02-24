@@ -14,9 +14,7 @@ contract HeaderStorage {
     /// @notice Reverts if the given block header was not previously stored and is now out of range.
     function storeBlockHeader(uint256 blockNumber) public returns (bytes32 blockHeader) {
         blockHeader = headers[blockNumber];
-        if (blockHeader != 0) {
-            return blockHeader;
-        } else {
+        if (blockHeader == 0) {
             blockHeader = blockhash(blockNumber);
             if (blockHeader == 0) revert HeaderOutOfRange(address(this), blockNumber);
             headers[blockNumber] = blockHeader;
