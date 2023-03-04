@@ -79,7 +79,7 @@ describe("GiriGiriBashi", function () {
       await giriGiriBashi.transferOwnership(giriGiriBashi.address)
       await expect(giriGiriBashi.setThreshold(CHAIN_ID, 2)).to.be.revertedWith("Ownable: caller is not the owner")
     })
-    it("Reverts if hashi is already set to this address", async function () {
+    it("Reverts if threshold is already set", async function () {
       const { giriGiriBashi } = await setup()
       await expect(giriGiriBashi.setThreshold(CHAIN_ID, 2)).to.be.revertedWithCustomError(
         giriGiriBashi,
@@ -137,7 +137,7 @@ describe("GiriGiriBashi", function () {
     })
     it("Enables the given oracles", async function () {
       const { giriGiriBashi } = await setup()
-      await expect(giriGiriBashi.enableOracleAdapters(CHAIN_ID, [ADDRESS_TWO, ADDRESS_THREE]))
+      await giriGiriBashi.enableOracleAdapters(CHAIN_ID, [ADDRESS_TWO, ADDRESS_THREE])
       const adapters = await giriGiriBashi.getOracleAdapters(CHAIN_ID)
       await expect(adapters[0]).to.equal(ADDRESS_TWO)
       await expect(adapters[1]).to.equal(ADDRESS_THREE)
@@ -206,7 +206,7 @@ describe("GiriGiriBashi", function () {
       await giriGiriBashi.enableOracleAdapters(CHAIN_ID, [ADDRESS_TWO, ADDRESS_THREE])
       await giriGiriBashi.disableOracleAdapters(CHAIN_ID, [ADDRESS_TWO, ADDRESS_THREE])
       const adapters = await giriGiriBashi.getOracleAdapters(CHAIN_ID)
-      await expect(adapters[0]).to.equal(undefined)
+      expect(adapters[0]).to.equal(undefined)
     })
     it("Emits OracleAdaptersDisabled() event", async function () {
       const { giriGiriBashi } = await setup()
@@ -222,7 +222,7 @@ describe("GiriGiriBashi", function () {
       const adapters = await giriGiriBashi.getOracleAdapters(CHAIN_ID)
       expect(adapters[0]).to.equal(undefined)
       await giriGiriBashi.enableOracleAdapters(CHAIN_ID, [ADDRESS_TWO, ADDRESS_THREE])
-      await expect(giriGiriBashi.disableOracleAdapters(CHAIN_ID, [ADDRESS_THREE, ADDRESS_TWO]))
+      expect(giriGiriBashi.disableOracleAdapters(CHAIN_ID, [ADDRESS_THREE, ADDRESS_TWO]))
       expect(adapters[0]).to.equal(undefined)
     })
     it("Returns array of enabled adapters", async function () {
@@ -238,14 +238,14 @@ describe("GiriGiriBashi", function () {
       const { giriGiriBashi } = await setup()
       await giriGiriBashi.enableOracleAdapters(CHAIN_ID, [ADDRESS_TWO, ADDRESS_THREE])
       const [threshold, count] = await giriGiriBashi.getThresholdAndCount(CHAIN_ID)
-      await expect(threshold).to.equal(count)
+      expect(threshold).to.equal(count)
     })
     it("Returns threshold and count", async function () {
       const { giriGiriBashi } = await setup()
       await giriGiriBashi.enableOracleAdapters(CHAIN_ID, [ADDRESS_TWO, ADDRESS_THREE])
       await giriGiriBashi.setThreshold(CHAIN_ID, 1)
       const [threshold] = await giriGiriBashi.getThresholdAndCount(CHAIN_ID)
-      await expect(threshold).to.equal(1)
+      expect(threshold).to.equal(1)
     })
   })
   describe("getUnanimousHeader()", function () {
@@ -271,9 +271,17 @@ describe("GiriGiriBashi", function () {
     })
   })
   describe("getHeader()", function () {
-    it("Reverts if threshold is not met", async function () {
+    it("Reverts if threshold is not set", async function () {
       const { giriGiriBashi, mockOracleAdapter } = await setup()
       await giriGiriBashi.enableOracleAdapters(CHAIN_ID, [mockOracleAdapter.address])
+      await expect(giriGiriBashi.getHeader(CHAIN_ID, 1, [mockOracleAdapter.address])).to.be.revertedWithCustomError(
+        giriGiriBashi,
+        "ThresholdNotMet",
+      )
+    })
+    it("Reverts if threshold is not met", async function () {
+      const { giriGiriBashi, mockOracleAdapter, anotherOracleAdapter } = await setup()
+      await giriGiriBashi.enableOracleAdapters(CHAIN_ID, [mockOracleAdapter.address, anotherOracleAdapter.address])
       await expect(giriGiriBashi.getHeader(CHAIN_ID, 1, [mockOracleAdapter.address])).to.be.revertedWithCustomError(
         giriGiriBashi,
         "ThresholdNotMet",
