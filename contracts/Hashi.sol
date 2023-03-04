@@ -83,6 +83,7 @@ contract Hashi {
         uint256 chainId,
         uint256 blockNumber
     ) public view returns (bytes32 blockHeader) {
+        if (oracleAdapters.length == 0) revert NoOracleAdaptersGiven(address(this));
         bytes32[] memory blockHeaders = getHeadersFromOracles(oracleAdapters, chainId, blockNumber);
         bytes32 previousHeader = blockHeaders[0];
         if (previousHeader == bytes32(0)) revert OracleDidNotReport(address(this), oracleAdapters[0]);

@@ -67,6 +67,10 @@ describe("Hashi", function () {
   })
   describe("getUnanimousHeader()", function () {
     it("Reverts if oracleAdapters length is zero", async function () {
+      const { hashi } = await setup()
+      await expect(hashi.getUnanimousHeader([], CHAIN_ID, 1)).to.revertedWithCustomError(hashi, "NoOracleAdaptersGiven")
+    })
+    it("Reverts if one of oracleAdapters is non-reporting", async function () {
       const { hashi, mockOracleAdapter, nonReportingMockOracleAdapter } = await setup()
       await expect(
         hashi.getUnanimousHeader([nonReportingMockOracleAdapter.address], CHAIN_ID, 1),
@@ -81,7 +85,7 @@ describe("Hashi", function () {
         hashi.getUnanimousHeader([mockOracleAdapter.address, badMockOracleAdapter.address], CHAIN_ID, 1),
       ).to.revertedWithCustomError(hashi, "OraclesDisagree")
     })
-    it("Reverts unanimously agreed on header", async function () {
+    it("Returns unanimously agreed on header", async function () {
       const { hashi, mockOracleAdapter } = await setup()
       expect(
         await hashi.getUnanimousHeader(

@@ -195,7 +195,7 @@ contract GiriGiriBashi is OwnableUpgradeable {
         blockHeader = hashi.getUnanimousHeader(_adapters, chainId, blockNumber);
     }
 
-    /// @dev Returns the block header unanimously agreed upon by all of the given oraclesAdapters..
+    /// @dev Returns the block header unanimously agreed upon by all of the given oraclesAdapters.
     /// @param chainId Uint256 identifier for the chain to query.
     /// @param _adapters Array of oracle adapter addresses to query.
     /// @param blockNumber Uint256 identifier for the block number to query.
