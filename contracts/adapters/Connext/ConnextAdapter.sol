@@ -14,9 +14,9 @@ contract ConnextAdapter is IXReceiver {
     error InvalidInputs();
     error InvalidSource(address _originSender, uint32 _origin);
 
-    mapping(uint32 => uint16) domainToChainId;
-    mapping(uint32 => address) domainToSource;
-    mapping(uint32 => address) domainToConnext;
+    mapping(uint32 => uint16) public domainToChainId;
+    mapping(uint32 => address) public domainToSource;
+    mapping(uint32 => address) public domainToConnext;
 
     constructor(
         address[] memory _connexts,
@@ -63,9 +63,9 @@ contract ConnextAdapter is IXReceiver {
     /// @param _callData decodable calldata passed through the Connext bridge.
     /// @notice Only callable by `connext` with a message passed from `headerReporter.
     function xReceive(
-        bytes32 _transferId,
-        uint256 _amount,
-        address _asset,
+        bytes32 _transferId, // solhint-disable-line
+        uint256 _amount, // solhint-disable-line
+        address _asset, // solhint-disable-line
         address _originSender,
         uint32 _origin,
         bytes memory _callData
