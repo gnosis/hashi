@@ -1,6 +1,6 @@
 import { mine } from "@nomicfoundation/hardhat-network-helpers"
 import { expect } from "chai"
-import { ethers } from "hardhat"
+import { ethers, network } from "hardhat"
 
 const CHAIN_ID = 1
 const HEADER_ZERO = "0x0000000000000000000000000000000000000000000000000000000000000000"
@@ -8,9 +8,11 @@ const HEADER_GOOD = "0x000000000000000000000000000000000000000000000000000000000
 const HEADER_BAD = "0x0000000000000000000000000000000000000000000000000000000000000bad"
 
 const setup = async () => {
+  await network.provider.request({ method: "hardhat_reset", params: [] })
   const [wallet] = await ethers.getSigners()
   const HeaderStorage = await ethers.getContractFactory("HeaderStorage")
   const headerStorage = await HeaderStorage.deploy()
+  await mine(1000)
   return {
     wallet,
     headerStorage,
@@ -28,7 +30,6 @@ describe("HeaderStorage", function () {
   describe("storeBlockHeader()", function () {
     it("Reverts if block is out of range", async function () {
       const { headerStorage } = await setup()
-      await mine(1000)
       await expect(headerStorage.storeBlockHeader(500)).to.be.revertedWithCustomError(headerStorage, "HeaderOutOfRange")
     })
     it("Stores and returns block header", async function () {
