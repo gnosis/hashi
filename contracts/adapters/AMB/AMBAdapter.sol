@@ -13,6 +13,9 @@ contract AMBAdapter {
     event HeaderStored(uint256 indexed blockNumber, bytes32 indexed blockHeader);
 
     error ArrayLengthMissmatch(address emitter);
+    error UnauthorizedAMB(address emitter, address sender);
+    error UnauthorizedChainId(address emitter, bytes32 chainId);
+    error UnauthorizedHeaderReporter(address emitter, address HeaderReporter);
 
     constructor(IAMB _amb, address _headerReporter, bytes32 _chainId) {
         amb = _amb;
@@ -22,37 +25,37 @@ contract AMBAdapter {
 
     /// @dev Check that the amb, chainId, and owner are valid.
     modifier onlyValid() {
-        require(msg.sender == address(amb), "Unauthorized amb");
-        require(amb.messageSourceChainId() == chainId, "Unauthorized chainId");
-        require(amb.messageSender() == headerReporter, "Unauthorized headerReporter");
+        if (msg.sender != address(amb)) revert UnauthorizedAMB(address(this), msg.sender);
+        if (amb.messageSourceChainId() != chainId) revert UnauthorizedChainId(address(this), chainId);
+        if (amb.messageSender() != headerReporter) revert UnauthorizedHeaderReporter(address(this), headerReporter);
         _;
     }
 
     /// @dev Stores the block header for a given block.
     /// @param blockNumber Identifier for the block for which to set the header.
-    /// @param newBlockHeader Header to set for the given block.
+    /// @param blockHeader Header to set for the given block.
     /// @notice Only callable by `amb` with a message passed from `headerReporter.
-    function storeBlockHeader(uint256 blockNumber, bytes32 newBlockHeader) public onlyValid {
-        _storeBlockHeader(blockNumber, newBlockHeader);
+    function storeBlockHeader(uint256 blockNumber, bytes32 blockHeader) public {
+        _storeBlockHeader(blockNumber, blockHeader);
     }
 
     /// @dev Stores the block headers for a given array of blocks.
     /// @param blockNumbers Array of block number for which to set the headers.
-    /// @param newBlockHeaders Array of block headers to set for the given blocks.
+    /// @param blockHeaders Array of block headers to set for the given blocks.
     /// @notice Only callable by `amb` with a message passed from `headerReporter.
     /// @notice Will revert if given array lengths do not match.
-    function storeBlockHeaders(uint256[] memory blockNumbers, bytes32[] memory newBlockHeaders) public onlyValid {
-        if (blockNumbers.length != newBlockHeaders.length) revert ArrayLengthMissmatch(address(this));
+    function storeBlockHeaders(uint256[] memory blockNumbers, bytes32[] memory blockHeaders) public {
+        if (blockNumbers.length != blockHeaders.length) revert ArrayLengthMissmatch(address(this));
         for (uint i = 0; i < blockNumbers.length; i++) {
-            _storeBlockHeader(blockNumbers[i], newBlockHeaders[i]);
+            _storeBlockHeader(blockNumbers[i], blockHeaders[i]);
         }
     }
 
-    function _storeBlockHeader(uint256 blockNumber, bytes32 newBlockHeader) internal {
+    function _storeBlockHeader(uint256 blockNumber, bytes32 blockHeader) internal onlyValid {
         bytes32 currentBlockHeader = headers[blockNumber];
-        if (currentBlockHeader != newBlockHeader) {
-            headers[blockNumber] = newBlockHeader;
-            emit HeaderStored(blockNumber, newBlockHeader);
+        if (currentBlockHeader != blockHeader) {
+            headers[blockNumber] = blockHeader;
+            emit HeaderStored(blockNumber, blockHeader);
         }
     }
 
