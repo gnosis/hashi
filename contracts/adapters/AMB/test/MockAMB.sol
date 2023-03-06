@@ -6,7 +6,7 @@ import "../AMBAdapter.sol";
 
 contract MockAMB is IAMB {
     address private sender;
-    bytes32 immutable chainId = 0x0000000000000000000000000000000000000000000000000000000000000064;
+    bytes32 private immutable chainId = 0x0000000000000000000000000000000000000000000000000000000000000064;
 
     error TransactionFailed();
 
@@ -14,11 +14,11 @@ contract MockAMB is IAMB {
         return sender;
     }
 
-    function messageSourceChainId() external view returns (bytes32) {
+    function messageSourceChainId() external pure returns (bytes32) {
         return chainId;
     }
 
-    function requireToPassMessage(address _contract, bytes memory _data, uint256 gas) external returns (bytes32) {
+    function requireToPassMessage(address _contract, bytes memory _data, uint256) external returns (bytes32) {
         sender = msg.sender;
         (bool success, bytes memory returnData) = _contract.call(_data);
         if (!success) revert TransactionFailed();

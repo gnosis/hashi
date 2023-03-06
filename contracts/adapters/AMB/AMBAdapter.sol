@@ -15,7 +15,7 @@ contract AMBAdapter {
     error ArrayLengthMissmatch(address emitter);
     error UnauthorizedAMB(address emitter, address sender);
     error UnauthorizedChainId(address emitter, bytes32 chainId);
-    error UnauthorizedHeaderReporter(address emitter, address HeaderReporter);
+    error UnauthorizedHeaderReporter(address emitter, address headerReporter);
 
     constructor(IAMB _amb, address _headerReporter, bytes32 _chainId) {
         amb = _amb;
