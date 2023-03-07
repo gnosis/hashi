@@ -519,6 +519,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@connext/interfaces@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "@connext/interfaces@npm:2.0.0"
+  checksum: 8cc776d9c0d5cc8ca92c0d0d4cc656b07efb4f48df517a85be54ef5a289db78f7dfc1d92ff4e41c5fd0788e29d63199ccfc6ee7340f9766a164ebf4ef7a83ff4
+  languageName: node
+  linkType: hard
+
 "@cspotcode/source-map-support@npm:^0.8.0":
   version: 0.8.1
   resolution: "@cspotcode/source-map-support@npm:0.8.1"
@@ -960,6 +967,7 @@ __metadata:
   dependencies:
     "@commitlint/cli": ^17.3.0
     "@commitlint/config-conventional": ^17.3.0
+    "@connext/interfaces": ^2.0.0
     "@ethersproject/abi": ^5.7.0
     "@ethersproject/abstract-signer": ^5.7.0
     "@ethersproject/bignumber": ^5.7.0
