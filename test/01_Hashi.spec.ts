@@ -84,7 +84,7 @@ describe("Hashi", function () {
         hashi.getUnanimousHeader([mockOracleAdapter.address, badMockOracleAdapter.address], CHAIN_ID, 1),
       ).to.revertedWithCustomError(hashi, "OraclesDisagree")
     })
-    it("Reverts unanimously agreed on header", async function () {
+    it("Returns unanimously agreed on header", async function () {
       const { hashi, mockOracleAdapter } = await setup()
       expect(
         await hashi.getUnanimousHeader(
@@ -93,6 +93,10 @@ describe("Hashi", function () {
           1,
         ),
       ).to.equal(HEADER_GOOD)
+    })
+    it("Returns header for single oracle", async function () {
+      const { hashi, mockOracleAdapter } = await setup()
+      expect(await hashi.getUnanimousHeader([mockOracleAdapter.address], CHAIN_ID, 1)).to.equal(HEADER_GOOD)
     })
   })
 })

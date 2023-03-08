@@ -330,7 +330,7 @@ describe("GiriGiriBashi", function () {
       const { giriGiriBashi, mockOracleAdapter, anotherOracleAdapter } = await setup()
       await giriGiriBashi.enableOracleAdapters(CHAIN_ID, [mockOracleAdapter.address, anotherOracleAdapter.address])
       expect(
-        await giriGiriBashi.getHeader(CHAIN_ID, 1, [mockOracleAdapter.address, anotherOracleAdapter.address]),
+        await giriGiriBashi.getHeader(CHAIN_ID, 1, [anotherOracleAdapter.address, mockOracleAdapter.address]),
       ).to.equal(HEADER_GOOD)
     })
   })
