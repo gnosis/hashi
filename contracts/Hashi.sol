@@ -84,16 +84,17 @@ contract Hashi {
         uint256 blockNumber
     ) public view returns (bytes32 blockHeader) {
         bytes32[] memory blockHeaders = getHeadersFromOracles(oracleAdapters, chainId, blockNumber);
-        bytes32 previousHeader = blockHeaders[0];
-        if (previousHeader == bytes32(0)) revert OracleDidNotReport(address(this), oracleAdapters[0]);
-        bytes32 currentHeader;
-        for (uint256 i = 1; i < blockHeaders.length; i++) {
-            currentHeader = blockHeaders[i];
-            if (currentHeader == bytes32(0)) revert OracleDidNotReport(address(this), oracleAdapters[i]);
-            if (currentHeader != previousHeader)
-                revert OraclesDisagree(address(this), oracleAdapters[i - 1], oracleAdapters[i]);
-            previousHeader = currentHeader;
+        blockHeader = blockHeaders[0];
+        if (blockHeader == bytes32(0)) revert OracleDidNotReport(address(this), oracleAdapters[0]);
+        if (blockHeaders.length > 1) {
+            for (uint256 i = 1; i < blockHeaders.length; i++) {
+                bytes32 previousHeader = blockHeader;
+                blockHeader = blockHeaders[i];
+                if (blockHeader == bytes32(0)) revert OracleDidNotReport(address(this), oracleAdapters[i]);
+                if (blockHeader != previousHeader)
+                    revert OraclesDisagree(address(this), oracleAdapters[i - 1], oracleAdapters[i]);
+                previousHeader = blockHeader;
+            }
         }
-        blockHeader = currentHeader;
     }
 }
