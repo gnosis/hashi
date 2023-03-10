@@ -26,6 +26,7 @@ const chainIds = {
   avalanche: 43114,
   bsc: 56,
   gnosis: 100,
+  goerli: 5,
   hardhat: 31337,
   mainnet: 1,
   "optimism-mainnet": 10,
@@ -65,6 +66,7 @@ const config: HardhatUserConfig = {
       avalanche: process.env.SNOWTRACE_API_KEY || "",
       bsc: process.env.BSCSCAN_API_KEY || "",
       gnosis: process.env.GNOSISSCAN_API_KEY || "",
+      goerli: process.env.ETHERSCAN_API_KEY || "",
       mainnet: process.env.ETHERSCAN_API_KEY || "",
       optimisticEthereum: process.env.OPTIMISM_API_KEY || "",
       polygon: process.env.POLYGONSCAN_API_KEY || "",
@@ -94,6 +96,7 @@ const config: HardhatUserConfig = {
     "polygon-mainnet": getChainConfig("polygon-mainnet"),
     "polygon-mumbai": getChainConfig("polygon-mumbai"),
     sepolia: getChainConfig("sepolia"),
+    goerli: getChainConfig("goerli"),
   },
   paths: {
     artifacts: "./artifacts",
