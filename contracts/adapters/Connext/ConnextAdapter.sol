@@ -3,11 +3,10 @@ pragma solidity ^0.8.17;
 
 import "@connext/interfaces/core/IConnext.sol";
 import "@connext/interfaces/core/IXReceiver.sol";
-import "../IOracleAdapter.sol";
+import "../OracleAdapter.sol";
 
-contract ConnextAdapter is IXReceiver {
+contract ConnextAdapter is IXReceiver, OracleAdapter {
     bytes32 public headerReporter;
-    mapping(uint256 => mapping(uint256 => bytes32)) public headers;
 
     event HeaderStored(uint256 indexed blockNumber, bytes32 indexed blockHeader);
 
@@ -77,13 +76,5 @@ contract ConnextAdapter is IXReceiver {
             headers[uint256(domainToChainId[_origin])][blockNumber] = newBlockHeader;
             emit HeaderStored(blockNumber, newBlockHeader);
         }
-    }
-
-    /// @dev Returns the block header for a given block, as reported by the Wormhole.
-    /// @param blockNumber Identifier for the block to query.
-    /// @return blockHeader Bytes32 block header reported by the oracle for the given block on the given chain.
-    /// @notice MUST return bytes32(0) if the oracle has not yet reported a header for the given block.
-    function getHeaderFromOracle(uint256 chainId, uint256 blockNumber) external view returns (bytes32 blockHeader) {
-        blockHeader = headers[chainId][blockNumber];
     }
 }

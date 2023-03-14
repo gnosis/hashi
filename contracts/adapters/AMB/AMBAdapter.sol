@@ -2,13 +2,12 @@
 pragma solidity ^0.8.17;
 
 import "./IAMB.sol";
-import "../IOracleAdapter.sol";
+import "../OracleAdapter.sol";
 
-contract AMBAdapter {
+contract AMBAdapter is OracleAdapter {
     IAMB public amb;
     address public headerReporter;
     bytes32 public chainId;
-    mapping(uint256 => bytes32) public headers;
 
     event HeaderStored(uint256 indexed blockNumber, bytes32 indexed blockHeader);
 
@@ -52,18 +51,10 @@ contract AMBAdapter {
     }
 
     function _storeBlockHeader(uint256 blockNumber, bytes32 blockHeader) internal onlyValid {
-        bytes32 currentBlockHeader = headers[blockNumber];
+        bytes32 currentBlockHeader = headers[uint256(chainId)][blockNumber];
         if (currentBlockHeader != blockHeader) {
-            headers[blockNumber] = blockHeader;
+            headers[uint256(chainId)][blockNumber] = blockHeader;
             emit HeaderStored(blockNumber, blockHeader);
         }
-    }
-
-    /// @dev Returns the block header for a given block, as reported by the AMB.
-    /// @param blockNumber Identifier for the block to query.
-    /// @return blockHeader Bytes32 block header reported by the oracle for the given block on the given chain.
-    /// @notice MUST return bytes32(0) if the oracle has not yet reported a header for the given block.
-    function getHeaderFromOracle(uint256, uint256 blockNumber) external view returns (bytes32 blockHeader) {
-        blockHeader = headers[blockNumber];
     }
 }
