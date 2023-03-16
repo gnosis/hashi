@@ -15,7 +15,7 @@ task("deploy:Hashi").setAction(async function (taskArguments: TaskArguments, { e
   console.log("Hashi deployed to: ", hashi.address)
 })
 
-task("deploy:GiriGiriHashi")
+task("deploy:GiriGiriBashi")
   .addParam("owner", "address to set as the owner of this contract")
   .addParam("hashi", "address of the hashi contract")
   .setAction(async function (taskArguments: TaskArguments, { ethers }) {
