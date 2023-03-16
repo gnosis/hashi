@@ -31,14 +31,6 @@ contract AMBAdapter {
         _;
     }
 
-    /// @dev Stores the block header for a given block.
-    /// @param blockNumber Identifier for the block for which to set the header.
-    /// @param blockHeader Header to set for the given block.
-    /// @notice Only callable by `amb` with a message passed from `headerReporter.
-    function storeBlockHeader(uint256 blockNumber, bytes32 blockHeader) public {
-        _storeBlockHeader(blockNumber, blockHeader);
-    }
-
     /// @dev Stores the block headers for a given array of blocks.
     /// @param blockNumbers Array of block number for which to set the headers.
     /// @param blockHeaders Array of block headers to set for the given blocks.
