@@ -4,6 +4,10 @@ pragma solidity ^0.8.17;
 interface IOracleAdapter {
     event HashStored(uint256 indexed id, bytes32 indexed hashes);
 
+    error InvalidBlockHeaderLength(uint256 length);
+    error InvalidBlockHeaderRLP();
+    error ConflictingBlockHeader(uint256 blockNumber, bytes32 reportedBlockHash, bytes32 storedBlockHash);
+
     /// @dev Returns the hash for a given ID, as reported by the oracle.
     /// @param domain Identifier for the domain to query.
     /// @param id Identifier for the ID to query.
