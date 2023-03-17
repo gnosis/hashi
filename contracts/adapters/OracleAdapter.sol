@@ -14,20 +14,23 @@ contract OracleAdapter is IOracleAdapter {
         blockHeader = headers[chainId][blockNumber];
     }
 
-    function proveHeaders(uint256 chainId, bytes32[] memory blockHeaders, bytes[] memory blockHeaderContents) external {
-        if (blockHeaders.length != blockHeaderContents.length) revert("Array Mismatch");
+    function proveAncestralHeaders(uint256 chainId, bytes[] memory blockHeaderProofs) external {
+        for (uint256 i = 0; i < blockHeaderProofs.length; i++) {
+            RLPReader.RLPItem memory blockHeaderRLP = RLPReader.toRlpItem(blockHeaderProofs[i]);
 
-        for (uint256 i = 0; i < blockHeaders.length; i++) {
-            RLPReader.RLPItem[] memory blockHeaderContent = RLPReader.toRlpItem(blockHeaderContents[i]).toList();
+            if (!blockHeaderRLP.isList()) revert InvalidBlockHeaderProofRLP();
 
-            bytes32 blockHeader = blockHeaders[i];
+            RLPReader.RLPItem[] memory blockHeaderContent = blockHeaderRLP.toList();
 
-            if (blockHeader != keccak256(blockHeaderContents[i])) revert("Header Mismatch");
+            // A block header should have between 15 and 17 elements (baseFee and withdrawalsRoot have been added later)
+            if (blockHeaderContent.length < 15 || blockHeaderContent.length > 17)
+                revert InvalidBlockHeaderProofLength(blockHeaderContent.length);
 
+            bytes32 blockHeader = keccak256(blockHeaderProofs[i]);
             bytes32 blockParent = bytes32(blockHeaderContent[0].toUint());
             uint256 blockNumber = uint256(blockHeaderContent[8].toUint());
 
-            if (headers[chainId][blockNumber] != blockHeader) revert("Proof doesn't match up");
+            if (headers[chainId][blockNumber] != blockHeader) revert InvalidBlockHeaderProof(blockNumber, blockHeader);
 
             headers[chainId][blockNumber - 1] = blockParent;
 

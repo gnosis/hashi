@@ -10,4 +10,8 @@ interface IOracleAdapter {
     function getHeaderFromOracle(uint256 chainId, uint256 blockNumber) external view returns (bytes32 blockHeader);
 
     event HeaderStored(uint256 indexed blockNumber, bytes32 indexed blockHeader);
+
+    error InvalidBlockHeaderProofLength(uint256 length);
+    error InvalidBlockHeaderProofRLP();
+    error InvalidBlockHeaderProof(uint256 blockNumber, bytes32 blockHeader);
 }
