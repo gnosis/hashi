@@ -1,10 +1,10 @@
 import { expect } from "chai"
 import { ethers } from "hardhat"
 
-const CHAIN_ID = 1
-const HEADER_ZERO = "0x0000000000000000000000000000000000000000000000000000000000000000"
-const HEADER_GOOD = "0x0000000000000000000000000000000000000000000000000000000000000001"
-const HEADER_BAD = "0x0000000000000000000000000000000000000000000000000000000000000bad"
+const DOMAIN_ID = 1
+const HASH_ZERO = "0x0000000000000000000000000000000000000000000000000000000000000000"
+const HASH_GOOD = "0x0000000000000000000000000000000000000000000000000000000000000001"
+const HASH_BAD = "0x0000000000000000000000000000000000000000000000000000000000000bad"
 
 const setup = async () => {
   const [wallet] = await ethers.getSigners()
@@ -15,9 +15,9 @@ const setup = async () => {
   const badMockOracleAdapter = await MockOracleAdapter.deploy()
   const nonReportingMockOracleAdapter = await MockOracleAdapter.deploy()
 
-  await mockOracleAdapter.setBlockHeaders(CHAIN_ID, [0, 1], [HEADER_ZERO, HEADER_GOOD])
-  await badMockOracleAdapter.setBlockHeaders(CHAIN_ID, [0, 1], [HEADER_BAD, HEADER_BAD])
-  await nonReportingMockOracleAdapter.setBlockHeaders(CHAIN_ID, [0, 1], [HEADER_ZERO, HEADER_ZERO])
+  await mockOracleAdapter.setHashes(DOMAIN_ID, [0, 1], [HASH_ZERO, HASH_GOOD])
+  await badMockOracleAdapter.setHashes(DOMAIN_ID, [0, 1], [HASH_BAD, HASH_BAD])
+  await nonReportingMockOracleAdapter.setHashes(DOMAIN_ID, [0, 1], [HASH_ZERO, HASH_ZERO])
 
   return {
     wallet,
@@ -36,67 +36,67 @@ describe("Hashi", function () {
     })
   })
 
-  describe("getHeaderFromOracle()", function () {
-    it("Returns correct block header", async function () {
+  describe("getHashFromOracle()", function () {
+    it("Returns correct hash", async function () {
       const { hashi, mockOracleAdapter } = await setup()
-      expect(await hashi.getHeaderFromOracle(mockOracleAdapter.address, CHAIN_ID, 0)).to.equal(HEADER_ZERO)
-      expect(await hashi.getHeaderFromOracle(mockOracleAdapter.address, CHAIN_ID, 1)).to.equal(HEADER_GOOD)
+      expect(await hashi.getHashFromOracle(mockOracleAdapter.address, DOMAIN_ID, 0)).to.equal(HASH_ZERO)
+      expect(await hashi.getHashFromOracle(mockOracleAdapter.address, DOMAIN_ID, 1)).to.equal(HASH_GOOD)
     })
   })
 
-  describe("getHeadersFromOracles()", function () {
+  describe("getHashesFromOracles()", function () {
     it("Reverts if oracleAdapters length is zero", async function () {
       const { hashi } = await setup()
-      await expect(hashi.getHeadersFromOracles([], CHAIN_ID, 1)).to.revertedWithCustomError(
+      await expect(hashi.getHashesFromOracles([], DOMAIN_ID, 1)).to.revertedWithCustomError(
         hashi,
         "NoOracleAdaptersGiven",
       )
     })
-    it("Returns correct block headers from each oracle", async function () {
+    it("Returns correct hashs from each oracle", async function () {
       const { hashi, mockOracleAdapter, badMockOracleAdapter } = await setup()
       const oracles = [mockOracleAdapter.address, badMockOracleAdapter.address]
-      const returnData = await hashi.getHeadersFromOracles(oracles, CHAIN_ID, 1)
-      expect(returnData[0]).to.equal(HEADER_GOOD)
-      expect(returnData[1]).to.equal(HEADER_BAD)
+      const returnData = await hashi.getHashesFromOracles(oracles, DOMAIN_ID, 1)
+      expect(returnData[0]).to.equal(HASH_GOOD)
+      expect(returnData[1]).to.equal(HASH_BAD)
     })
     it("Returns Bytes(0) for non-reporting oracles", async function () {
       const { hashi, mockOracleAdapter, nonReportingMockOracleAdapter } = await setup()
       const oracles = [mockOracleAdapter.address, nonReportingMockOracleAdapter.address]
-      const returnData = await hashi.getHeadersFromOracles(oracles, CHAIN_ID, 1)
-      expect(returnData[0]).to.equal(HEADER_GOOD)
-      expect(returnData[1]).to.equal(HEADER_ZERO)
+      const returnData = await hashi.getHashesFromOracles(oracles, DOMAIN_ID, 1)
+      expect(returnData[0]).to.equal(HASH_GOOD)
+      expect(returnData[1]).to.equal(HASH_ZERO)
     })
   })
 
-  describe("getUnanimousHeader()", function () {
+  describe("getUnanimousHash()", function () {
     it("Reverts if oracleAdapters length is zero", async function () {
       const { hashi, mockOracleAdapter, nonReportingMockOracleAdapter } = await setup()
       await expect(
-        hashi.getUnanimousHeader([nonReportingMockOracleAdapter.address], CHAIN_ID, 1),
+        hashi.getUnanimousHash([nonReportingMockOracleAdapter.address], DOMAIN_ID, 1),
       ).to.revertedWithCustomError(hashi, "OracleDidNotReport")
       await expect(
-        hashi.getUnanimousHeader([mockOracleAdapter.address, nonReportingMockOracleAdapter.address], CHAIN_ID, 1),
+        hashi.getUnanimousHash([mockOracleAdapter.address, nonReportingMockOracleAdapter.address], DOMAIN_ID, 1),
       ).to.revertedWithCustomError(hashi, "OracleDidNotReport")
     })
     it("Reverts if oracleAdapters disagree", async function () {
       const { hashi, mockOracleAdapter, badMockOracleAdapter } = await setup()
       await expect(
-        hashi.getUnanimousHeader([mockOracleAdapter.address, badMockOracleAdapter.address], CHAIN_ID, 1),
+        hashi.getUnanimousHash([mockOracleAdapter.address, badMockOracleAdapter.address], DOMAIN_ID, 1),
       ).to.revertedWithCustomError(hashi, "OraclesDisagree")
     })
-    it("Returns unanimously agreed on header", async function () {
+    it("Returns unanimously agreed on hash", async function () {
       const { hashi, mockOracleAdapter } = await setup()
       expect(
-        await hashi.getUnanimousHeader(
+        await hashi.getUnanimousHash(
           [mockOracleAdapter.address, mockOracleAdapter.address, mockOracleAdapter.address],
-          CHAIN_ID,
+          DOMAIN_ID,
           1,
         ),
-      ).to.equal(HEADER_GOOD)
+      ).to.equal(HASH_GOOD)
     })
-    it("Returns header for single oracle", async function () {
+    it("Returns hash for single oracle", async function () {
       const { hashi, mockOracleAdapter } = await setup()
-      expect(await hashi.getUnanimousHeader([mockOracleAdapter.address], CHAIN_ID, 1)).to.equal(HEADER_GOOD)
+      expect(await hashi.getUnanimousHash([mockOracleAdapter.address], DOMAIN_ID, 1)).to.equal(HASH_GOOD)
     })
   })
 })

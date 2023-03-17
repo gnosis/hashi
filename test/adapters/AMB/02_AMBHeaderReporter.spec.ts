@@ -3,7 +3,7 @@ import { expect } from "chai"
 import { ethers, network } from "hardhat"
 
 const GAS = 1000000
-const CHAIN_ID = "0x0000000000000000000000000000000000000000000000000000000000000064"
+const DOMAIN_ID = "0x0000000000000000000000000000000000000000000000000000000000000064"
 
 const setup = async () => {
   await network.provider.request({ method: "hardhat_reset", params: [] })
@@ -15,7 +15,7 @@ const setup = async () => {
   const AMBHeaderReporter = await ethers.getContractFactory("AMBHeaderReporter")
   const ambHeaderReporter = await AMBHeaderReporter.deploy(amb.address, headerStorage.address)
   const AMBAdapter = await ethers.getContractFactory("AMBAdapter")
-  const ambAdapter = await AMBAdapter.deploy(amb.address, ambHeaderReporter.address, CHAIN_ID)
+  const ambAdapter = await AMBAdapter.deploy(amb.address, ambHeaderReporter.address, DOMAIN_ID)
   await mine(1000)
   return {
     wallet,
@@ -33,29 +33,6 @@ describe("AMBHeaderReporter", function () {
     })
   })
 
-  describe("reportHeader()", function () {
-    it("Reports header to AMB", async function () {
-      const { ambHeaderReporter, ambAdapter } = await setup()
-      const block = await ethers.provider._getBlock(999)
-      await expect(ambHeaderReporter.reportHeader(999, ambAdapter.address, GAS))
-        .to.emit(ambHeaderReporter, "HeaderReported")
-        .withArgs(ambHeaderReporter.address, 999, block.hash)
-      expect(await ambAdapter.getHeaderFromOracle(CHAIN_ID, 999)).to.equal(block.hash)
-    })
-    it("Emits HeaderReported event", async function () {
-      const { ambHeaderReporter, ambAdapter } = await setup()
-      const block = await ethers.provider._getBlock(999)
-      await expect(ambHeaderReporter.reportHeader(999, ambAdapter.address, GAS))
-        .to.emit(ambHeaderReporter, "HeaderReported")
-        .withArgs(ambHeaderReporter.address, 999, block.hash)
-    })
-    it("Returns receipt", async function () {
-      const { ambHeaderReporter, ambAdapter } = await setup()
-      const receipt = await ambHeaderReporter.callStatic.reportHeader(999, ambAdapter.address, GAS)
-      expect(receipt).is.not.null
-    })
-  })
-
   describe("reportHeaders()", function () {
     it("Reports headers to AMB", async function () {
       const { ambHeaderReporter, ambAdapter } = await setup()
@@ -64,8 +41,8 @@ describe("AMBHeaderReporter", function () {
       await expect(ambHeaderReporter.reportHeaders([999, 998], ambAdapter.address, GAS))
         .to.emit(ambHeaderReporter, "HeaderReported")
         .withArgs(ambHeaderReporter.address, 999, block.hash)
-      expect(await ambAdapter.getHeaderFromOracle(CHAIN_ID, 999)).to.equal(block.hash)
-      expect(await ambAdapter.getHeaderFromOracle(CHAIN_ID, 998)).to.equal(block2.hash)
+      expect(await ambAdapter.getHashFromOracle(DOMAIN_ID, 999)).to.equal(block.hash)
+      expect(await ambAdapter.getHashFromOracle(DOMAIN_ID, 998)).to.equal(block2.hash)
     })
     it("Reports headers to AMB", async function () {
       const { ambHeaderReporter, ambAdapter } = await setup()
@@ -81,7 +58,7 @@ describe("AMBHeaderReporter", function () {
     })
     it("Returns receipt", async function () {
       const { ambHeaderReporter, ambAdapter } = await setup()
-      const receipt = await ambHeaderReporter.callStatic.reportHeader(999, ambAdapter.address, GAS)
+      const receipt = await ambHeaderReporter.callStatic.reportHeaders([999], ambAdapter.address, GAS)
       expect(receipt).is.not.null
     })
   })
