@@ -12,5 +12,6 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "editor.formatOnSave": true,
-  "liveServer.settings.root": "/coverage"
+  "liveServer.settings.root": "/coverage",
+  "cSpell.words": ["hexlify"]
 }
