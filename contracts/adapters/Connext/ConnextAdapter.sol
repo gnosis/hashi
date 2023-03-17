@@ -3,7 +3,7 @@ pragma solidity ^0.8.17;
 
 import "@connext/interfaces/core/IConnext.sol";
 import "@connext/interfaces/core/IXReceiver.sol";
-import "../IOracleAdapter.sol";
+import "../interfaces/IOracleAdapter.sol";
 
 contract ConnextAdapter is IXReceiver {
     bytes32 public headerReporter;
