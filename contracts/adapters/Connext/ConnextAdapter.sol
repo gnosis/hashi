@@ -8,8 +8,6 @@ import "../OracleAdapter.sol";
 contract ConnextAdapter is IXReceiver, OracleAdapter {
     bytes32 public headerReporter;
 
-    event HeaderStored(uint256 indexed blockNumber, bytes32 indexed blockHeader);
-
     error InvalidInputs();
     error InvalidSource(address _originSender, uint32 _origin);
 

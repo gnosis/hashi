@@ -9,5 +9,5 @@ interface IOracleAdapter {
     /// @notice MUST return bytes32(0) if the oracle has not yet reported a header for the given block.
     function getHeaderFromOracle(uint256 chainId, uint256 blockNumber) external view returns (bytes32 blockHeader);
 
-    event HeaderNewStored(uint256 indexed blockNumber, bytes32 indexed blockHeader);
+    event HeaderStored(uint256 indexed blockNumber, bytes32 indexed blockHeader);
 }

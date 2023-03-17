@@ -9,8 +9,6 @@ contract AMBAdapter is OracleAdapter {
     address public headerReporter;
     bytes32 public chainId;
 
-    event HeaderStored(uint256 indexed blockNumber, bytes32 indexed blockHeader);
-
     error ArrayLengthMissmatch(address emitter);
     error UnauthorizedAMB(address emitter, address sender);
     error UnauthorizedChainId(address emitter, bytes32 chainId);

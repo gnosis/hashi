@@ -31,7 +31,7 @@ contract OracleAdapter is IOracleAdapter {
 
             headers[chainId][blockNumber - 1] = blockParent;
 
-            emit HeaderNewStored(blockNumber, blockHeader);
+            emit HeaderStored(blockNumber - 1, blockParent);
         }
     }
 }

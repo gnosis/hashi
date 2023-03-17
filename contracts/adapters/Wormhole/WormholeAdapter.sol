@@ -8,8 +8,6 @@ contract WormholeAdapter is OracleAdapter {
     IWormhole public wormhole;
     bytes32 public headerReporter;
 
-    event HeaderStored(uint256 indexed blockNumber, bytes32 indexed blockHeader);
-
     error InvalidMessage(address emitter, VM vm, string reason);
     error InvalidChainId(address emitter, uint16 chainId);
     error InvalidReporter(address emitter, bytes32 reporter);
