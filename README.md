@@ -1,3 +1,11 @@
+> **⚠️ Warning ⚠️**
+>
+> **⚠️ This code is being actively developed and is not yet production ready.**
+>
+> **⚠️ DO NOT deploy this code or use deployments of this code for anything valuable.**
+
+---
+
 [![Github Actions][gha-badge]][gha] [![Coverage Status][coveralls-badge]][coveralls]
 [![Hardhat][hardhat-badge]][hardhat] [![License: LGPL-3.0-only][license-badge]][license]
 

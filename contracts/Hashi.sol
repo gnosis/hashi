@@ -33,68 +33,69 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity ^0.8.17;
 
-import "./adapters/IOracleAdapter.sol";
+import "./adapters/interfaces/IOracleAdapter.sol";
 
 contract Hashi {
     error NoOracleAdaptersGiven(address emitter);
     error OracleDidNotReport(address emitter, IOracleAdapter oracleAdapter);
     error OraclesDisagree(address emitter, IOracleAdapter oracleOne, IOracleAdapter oracleTwo);
 
-    /// @dev Returns the block header reported by a given oracle for a given block.
+    /// @dev Returns the hash reported by a given oracle for a given ID.
     /// @param oracleAdapter Address of the oracle adapter to query.
-    /// @param chainId Id of the chain to query.
-    /// @param blockNumber Block number for which to return a header.
-    /// @return blockHeader Block header reported by the given oracle adapter for the given block number.
-    function getHeaderFromOracle(
+    /// @param domain Id of the domain to query.
+    /// @param id ID for which to return a hash.
+    /// @return hash Hash reported by the given oracle adapter for the given ID number.
+    function getHashFromOracle(
         IOracleAdapter oracleAdapter,
-        uint256 chainId,
-        uint256 blockNumber
-    ) public view returns (bytes32 blockHeader) {
-        blockHeader = oracleAdapter.getHeaderFromOracle(chainId, blockNumber);
+        uint256 domain,
+        uint256 id
+    ) public view returns (bytes32 hash) {
+        hash = oracleAdapter.getHashFromOracle(domain, id);
     }
 
-    /// @dev Returns the block headers for a given block reported by a given set of oracles.
+    /// @dev Returns the hash for a given ID reported by a given set of oracles.
     /// @param oracleAdapters Array of address for the oracle adapters to query.
-    /// @param chainId Id of the chain to query.
-    /// @param blockNumber Block number for which to return headers.
-    /// @return blockHeaders Array of block header reported by the given oracle adapters for the given block number.
+    /// @param domain ID of the domain to query.
+    /// @param id ID for which to return hashs.
+    /// @return hashes Array of hash reported by the given oracle adapters for the given ID.
     /// @notice This method MUST revert if the oracleAdapters array contains duplicates.
-    function getHeadersFromOracles(
+    function getHashesFromOracles(
         IOracleAdapter[] memory oracleAdapters,
-        uint256 chainId,
-        uint256 blockNumber
+        uint256 domain,
+        uint256 id
     ) public view returns (bytes32[] memory) {
         if (oracleAdapters.length == 0) revert NoOracleAdaptersGiven(address(this));
-        bytes32[] memory blockHeaders = new bytes32[](oracleAdapters.length);
+        bytes32[] memory hashes = new bytes32[](oracleAdapters.length);
         for (uint256 i = 0; i < oracleAdapters.length; i++) {
-            blockHeaders[i] = getHeaderFromOracle(oracleAdapters[i], chainId, blockNumber);
+            hashes[i] = getHashFromOracle(oracleAdapters[i], domain, id);
         }
-        return blockHeaders;
+        return hashes;
     }
 
-    /// @dev Returns the block header unanimously agreed upon by a given set of oracles.
+    /// @dev Returns the hash unanimously agreed upon by a given set of oracles.
     /// @param oracleAdapters Array of address for the oracle adapters to query.
-    /// @param chainId Id of the chain to query.
-    /// @param blockNumber Block number for which to return headers.
-    /// @return blockHeader Block header agreed on by the given set of oracle adapters.
-    /// @notice MUST revert if oracles disagree on the header or if an oracle does not report.
-    function getUnanimousHeader(
+    /// @param domain ID of the domain to query.
+    /// @param id ID for which to return hash.
+    /// @return hash Hash agreed on by the given set of oracle adapters.
+    /// @notice MUST revert if oracles disagree on the hash or if an oracle does not report.
+    function getUnanimousHash(
         IOracleAdapter[] memory oracleAdapters,
-        uint256 chainId,
-        uint256 blockNumber
-    ) public view returns (bytes32 blockHeader) {
+        uint256 domain,
+        uint256 id
+    ) public view returns (bytes32 hash) {
         if (oracleAdapters.length == 0) revert NoOracleAdaptersGiven(address(this));
-        bytes32[] memory blockHeaders = getHeadersFromOracles(oracleAdapters, chainId, blockNumber);
-        bytes32 previousHeader = blockHeaders[0];
-        if (previousHeader == bytes32(0)) revert OracleDidNotReport(address(this), oracleAdapters[0]);
-        bytes32 currentHeader;
-        for (uint256 i = 1; i < blockHeaders.length; i++) {
-            currentHeader = blockHeaders[i];
-            if (currentHeader == bytes32(0)) revert OracleDidNotReport(address(this), oracleAdapters[i]);
-            if (currentHeader != previousHeader)
-                revert OraclesDisagree(address(this), oracleAdapters[i - 1], oracleAdapters[i]);
-            previousHeader = currentHeader;
+        bytes32[] memory hashes = getHashesFromOracles(oracleAdapters, domain, id);
+        hash = hashes[0];
+        if (hash == bytes32(0)) revert OracleDidNotReport(address(this), oracleAdapters[0]);
+        if (hashes.length > 1) {
+            for (uint256 i = 1; i < hashes.length; i++) {
+                bytes32 previousHash = hash;
+                hash = hashes[i];
+                if (hash == bytes32(0)) revert OracleDidNotReport(address(this), oracleAdapters[i]);
+                if (hash != previousHash)
+                    revert OraclesDisagree(address(this), oracleAdapters[i - 1], oracleAdapters[i]);
+                previousHash = hash;
+            }
         }
-        blockHeader = currentHeader;
     }
 }

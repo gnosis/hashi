@@ -519,6 +519,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@connext/interfaces@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "@connext/interfaces@npm:2.0.0"
+  checksum: 8cc776d9c0d5cc8ca92c0d0d4cc656b07efb4f48df517a85be54ef5a289db78f7dfc1d92ff4e41c5fd0788e29d63199ccfc6ee7340f9766a164ebf4ef7a83ff4
+  languageName: node
+  linkType: hard
+
 "@cspotcode/source-map-support@npm:^0.8.0":
   version: 0.8.1
   resolution: "@cspotcode/source-map-support@npm:0.8.1"
@@ -960,13 +967,14 @@ __metadata:
   dependencies:
     "@commitlint/cli": ^17.3.0
     "@commitlint/config-conventional": ^17.3.0
+    "@connext/interfaces": ^2.0.0
     "@ethersproject/abi": ^5.7.0
     "@ethersproject/abstract-signer": ^5.7.0
     "@ethersproject/bignumber": ^5.7.0
     "@ethersproject/bytes": ^5.7.0
     "@ethersproject/providers": ^5.7.2
     "@nomicfoundation/hardhat-chai-matchers": ^1.0.4
-    "@nomicfoundation/hardhat-network-helpers": ^1.0.6
+    "@nomicfoundation/hardhat-network-helpers": ^1.0.8
     "@nomicfoundation/hardhat-toolbox": ^2.0.0
     "@nomiclabs/hardhat-ethers": ^2.2.1
     "@nomiclabs/hardhat-etherscan": ^3.1.2
@@ -1332,14 +1340,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nomicfoundation/hardhat-network-helpers@npm:^1.0.6":
-  version: 1.0.6
-  resolution: "@nomicfoundation/hardhat-network-helpers@npm:1.0.6"
+"@nomicfoundation/hardhat-network-helpers@npm:^1.0.8":
+  version: 1.0.8
+  resolution: "@nomicfoundation/hardhat-network-helpers@npm:1.0.8"
   dependencies:
     ethereumjs-util: ^7.1.4
   peerDependencies:
     hardhat: ^2.9.5
-  checksum: 196e0273563edd232b8e663a73a9cf60d3e6ce3c00c1b8a7d9b4d9173b01b02ab5a0202eaea0658180318e14773290e226f95ae3626c89e46f8c699f2fd46b2f
+  checksum: cf865301fa7a8cebf5c249bc872863d2e69f0f3d14cceadbc5d5761bd97745f38fdb17c9074d46ef0d3a75748f43c0e14d37a54a09ae3b7e0e981c7f437c8553
   languageName: node
   linkType: hard
 

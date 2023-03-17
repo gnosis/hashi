@@ -2,7 +2,7 @@
 pragma solidity ^0.8.17;
 
 import "./IWormhole.sol";
-import "../IOracleAdapter.sol";
+import "../interfaces/IOracleAdapter.sol";
 
 contract WormholeAdapter {
     IWormhole public wormhole;
