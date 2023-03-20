@@ -93,6 +93,7 @@
   },
   "dependencies": {
     "@connext/interfaces": "^2.0.0",
-    "@openzeppelin/contracts-upgradeable": "^4.8.1"
+    "@openzeppelin/contracts-upgradeable": "^4.8.1",
+    "solidity-rlp": "^2.0.7"
   }
 }

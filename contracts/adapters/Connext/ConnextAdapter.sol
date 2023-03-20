@@ -3,13 +3,10 @@ pragma solidity ^0.8.17;
 
 import "@connext/interfaces/core/IConnext.sol";
 import "@connext/interfaces/core/IXReceiver.sol";
-import "../interfaces/IOracleAdapter.sol";
+import "../OracleAdapter.sol";
 
-contract ConnextAdapter is IXReceiver {
+contract ConnextAdapter is OracleAdapter, IXReceiver {
     bytes32 public headerReporter;
-    mapping(uint256 => mapping(uint256 => bytes32)) public headers;
-
-    event HeaderStored(uint256 indexed blockNumber, bytes32 indexed blockHeader);
 
     error InvalidInputs();
     error InvalidSource(address _originSender, uint32 _origin);
@@ -72,18 +69,6 @@ contract ConnextAdapter is IXReceiver {
     ) external onlySource(_originSender, _origin) returns (bytes memory) {
         // Unpack the _callData
         (uint256 blockNumber, bytes32 newBlockHeader) = abi.decode(_callData, (uint256, bytes32));
-        bytes32 currentBlockHeader = headers[uint256(domainToChainId[_origin])][blockNumber];
-        if (currentBlockHeader != newBlockHeader) {
-            headers[uint256(domainToChainId[_origin])][blockNumber] = newBlockHeader;
-            emit HeaderStored(blockNumber, newBlockHeader);
-        }
-    }
-
-    /// @dev Returns the block header for a given block, as reported by the Wormhole.
-    /// @param blockNumber Identifier for the block to query.
-    /// @return blockHeader Bytes32 block header reported by the oracle for the given block on the given chain.
-    /// @notice MUST return bytes32(0) if the oracle has not yet reported a header for the given block.
-    function getHeaderFromOracle(uint256 chainId, uint256 blockNumber) external view returns (bytes32 blockHeader) {
-        blockHeader = headers[chainId][blockNumber];
+        _storeHash(uint256(domainToChainId[_origin]), blockNumber, newBlockHeader);
     }
 }

@@ -2,10 +2,16 @@
 pragma solidity ^0.8.17;
 
 interface IOracleAdapter {
-    /// @dev Returns the block header for a given block on a given chain.
+    event HashStored(uint256 indexed id, bytes32 indexed hashes);
+
+    error InvalidBlockHeaderLength(uint256 length);
+    error InvalidBlockHeaderRLP();
+    error ConflictingBlockHeader(uint256 blockNumber, bytes32 reportedBlockHash, bytes32 storedBlockHash);
+
+    /// @dev Returns the hash for a given ID, as reported by the oracle.
     /// @param domain Identifier for the domain to query.
-    /// @param id Identifier for which to return a hash.
-    /// @return hash Hash reported by the oracle for the given ID in the given domain.
-    /// @notice MUST return bytes32(0) if the oracle has not yet reported a header for the given block.
+    /// @param id Identifier for the ID to query.
+    /// @return hash Bytes32 hash reported by the oracle for the given ID on the given domain.
+    /// @notice MUST return bytes32(0) if the oracle has not yet reported a hash for the given ID.
     function getHashFromOracle(uint256 domain, uint256 id) external view returns (bytes32 hash);
 }
