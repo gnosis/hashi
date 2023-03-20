@@ -124,7 +124,6 @@ describe("OracleAdapter", function () {
         .to.revertedWithCustomError(oracleAdapter, "InvalidBlockHeaderLength")
         .withArgs(blockHeaderTooShortContents.length)
 
-      console.log(blockHeaderContents.length)
       const blockHeaderTooLongContents = blockHeaderContents.concat([oracleAdapter.address, oracleAdapter.address])
       const blockHeaderTooLong = RLP.encode(blockHeaderTooLongContents)
 
