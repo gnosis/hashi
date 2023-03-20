@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity ^0.8.17;
 
-import "./adapters/interfaces/IMessageRelay.sol";
-import "./adapters/interfaces/IMessageDispatcher.sol";
+import "./interfaces/IMessageRelay.sol";
+import "./interfaces/IMessageDispatcher.sol";
 
 contract Yaho is MessageDispatcher {
     mapping(uint256 => bytes32) public hashes;

@@ -33,7 +33,7 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity ^0.8.17;
 
-import "./adapters/interfaces/IOracleAdapter.sol";
+import "./interfaces/IOracleAdapter.sol";
 
 contract Hashi {
     error NoOracleAdaptersGiven(address emitter);

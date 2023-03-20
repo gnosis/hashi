@@ -3,7 +3,7 @@ pragma solidity ^0.8.17;
 
 import "solidity-rlp/contracts/RLPReader.sol";
 
-import "./interfaces/IOracleAdapter.sol";
+import "../interfaces/IOracleAdapter.sol";
 
 abstract contract OracleAdapter is IOracleAdapter {
     mapping(uint256 => mapping(uint256 => bytes32)) public hashes;
