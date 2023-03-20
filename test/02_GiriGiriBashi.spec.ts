@@ -279,7 +279,7 @@ describe("GiriGiriBashi", function () {
   })
 
   describe("getHash()", function () {
-    it("Reverts if threshold is not set", async function () {
+    it("Reverts if threshold is not met", async function () {
       const { giriGiriBashi, mockOracleAdapter } = await setup()
       await giriGiriBashi.enableOracleAdapters(DOMAIN_ID, [mockOracleAdapter.address])
       await expect(giriGiriBashi.getHash(DOMAIN_ID, 1, [mockOracleAdapter.address])).to.be.revertedWithCustomError(
