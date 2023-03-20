@@ -192,7 +192,7 @@ contract GiriGiriBashi is OwnableUpgradeable {
         (uint256 threshold, uint256 count) = getThresholdAndCount(domainId);
         if (count == 0) revert NoAdaptersEnabled(address(this), domainId);
         if (_adapters.length < threshold) revert ThresholdNotMet(address(this));
-        hash = hashi.getUnanimousHash(_adapters, domainId, id);
+        hash = hashi.getHash(domainId, id, _adapters);
     }
 
     /// @dev Returns the hash unanimously agreed upon by all of the given oraclesAdapters..
@@ -222,6 +222,6 @@ contract GiriGiriBashi is OwnableUpgradeable {
             if (adapters[domainId][adapter].next == IOracleAdapter(address(0)))
                 revert InvalidAdapter(address(this), adapter);
         }
-        hash = hashi.getUnanimousHash(_adapters, domainId, id);
+        hash = hashi.getHash(domainId, id, _adapters);
     }
 }

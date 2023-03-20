@@ -68,35 +68,36 @@ describe("Hashi", function () {
     })
   })
 
-  describe("getUnanimousHash()", function () {
+  describe("getHash()", function () {
     it("Reverts if oracleAdapters length is zero", async function () {
       const { hashi, mockOracleAdapter, nonReportingMockOracleAdapter } = await setup()
+      await expect(hashi.getHash(DOMAIN_ID, 1, [nonReportingMockOracleAdapter.address])).to.revertedWithCustomError(
+        hashi,
+        "OracleDidNotReport",
+      )
       await expect(
-        hashi.getUnanimousHash([nonReportingMockOracleAdapter.address], DOMAIN_ID, 1),
-      ).to.revertedWithCustomError(hashi, "OracleDidNotReport")
-      await expect(
-        hashi.getUnanimousHash([mockOracleAdapter.address, nonReportingMockOracleAdapter.address], DOMAIN_ID, 1),
+        hashi.getHash(DOMAIN_ID, 1, [mockOracleAdapter.address, nonReportingMockOracleAdapter.address]),
       ).to.revertedWithCustomError(hashi, "OracleDidNotReport")
     })
     it("Reverts if oracleAdapters disagree", async function () {
       const { hashi, mockOracleAdapter, badMockOracleAdapter } = await setup()
       await expect(
-        hashi.getUnanimousHash([mockOracleAdapter.address, badMockOracleAdapter.address], DOMAIN_ID, 1),
+        hashi.getHash(DOMAIN_ID, 1, [mockOracleAdapter.address, badMockOracleAdapter.address]),
       ).to.revertedWithCustomError(hashi, "OraclesDisagree")
     })
     it("Returns unanimously agreed on hash", async function () {
       const { hashi, mockOracleAdapter } = await setup()
       expect(
-        await hashi.getUnanimousHash(
-          [mockOracleAdapter.address, mockOracleAdapter.address, mockOracleAdapter.address],
-          DOMAIN_ID,
-          1,
-        ),
+        await hashi.getHash(DOMAIN_ID, 1, [
+          mockOracleAdapter.address,
+          mockOracleAdapter.address,
+          mockOracleAdapter.address,
+        ]),
       ).to.equal(HASH_GOOD)
     })
     it("Returns hash for single oracle", async function () {
       const { hashi, mockOracleAdapter } = await setup()
-      expect(await hashi.getUnanimousHash([mockOracleAdapter.address], DOMAIN_ID, 1)).to.equal(HASH_GOOD)
+      expect(await hashi.getHash(DOMAIN_ID, 1, [mockOracleAdapter.address])).to.equal(HASH_GOOD)
     })
   })
 })

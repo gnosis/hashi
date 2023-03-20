@@ -3,7 +3,7 @@ pragma solidity ^0.8.17;
 
 import "../interfaces/IMessageRelay.sol";
 import "./IAMB.sol";
-import "../Yaho.sol";
+import "../../Yaho.sol";
 
 contract AMBMessageRelay is MessageRelay {
     IAMB public immutable amb;

@@ -73,15 +73,15 @@ contract Hashi {
     }
 
     /// @dev Returns the hash unanimously agreed upon by a given set of oracles.
-    /// @param oracleAdapters Array of address for the oracle adapters to query.
     /// @param domain ID of the domain to query.
     /// @param id ID for which to return hash.
+    /// @param oracleAdapters Array of address for the oracle adapters to query.
     /// @return hash Hash agreed on by the given set of oracle adapters.
     /// @notice MUST revert if oracles disagree on the hash or if an oracle does not report.
-    function getUnanimousHash(
-        IOracleAdapter[] memory oracleAdapters,
+    function getHash(
         uint256 domain,
-        uint256 id
+        uint256 id,
+        IOracleAdapter[] memory oracleAdapters
     ) public view returns (bytes32 hash) {
         bytes32[] memory hashes = getHashesFromOracles(oracleAdapters, domain, id);
         hash = hashes[0];
