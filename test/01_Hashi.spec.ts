@@ -71,7 +71,7 @@ describe("Hashi", function () {
   describe("getHash()", function () {
     it("Reverts if oracleAdapters length is zero", async function () {
       const { hashi } = await setup()
-      await expect(hashi.getUnanimousHash([], DOMAIN_ID, 1)).to.revertedWithCustomError(hashi, "NoOracleAdaptersGiven")
+      await expect(hashi.getHash(DOMAIN_ID, 1, [])).to.revertedWithCustomError(hashi, "NoOracleAdaptersGiven")
     })
     it("Reverts if one of oracleAdapters is non-reporting", async function () {
       const { hashi, mockOracleAdapter, nonReportingMockOracleAdapter } = await setup()
