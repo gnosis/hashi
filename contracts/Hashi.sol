@@ -83,6 +83,7 @@ contract Hashi {
         uint256 id,
         IOracleAdapter[] memory oracleAdapters
     ) public view returns (bytes32 hash) {
+        if (oracleAdapters.length == 0) revert NoOracleAdaptersGiven(address(this));
         bytes32[] memory hashes = getHashesFromOracles(oracleAdapters, domain, id);
         hash = hashes[0];
         if (hash == bytes32(0)) revert OracleDidNotReport(address(this), oracleAdapters[0]);

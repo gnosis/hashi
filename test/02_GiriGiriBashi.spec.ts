@@ -81,7 +81,7 @@ describe("GiriGiriBashi", function () {
       await giriGiriBashi.transferOwnership(giriGiriBashi.address)
       await expect(giriGiriBashi.setThreshold(DOMAIN_ID, 2)).to.be.revertedWith("Ownable: caller is not the owner")
     })
-    it("Reverts if hashi is already set to this address", async function () {
+    it("Reverts if threshold is already set", async function () {
       const { giriGiriBashi } = await setup()
       await expect(giriGiriBashi.setThreshold(DOMAIN_ID, 2)).to.be.revertedWithCustomError(
         giriGiriBashi,
