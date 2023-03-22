@@ -5,7 +5,7 @@ import "../../interfaces/IMessageRelay.sol";
 import "./IAMB.sol";
 import "../../Yaho.sol";
 
-contract AMBMessageRelay is MessageRelay {
+contract AMBMessageRelay is IMessageRelay {
     IAMB public immutable amb;
     Yaho public immutable yaho;
     address public ambAdapter;

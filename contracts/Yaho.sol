@@ -6,36 +6,48 @@ import "./interfaces/IMessageDispatcher.sol";
 
 contract Yaho is MessageDispatcher {
     mapping(uint256 => bytes32) public hashes;
-    // mapping(bytes32 => Message) public sentMessages;
     uint256 private count;
 
-    function dispatchMessages(Message[] memory messages) public payable returns (bytes32[] memory messageIds) {
+    error NoMessagesGiven(address emitter);
+    error NoMessageIdsGiven(address emitter);
+    error NoAdaptersGiven(address emitter);
+
+    function dispatchMessages(Message[] memory messages) public payable returns (bytes32[] memory) {
+        if (messages.length == 0) revert NoMessagesGiven(address(this));
+        bytes32[] memory messageIds = new bytes32[](messages.length);
         for (uint i = 0; i < messages.length; i++) {
             uint256 id = count;
             hashes[id] = keccak256(abi.encode(id, address(this), msg.sender, messages[i]));
             messageIds[i] = bytes32(id);
-            // sentMessages[] = messages[i];
             emit MessageDispatched(bytes32(id), msg.sender, messages[i].toChainId, messages[i].to, messages[i].data);
             count++;
         }
+        return messageIds;
     }
 
     function relayMessagesToAdapters(
         bytes32[] memory messageIds,
         address[] memory adapters
-    ) external payable returns (bytes32[] memory adapterReciepts) {
+    ) external payable returns (bytes32[] memory) {
+        if (messageIds.length == 0) revert NoMessageIdsGiven(address(this));
+        if (adapters.length == 0) revert NoAdaptersGiven(address(this));
+        bytes32[] memory adapterReciepts = new bytes32[](adapters.length);
         for (uint i = 0; i < adapters.length; i++) {
-            adapterReciepts[i] = MessageRelay(adapters[i]).relayMessages(messageIds);
+            adapterReciepts[i] = IMessageRelay(adapters[i]).relayMessages(messageIds);
         }
+        return adapterReciepts;
     }
 
     function dispatchMessagesToAdaters(
         Message[] memory messages,
         address[] memory adapters
-    ) external payable returns (bytes32[] memory messageIds, bytes32[] memory adapterReciepts) {
+    ) external payable returns (bytes32[] memory messageIds, bytes32[] memory) {
+        if (adapters.length == 0) revert NoAdaptersGiven(address(this));
         messageIds = dispatchMessages(messages);
+        bytes32[] memory adapterReciepts = new bytes32[](adapters.length);
         for (uint i = 0; i < adapters.length; i++) {
-            adapterReciepts[i] = MessageRelay(adapters[i]).relayMessages(messageIds);
+            adapterReciepts[i] = IMessageRelay(adapters[i]).relayMessages(messageIds);
         }
+        return (messageIds, adapterReciepts);
     }
 }
