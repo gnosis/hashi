@@ -24,9 +24,10 @@ contract MessageExecutor {
         uint256[] memory messageIds,
         address[] memory senders,
         IOracleAdapter[] memory oracleAdapters
-    ) public returns (bytes[] memory returnDatas) {
+    ) public returns (bytes[] memory) {
         if (messages.length != senders.length || messages.length != messageIds.length)
             revert UnequalArrayLengths(address(this));
+        bytes[] memory returnDatas = new bytes[](oracleAdapters.length);
         for (uint i = 0; i < messages.length; i++) {
             uint256 id = messageIds[i];
             if (executed[id]) revert AlreadyExecuted(address(this), id);
@@ -41,5 +42,6 @@ contract MessageExecutor {
             returnDatas[i] = returnData;
             emit MessageIdExecuted(message.toChainId, bytes32(id));
         }
+        return returnDatas;
     }
 }
