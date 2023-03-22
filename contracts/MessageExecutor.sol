@@ -5,7 +5,7 @@ import "./interfaces/IHashi.sol";
 import "./interfaces/IMessage.sol";
 
 contract MessageExecutor {
-    IHashi immutable hashi;
+    IHashi public immutable hashi;
     mapping(uint256 => bool) public executed;
 
     event MessageIdExecuted(uint256 indexed fromChainId, bytes32 indexed messageId);
