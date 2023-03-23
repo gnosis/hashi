@@ -13,7 +13,7 @@ const emptyHexlify = (value: string) => {
   return hex === "0x00" ? "0x" : hex
 }
 
-const blockRLP = (block: any) => {
+const blockRLP = (block) => {
   const values = [
     block.parentHash,
     block.sha3Uncles,

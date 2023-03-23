@@ -17,7 +17,7 @@ contract Yaho is MessageDispatcher {
         bytes32[] memory messageIds = new bytes32[](messages.length);
         for (uint i = 0; i < messages.length; i++) {
             uint256 id = count;
-            hashes[id] = calculateHash(id, address(this), msg.sender, messages[i]);
+            hashes[id] = calculateHash(block.chainid, id, address(this), msg.sender, messages[i]);
             messageIds[i] = bytes32(id);
             emit MessageDispatched(bytes32(id), msg.sender, messages[i].toChainId, messages[i].to, messages[i].data);
             count++;
@@ -52,11 +52,12 @@ contract Yaho is MessageDispatcher {
     }
 
     function calculateHash(
+        uint256 chainId,
         uint256 id,
         address origin,
         address sender,
         Message memory message
     ) public pure returns (bytes32 calculatedHash) {
-        calculatedHash = keccak256(abi.encode(id, origin, sender, message));
+        calculatedHash = keccak256(abi.encode(chainId, id, origin, sender, message));
     }
 }

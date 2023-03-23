@@ -22,6 +22,7 @@ contract MessageExecutor {
     }
 
     function executeMessagesFromOracles(
+        uint256[] memory chainIds,
         Message[] memory messages,
         uint256[] memory messageIds,
         address[] memory senders,
@@ -34,25 +35,28 @@ contract MessageExecutor {
             uint256 id = messageIds[i];
             if (executed[id]) revert AlreadyExecuted(address(this), id);
 
+            uint256 chainId = chainIds[i];
             Message memory message = messages[i];
-            bytes32 reportedHash = hashi.getHash(message.toChainId, id, oracleAdapters);
-            bytes32 calculatedHash = calculateHash(id, yaho, senders[i], message);
+            bytes32 reportedHash = hashi.getHash(chainId, id, oracleAdapters);
+            bytes32 calculatedHash = calculateHash(chainId, id, yaho, senders[i], message);
             if (reportedHash != calculatedHash) revert HashMismatch(address(this), id, reportedHash, calculatedHash);
 
             (bool success, bytes memory returnData) = address(message.to).call(message.data);
             if (!success) revert CallFailed(address(this), id);
             returnDatas[i] = returnData;
+            executed[id] = true;
             emit MessageIdExecuted(message.toChainId, bytes32(id));
         }
         return returnDatas;
     }
 
     function calculateHash(
+        uint256 chainId,
         uint256 id,
         address origin,
         address sender,
         Message memory message
     ) public pure returns (bytes32 calculatedHash) {
-        calculatedHash = keccak256(abi.encode(id, origin, sender, message));
+        calculatedHash = keccak256(abi.encode(chainId, id, origin, sender, message));
     }
 }
