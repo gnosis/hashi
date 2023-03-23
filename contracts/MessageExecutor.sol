@@ -6,6 +6,7 @@ import "./interfaces/IMessage.sol";
 
 contract MessageExecutor {
     IHashi public immutable hashi;
+    address public immutable yaho;
     mapping(uint256 => bool) public executed;
 
     event MessageIdExecuted(uint256 indexed fromChainId, bytes32 indexed messageId);
@@ -15,8 +16,9 @@ contract MessageExecutor {
     error HashMismatch(address emitter, uint256 id, bytes32 reportedHash, bytes32 calculatedHash);
     error CallFailed(address emitter, uint256 id);
 
-    constructor(IHashi _hashi) {
+    constructor(IHashi _hashi, address _yaho) {
         hashi = _hashi;
+        yaho = _yaho;
     }
 
     function executeMessagesFromOracles(
@@ -34,7 +36,7 @@ contract MessageExecutor {
 
             Message memory message = messages[i];
             bytes32 reportedHash = hashi.getHash(message.toChainId, id, oracleAdapters);
-            bytes32 calculatedHash = keccak256(abi.encode(id, senders[i], msg.sender, message));
+            bytes32 calculatedHash = calculateHash(id, yaho, senders[i], message);
             if (reportedHash != calculatedHash) revert HashMismatch(address(this), id, reportedHash, calculatedHash);
 
             (bool success, bytes memory returnData) = address(message.to).call(message.data);
@@ -43,5 +45,14 @@ contract MessageExecutor {
             emit MessageIdExecuted(message.toChainId, bytes32(id));
         }
         return returnDatas;
+    }
+
+    function calculateHash(
+        uint256 id,
+        address origin,
+        address sender,
+        Message memory message
+    ) public pure returns (bytes32 calculatedHash) {
+        calculatedHash = keccak256(abi.encode(id, origin, sender, message));
     }
 }
