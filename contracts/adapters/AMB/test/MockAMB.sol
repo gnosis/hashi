@@ -8,6 +8,8 @@ contract MockAMB is IAMB {
     address private sender;
     bytes32 private immutable chainId = 0x0000000000000000000000000000000000000000000000000000000000000064;
 
+    event MessagePassed(address sender, bytes data);
+
     error TransactionFailed();
 
     function messageSender() external view returns (address) {
@@ -22,6 +24,7 @@ contract MockAMB is IAMB {
         sender = msg.sender;
         (bool success, bytes memory returnData) = _contract.call(_data);
         if (!success) revert TransactionFailed();
+        emit MessagePassed(sender, _data);
         delete sender;
         return keccak256(returnData);
     }

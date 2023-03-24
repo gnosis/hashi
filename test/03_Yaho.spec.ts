@@ -70,50 +70,58 @@ describe("Yaho", function () {
       await expect(tx).to.emit(yaho, "MessageDispatched")
     })
   })
-})
 
-describe("relayMessagesToAdapters()", function () {
-  it("reverts if no message IDs are given", async function () {
-    const { yaho, messageRelay } = await setup()
-    await yaho.dispatchMessages([MESSAGE_1, MESSAGE_2])
-    await expect(yaho.relayMessagesToAdapters([], [messageRelay.address]))
-      .to.be.revertedWithCustomError(yaho, "NoMessageIdsGiven")
-      .withArgs(yaho.address)
+  describe("relayMessagesToAdapters()", function () {
+    it("reverts if no message IDs are given", async function () {
+      const { yaho, messageRelay } = await setup()
+      await yaho.dispatchMessages([MESSAGE_1, MESSAGE_2])
+      await expect(yaho.relayMessagesToAdapters([], [messageRelay.address], [yaho.address, yaho.address]))
+        .to.be.revertedWithCustomError(yaho, "NoMessageIdsGiven")
+        .withArgs(yaho.address)
+    })
+    it("reverts if no adapters are given", async function () {
+      const { yaho } = await setup()
+      await yaho.dispatchMessages([MESSAGE_1, MESSAGE_2])
+      await expect(yaho.relayMessagesToAdapters([ID_ZERO], [], [yaho.address, yaho.address]))
+        .to.be.revertedWithCustomError(yaho, "NoAdaptersGiven")
+        .withArgs(yaho.address)
+    })
+    it("relays dispatched message to the given adapters", async function () {
+      const { yaho, messageRelay } = await setup()
+      await yaho.dispatchMessages([MESSAGE_1, MESSAGE_2])
+      const receipts = await yaho.callStatic.relayMessagesToAdapters(
+        [ID_ZERO, ID_ONE],
+        [messageRelay.address, messageRelay.address],
+        [yaho.address, yaho.address],
+      )
+      expect(receipts[0]).to.equal(ID_ZERO)
+      expect(receipts[1]).to.equal(ID_ONE)
+    })
   })
-  it("reverts if no adapters are given", async function () {
-    const { yaho } = await setup()
-    await yaho.dispatchMessages([MESSAGE_1, MESSAGE_2])
-    await expect(yaho.relayMessagesToAdapters([ID_ZERO], []))
-      .to.be.revertedWithCustomError(yaho, "NoAdaptersGiven")
-      .withArgs(yaho.address)
-  })
-  it("relays dispatched message to the given adapters", async function () {
-    const { yaho, messageRelay } = await setup()
-    await yaho.dispatchMessages([MESSAGE_1, MESSAGE_2])
-    const receipts = await yaho.callStatic.relayMessagesToAdapters(
-      [ID_ZERO, ID_ONE],
-      [messageRelay.address, messageRelay.address],
-    )
-    expect(receipts[0]).to.equal(ID_ZERO)
-    expect(receipts[1]).to.equal(ID_ONE)
-  })
-})
 
-describe("dispatchMessagesToAdaters()", function () {
-  it("reverts if no adapters are given", async function () {
-    const { yaho } = await setup()
-    await expect(yaho.dispatchMessagesToAdaters([MESSAGE_1, MESSAGE_2], []))
-      .to.be.revertedWithCustomError(yaho, "NoAdaptersGiven")
-      .withArgs(yaho.address)
-  })
-  it("dispatches messages and relays to the given adapters", async function () {
-    const { yaho, messageRelay } = await setup()
-    expect(await yaho.dispatchMessagesToAdaters([MESSAGE_1, MESSAGE_2], [messageRelay.address, messageRelay.address]))
-    const [messageIds, receipts] = await yaho.callStatic.dispatchMessagesToAdaters(
-      [MESSAGE_1, MESSAGE_2],
-      [messageRelay.address, messageRelay.address],
-    )
-    expect(messageIds[0]).to.equal(ID_TWO)
-    expect(receipts[0]).to.equal(ID_TWO)
+  describe("dispatchMessagesToAdaters()", function () {
+    it("reverts if no adapters are given", async function () {
+      const { yaho } = await setup()
+      await expect(yaho.dispatchMessagesToAdaters([MESSAGE_1, MESSAGE_2], [], [yaho.address, yaho.address]))
+        .to.be.revertedWithCustomError(yaho, "NoAdaptersGiven")
+        .withArgs(yaho.address)
+    })
+    it("dispatches messages and relays to the given adapters", async function () {
+      const { yaho, messageRelay } = await setup()
+      expect(
+        await yaho.dispatchMessagesToAdaters(
+          [MESSAGE_1, MESSAGE_2],
+          [messageRelay.address, messageRelay.address],
+          [yaho.address, yaho.address],
+        ),
+      )
+      const [messageIds, receipts] = await yaho.callStatic.dispatchMessagesToAdaters(
+        [MESSAGE_1, MESSAGE_2],
+        [messageRelay.address, messageRelay.address],
+        [yaho.address, yaho.address],
+      )
+      expect(messageIds[0]).to.equal(ID_TWO)
+      expect(receipts[0]).to.equal(ID_TWO)
+    })
   })
 })

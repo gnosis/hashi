@@ -8,24 +8,22 @@ import "../../Yaho.sol";
 contract AMBMessageRelay is IMessageRelay {
     IAMB public immutable amb;
     Yaho public immutable yaho;
-    address public ambAdapter;
 
-    event MessageRelayed(address indexed emitter, bytes32 indexed messageId);
+    event MessageRelayed(address indexed emitter, uint256 indexed messageId);
 
-    constructor(IAMB _amb, Yaho _yaho, address _ambAdapter) {
+    constructor(IAMB _amb, Yaho _yaho) {
         amb = _amb;
         yaho = _yaho;
-        ambAdapter = _ambAdapter;
     }
 
-    function relayMessages(bytes32[] memory messageIds) public payable returns (bytes32 receipt) {
-        bytes32[] memory hashes;
-        bytes memory data = abi.encodeWithSignature("storeHashes(bytes32[],bytes32[])", messageIds);
-        receipt = amb.requireToPassMessage(ambAdapter, data, 0);
+    function relayMessages(uint256[] memory messageIds, address ambAdapter) public payable returns (bytes32 receipt) {
+        bytes32[] memory hashes = new bytes32[](messageIds.length);
         for (uint i = 0; i < messageIds.length; i++) {
-            uint256 id = uint256(messageIds[i]);
+            uint256 id = messageIds[i];
             hashes[i] = yaho.hashes(id);
             emit MessageRelayed(address(this), messageIds[i]);
         }
+        bytes memory data = abi.encodeWithSignature("storeHashes(uint256[],bytes32[])", messageIds, hashes);
+        receipt = amb.requireToPassMessage(ambAdapter, data, 0);
     }
 }

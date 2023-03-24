@@ -11,6 +11,7 @@ contract Yaho is MessageDispatcher {
     error NoMessagesGiven(address emitter);
     error NoMessageIdsGiven(address emitter);
     error NoAdaptersGiven(address emitter);
+    error UnequalArrayLengths(address emitter);
 
     function dispatchMessages(Message[] memory messages) public payable returns (bytes32[] memory) {
         if (messages.length == 0) revert NoMessagesGiven(address(this));
@@ -26,27 +27,38 @@ contract Yaho is MessageDispatcher {
     }
 
     function relayMessagesToAdapters(
-        bytes32[] memory messageIds,
-        address[] memory adapters
+        uint256[] memory messageIds,
+        address[] memory adapters,
+        address[] memory destinationAdapters
     ) external payable returns (bytes32[] memory) {
         if (messageIds.length == 0) revert NoMessageIdsGiven(address(this));
         if (adapters.length == 0) revert NoAdaptersGiven(address(this));
+        if (adapters.length != destinationAdapters.length) revert UnequalArrayLengths(address(this));
+        uint256[] memory uintIds = new uint256[](messageIds.length);
+        for (uint i = 0; i < messageIds.length; i++) {
+            uintIds[i] = uint256(messageIds[i]);
+        }
         bytes32[] memory adapterReciepts = new bytes32[](adapters.length);
         for (uint i = 0; i < adapters.length; i++) {
-            adapterReciepts[i] = IMessageRelay(adapters[i]).relayMessages(messageIds);
+            adapterReciepts[i] = IMessageRelay(adapters[i]).relayMessages(uintIds, destinationAdapters[i]);
         }
         return adapterReciepts;
     }
 
     function dispatchMessagesToAdaters(
         Message[] memory messages,
-        address[] memory adapters
+        address[] memory adapters,
+        address[] memory destinationAdapters
     ) external payable returns (bytes32[] memory messageIds, bytes32[] memory) {
         if (adapters.length == 0) revert NoAdaptersGiven(address(this));
         messageIds = dispatchMessages(messages);
+        uint256[] memory uintIds = new uint256[](messageIds.length);
+        for (uint i = 0; i < messageIds.length; i++) {
+            uintIds[i] = uint256(messageIds[i]);
+        }
         bytes32[] memory adapterReciepts = new bytes32[](adapters.length);
         for (uint i = 0; i < adapters.length; i++) {
-            adapterReciepts[i] = IMessageRelay(adapters[i]).relayMessages(messageIds);
+            adapterReciepts[i] = IMessageRelay(adapters[i]).relayMessages(uintIds, destinationAdapters[i]);
         }
         return (messageIds, adapterReciepts);
     }
