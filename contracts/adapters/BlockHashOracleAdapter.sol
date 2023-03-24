@@ -11,7 +11,7 @@ abstract contract BlockHashOracleAdapter is OracleAdapter {
     /// @dev Proves and stores valid ancestral block hashes for a given chain ID.
     /// @param chainId The ID of the chain to prove block hashes for.
     /// @param blockHeaders The RLP encoded block headers to prove the hashes for.
-    /// @notice The block headers should be ordered by descending block number and should start with a block header from a known hash.
+    /// @notice Block headers should be ordered by descending block number and should start with a known block header.
     function proveAncestralBlockHashes(uint256 chainId, bytes[] memory blockHeaders) external {
         for (uint256 i = 0; i < blockHeaders.length; i++) {
             RLPReader.RLPItem memory blockHeaderRLP = RLPReader.toRlpItem(blockHeaders[i]);
