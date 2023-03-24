@@ -99,23 +99,23 @@ describe("Yaho", function () {
     })
   })
 
-  describe("dispatchMessagesToAdaters()", function () {
+  describe("dispatchMessagesToAdapters()", function () {
     it("reverts if no adapters are given", async function () {
       const { yaho } = await setup()
-      await expect(yaho.dispatchMessagesToAdaters([MESSAGE_1, MESSAGE_2], [], [yaho.address, yaho.address]))
+      await expect(yaho.dispatchMessagesToAdapters([MESSAGE_1, MESSAGE_2], [], [yaho.address, yaho.address]))
         .to.be.revertedWithCustomError(yaho, "NoAdaptersGiven")
         .withArgs(yaho.address)
     })
     it("dispatches messages and relays to the given adapters", async function () {
       const { yaho, messageRelay } = await setup()
       expect(
-        await yaho.dispatchMessagesToAdaters(
+        await yaho.dispatchMessagesToAdapters(
           [MESSAGE_1, MESSAGE_2],
           [messageRelay.address, messageRelay.address],
           [yaho.address, yaho.address],
         ),
       )
-      const [messageIds, receipts] = await yaho.callStatic.dispatchMessagesToAdaters(
+      const [messageIds, receipts] = await yaho.callStatic.dispatchMessagesToAdapters(
         [MESSAGE_1, MESSAGE_2],
         [messageRelay.address, messageRelay.address],
         [yaho.address, yaho.address],

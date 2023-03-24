@@ -45,7 +45,7 @@ contract Yaho is MessageDispatcher {
         return adapterReciepts;
     }
 
-    function dispatchMessagesToAdaters(
+    function dispatchMessagesToAdapters(
         Message[] memory messages,
         address[] memory adapters,
         address[] memory destinationAdapters
