@@ -4,8 +4,9 @@ pragma solidity ^0.8.17;
 import "@connext/interfaces/core/IConnext.sol";
 import "@connext/interfaces/core/IXReceiver.sol";
 import "../OracleAdapter.sol";
+import "../BlockHashOracleAdapter.sol";
 
-contract ConnextAdapter is OracleAdapter, IXReceiver {
+contract ConnextAdapter is OracleAdapter, BlockHashOracleAdapter, IXReceiver {
     bytes32 public headerReporter;
 
     error InvalidInputs();
