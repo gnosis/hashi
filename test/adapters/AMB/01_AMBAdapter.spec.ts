@@ -37,14 +37,14 @@ describe("AMBAdapter", function () {
   })
 
   describe("StoreHashes()", function () {
-    it("Stores hashs", async function () {
+    it("Stores hashes", async function () {
       const { amb, ambAdapter } = await setup()
       const call = await ambAdapter.populateTransaction.storeHashes([999, 1000], [ID, ANOTHER_ID])
       await amb.requireToPassMessage(ambAdapter.address, call.data, GAS)
       expect(await ambAdapter.getHashFromOracle(DOMAIN_ID, 999)).to.equal(ID)
       expect(await ambAdapter.getHashFromOracle(DOMAIN_ID, 1000)).to.equal(ANOTHER_ID)
     })
-    it("Overwrites previous hashs", async function () {
+    it("Overwrites previous hashes", async function () {
       const { amb, ambAdapter } = await setup()
       let call = await ambAdapter.populateTransaction.storeHashes([999, 1000], [ID, ANOTHER_ID])
       await amb.requireToPassMessage(ambAdapter.address, call.data, GAS)
