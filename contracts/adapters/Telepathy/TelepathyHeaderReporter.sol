@@ -5,9 +5,10 @@ import { ITelepathyRouter } from "./ITelepathy.sol";
 import "../HeaderStorage.sol";
 
 contract TelepathyHeaderReporter {
+    ITelepathyRouter public immutable router;
     uint32 public immutable destinationChainId;
     address public immutable target;
-    ITelepathyRouter public immutable router;
+    address public oracleAdapter;
     HeaderStorage public immutable headerStorage;
 
     constructor(ITelepathyRouter _router, HeaderStorage _headerStorage, uint32 _destinationChainId, address _target) {

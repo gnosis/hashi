@@ -2,38 +2,50 @@
 pragma solidity ^0.8.17;
 
 import { IMessageRecipient } from "./IHyperlane.sol";
-import "../../interfaces/IOracleAdapter.sol";
+import "../OracleAdapter.sol";
+import "../BlockHashOracleAdapter.sol";
 
-contract HyperlaneAdapter is IMessageRecipient {
+contract HyperlaneAdapter is OracleAdapter, BlockHashOracleAdapter, IMessageRecipient {
     bytes32 public headerReporter;
-    mapping(uint256 => mapping(uint256 => bytes32)) public headers;
-
-    event HeaderStored(uint256 indexed blockNumber, bytes32 indexed blockHeader);
 
     error InvalidInputs();
     error InvalidSource(address _originSender, uint32 _origin);
 
-    mapping(uint32 => address) public chainIdToSource;
-    mapping(uint32 => address) public chainIdToMailbox;
+    mapping(uint32 => uint16) public domainToChainId;
+    mapping(uint32 => address) public domainToSource;
+    mapping(uint32 => address) public domainToMailbox;
 
     constructor(
         address[] memory _mailboxes,
-        uint32[] memory _originChainIds,
+        uint32[] memory _originDomains,
+        uint16[] memory _originChainIds,
         address[] memory _sources,
         bytes32 _headerReporter
     ) {
-        if (_originChainIds.length != _mailboxes.length || _originChainIds.length != _sources.length) {
+        headerReporter = _headerReporter;
+        if (
+            _originDomains.length != _mailboxes.length ||
+            _originDomains.length != _originChainIds.length ||
+            _originDomains.length != _sources.length
+        ) {
             revert InvalidInputs();
         }
-        for (uint256 i = 0; i < _originChainIds.length; i++) {
-            chainIdToSource[_originChainIds[i]] = _sources[i];
-            chainIdToMailbox[_originChainIds[i]] = _mailboxes[i];
+        for (uint256 i = 0; i < _originDomains.length; i++) {
+            domainToChainId[_originDomains[i]] = _originChainIds[i];
+            domainToSource[_originDomains[i]] = _sources[i];
+            domainToMailbox[_originDomains[i]] = address(_mailboxes[i]);
         }
-        headerReporter = _headerReporter;
     }
 
+    /** @notice A modifier for authenticated calls.
+     * This is an important security consideration. If the target contract
+     * function should be authenticated, it must check three things:
+     *    1) The originating call comes from the expected origin domain.
+     *    2) The originating call comes from the expected source contract.
+     *    3) The call to this contract comes from the Hyperlane Mailbox.
+     */
     modifier onlySource(address _originSender, uint32 _origin) {
-        if (chainIdToSource[_origin] != _originSender || msg.sender != chainIdToMailbox[_origin]) {
+        if (domainToSource[_origin] != _originSender || msg.sender != domainToMailbox[_origin]) {
             revert InvalidSource(_originSender, _origin);
         }
         _;
@@ -50,19 +62,7 @@ contract HyperlaneAdapter is IMessageRecipient {
         bytes calldata _body
     ) external onlySource(bytes32ToAddress(_sender), _origin) {
         (uint256 blockNumber, bytes32 newBlockHeader) = abi.decode(_body, (uint256, bytes32));
-        bytes32 currentBlockHeader = headers[uint256(_origin)][blockNumber];
-        if (currentBlockHeader != newBlockHeader) {
-            headers[uint256(_origin)][blockNumber] = newBlockHeader;
-            emit HeaderStored(blockNumber, newBlockHeader);
-        }
-    }
-
-    /// @dev Returns the block header for a given block, as reported by Hyperlane.
-    /// @param blockNumber Identifier for the block to query.
-    /// @return blockHeader Bytes32 block header reported by the oracle for the given block on the given chain.
-    /// @notice MUST return bytes32(0) if the oracle has not yet reported a header for the given block.
-    function getHeaderFromOracle(uint256 chainId, uint256 blockNumber) external view returns (bytes32 blockHeader) {
-        blockHeader = headers[chainId][blockNumber];
+        _storeHash(uint256(domainToChainId[_origin]), blockNumber, newBlockHeader);
     }
 
     function bytes32ToAddress(bytes32 _buf) internal pure returns (address) {

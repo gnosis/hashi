@@ -5,15 +5,16 @@ import { IMailbox } from "./IHyperlane.sol";
 import "../HeaderStorage.sol";
 
 contract HyperlaneHeaderReporter {
-    uint32 public immutable destinationChainId;
-    address public immutable target;
     IMailbox public immutable mailbox;
+    uint32 public immutable destinationDomain;
+    address public immutable target;
+    address public oracleAdapter;
     HeaderStorage public immutable headerStorage;
 
-    constructor(IMailbox _mailbox, HeaderStorage _headerStorage, uint32 _destinationChainId, address _target) {
+    constructor(IMailbox _mailbox, HeaderStorage _headerStorage, uint32 _destinationDomain, address _target) {
         mailbox = _mailbox;
         headerStorage = _headerStorage;
-        destinationChainId = _destinationChainId;
+        destinationDomain = _destinationDomain;
         target = _target;
     }
 
@@ -23,7 +24,7 @@ contract HyperlaneHeaderReporter {
     function reportHeader(uint256 blockNumber) public returns (bytes32 msgId) {
         bytes32 blockHeader = headerStorage.storeBlockHeader(blockNumber);
         bytes memory callData = abi.encode(blockNumber, blockHeader);
-        msgId = mailbox.dispatch(destinationChainId, addressToBytes32(target), callData);
+        msgId = mailbox.dispatch(destinationDomain, addressToBytes32(target), callData);
     }
 
     function addressToBytes32(address _addr) internal pure returns (bytes32) {
