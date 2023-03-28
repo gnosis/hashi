@@ -5,18 +5,17 @@ const DOMAIN_ID = 1
 const ID_ZERO = 0
 const ID_ONE = 1
 const ID_TWO = 2
-const YAHO_ADD = "0x00000000000000000000000000000000000004a1"
 
 const setup = async () => {
   const [wallet] = await ethers.getSigners()
   const Hashi = await ethers.getContractFactory("Hashi")
   const hashi = await Hashi.deploy()
   const MessageExecutor = await ethers.getContractFactory("MessageExecutor")
-  const messageExecutor = await MessageExecutor.deploy(hashi.address, YAHO_ADD)
-  const OracleAdapter = await ethers.getContractFactory("MockOracleAdapter")
-  const oracleAdapter = await OracleAdapter.deploy()
   const Yaho = await ethers.getContractFactory("Yaho")
   const yaho = await Yaho.deploy()
+  const messageExecutor = await MessageExecutor.deploy(hashi.address, yaho.address)
+  const OracleAdapter = await ethers.getContractFactory("MockOracleAdapter")
+  const oracleAdapter = await OracleAdapter.deploy()
   const PingPong = await ethers.getContractFactory("PingPong")
   const pingPong = await PingPong.deploy()
 
@@ -30,14 +29,14 @@ const setup = async () => {
     toChainId: 2,
     data: 0x02,
   }
-  const hash_one = await yaho.calculateHash(DOMAIN_ID, ID_ZERO, YAHO_ADD, wallet.address, message_1)
-  const hash_two = await yaho.calculateHash(DOMAIN_ID, ID_ONE, YAHO_ADD, wallet.address, message_2)
+  const hash_one = await yaho.calculateHash(DOMAIN_ID, ID_ZERO, yaho.address, wallet.address, message_1)
+  const hash_two = await yaho.calculateHash(DOMAIN_ID, ID_ONE, yaho.address, wallet.address, message_2)
   const failMessage = {
     to: hashi.address,
     toChainId: 1,
     data: 0x1111111111,
   }
-  const hash_fail = await yaho.calculateHash(DOMAIN_ID, ID_TWO, YAHO_ADD, wallet.address, failMessage)
+  const hash_fail = await yaho.calculateHash(DOMAIN_ID, ID_TWO, yaho.address, wallet.address, failMessage)
   await oracleAdapter.setHashes(DOMAIN_ID, [ID_ZERO, ID_ONE, ID_TWO], [hash_one, hash_two, hash_fail])
 
   return {
@@ -69,15 +68,15 @@ describe("MessageExecutor", function () {
     })
 
     it("Sets yaho address", async function () {
-      const { messageExecutor } = await setup()
-      expect(await messageExecutor.yaho()).to.equal(YAHO_ADD)
+      const { messageExecutor, yaho } = await setup()
+      expect(await messageExecutor.yaho()).to.equal(yaho.address)
     })
   })
 
   describe("calculateHash()", function () {
     it("calculates correct hash of the given message", async function () {
-      const { messageExecutor, wallet, hash_one, message_1 } = await setup()
-      const calculatedHash = await messageExecutor.calculateHash(DOMAIN_ID, 0, YAHO_ADD, wallet.address, message_1)
+      const { messageExecutor, wallet, hash_one, message_1, yaho } = await setup()
+      const calculatedHash = await messageExecutor.calculateHash(DOMAIN_ID, 0, yaho.address, wallet.address, message_1)
       expect(calculatedHash).to.equal(hash_one)
     })
   })
