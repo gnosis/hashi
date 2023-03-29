@@ -22,7 +22,7 @@
 [license]: https://www.gnu.org/licenses/lgpl-3.0.en.html
 [license-badge]: https://img.shields.io/badge/License-LGPL%20v3.0-blue
 
-Hashi is an EVM Header Oracle Aggregator, designed to facilitate a
+Hashi is an EVM Hash Oracle Aggregator, designed to facilitate a
 [principled approach to cross-chain bridge security](https://ethresear.ch/t/a-principled-approach-to-bridges/14725?u=auryn).
 The primary insight being that the vast majority of bridge-related security incidents could have had minimal impact if
 the systems relying on them had built in some redundancy. In other words, it's much more secure to require messages be
@@ -32,19 +32,19 @@ validated by multiple independent mechanisms, rather than by just one.
 
 Hashi allows users to:
 
-- Build custom oracle adapter contracts for any header oracle mechanism they would like to use.
-- Query a header oracle for the block header for a given block on a given chain.
-- Query a set of header oracles the block headers for a given block on a given chain.
-- Query for a unanimously agreed upon block header from a set of oracles for a given block on a given chain.
+- Build custom oracle adapter contracts for any hash oracle mechanism they would like to use.
+- Query an oracle for the hash for a given ID in a given domain. (e.g. header of a block on a given chainId)
+- Query a set of oracles the hash for a given ID in a given domain.
+- Query for a unanimously agreed upon block hash from a set of oracles for a given ID in a given domain.
 
 GiriGiriBashi allows users to:
 
 - Define a set of oracles for each chainId.
-- Define a threshold of oracles that must agree on a block header for each chain.
-- Query for a unanimously agreed on header from that full set of oracles.
-- Query for a block header agreed upon by a threshold of oracles for a given block on a given chain; the provided
-  oracles must all agree on the header for the given block, must all be enabled as oracles for the given chain, and must
-  exceed the threshold for the chain.
+- Define a threshold of oracles that must agree on a hash for each domain.
+- Query for a unanimously agreed on hash from that full set of oracles.
+- Query for a hash agreed upon by a threshold of oracles for a given block on a given chain; the provided
+  oracles must all agree on the hash for the ID, must all be enabled as oracles for the given domain, and must
+  exceed the threshold for the domain.
 
 Hashi's additional redundancy obviously comes with a higher gas cost, along with moving only as quickly as the slowest
 oracle in a given set. However, this trade-off seems well worth it given the scope and frequency of past bridge-related
