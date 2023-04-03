@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity ^0.8.17;
 
-import {ILightClient, TelepathyStorage} from "./interfaces/ITelepathy.sol";
-import {SSZ} from "./libraries/SimpleSerialize.sol";
-import {BlockHashOracleAdapter} from "../BlockHashOracleAdapter.sol";
+import { ILightClient, TelepathyStorage } from "./interfaces/ITelepathy.sol";
+import { SSZ } from "./libraries/SimpleSerialize.sol";
+import { BlockHashOracleAdapter } from "../BlockHashOracleAdapter.sol";
 
 contract TelepathyAdapter is BlockHashOracleAdapter {
     error NoLightClientOnChain(uint32 chainId);
