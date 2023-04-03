@@ -120,12 +120,22 @@ describe("MessageExecutor", function () {
         .withArgs(messageExecutor.address)
     })
     it("reverts if reported hash does not match calculated hash", async function () {
-      const { messageExecutor, wallet, oracleAdapter, message_1 } = await setup()
+      const { messageExecutor, wallet, hashi, oracleAdapter, message_1, message_2, yaho, failMessage } = await setup()
+      const reportedHash0 = await hashi.getHash(DOMAIN_ID, ID_ZERO, [oracleAdapter.address])
+      const reportedHash1 = await hashi.getHash(DOMAIN_ID, ID_ONE, [oracleAdapter.address])
+      const reportedHash2 = await hashi.getHash(DOMAIN_ID, ID_TWO, [oracleAdapter.address])
+
+      const calculatedHash1 = await yaho.calculateHash(DOMAIN_ID, ID_ZERO, yaho.address, wallet.address, message_1)
+      const calculatedHash2 = await yaho.calculateHash(DOMAIN_ID, ID_ONE, yaho.address, wallet.address, message_2)
+      const calculatedHash3 = await yaho.calculateHash(DOMAIN_ID, ID_TWO, yaho.address, wallet.address, failMessage)
+      console.log(reportedHash0, reportedHash1, reportedHash2)
+      console.log(calculatedHash1, calculatedHash2, calculatedHash3)
+
       await expect(
         messageExecutor.executeMessagesFromOracles(
           [DOMAIN_ID],
           [message_1],
-          [ID_ONE],
+          [ID_TWO],
           [wallet.address],
           [oracleAdapter.address],
         ),
@@ -146,11 +156,20 @@ describe("MessageExecutor", function () {
     it("executes messages", async function () {
       const { messageExecutor, wallet, oracleAdapter, message_1, message_2 } = await setup()
 
-      await expect(
-        messageExecutor.executeMessagesFromOracles(
+      expect(
+        await messageExecutor.executeMessagesFromOracles(
+          [DOMAIN_ID],
+          [message_1],
+          [ID_ZERO],
+          [wallet.address],
+          [oracleAdapter.address],
+        ),
+      )
+      expect(
+        await messageExecutor.executeMessagesFromOracles(
           [DOMAIN_ID, DOMAIN_ID],
           [message_1, message_2],
-          [ID_ZERO],
+          [ID_ZERO, ID_ONE],
           [wallet.address, wallet.address],
           [oracleAdapter.address],
         ),

@@ -31,7 +31,7 @@ contract MessageExecutor {
         if (messages.length != senders.length || messages.length != messageIds.length)
             revert UnequalArrayLengths(address(this));
         bytes[] memory returnDatas = new bytes[](oracleAdapters.length);
-        for (uint i = 0; i < messages.length; i++) {
+        for (uint i = 0; i < messages.length - 1; i++) {
             uint256 id = messageIds[i];
             if (executed[id]) revert AlreadyExecuted(address(this), id);
 
