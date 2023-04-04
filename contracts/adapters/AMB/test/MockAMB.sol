@@ -6,7 +6,7 @@ import "../AMBAdapter.sol";
 
 contract MockAMB is IAMB {
     address private sender;
-    bytes32 private immutable chainId = 0x0000000000000000000000000000000000000000000000000000000000000064;
+    bytes32 private immutable chainId = 0x0000000000000000000000000000000000000000000000000000000000007A69;
 
     event MessagePassed(address sender, bytes data);
 

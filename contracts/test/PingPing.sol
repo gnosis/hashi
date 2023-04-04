@@ -2,7 +2,10 @@
 pragma solidity ^0.8.17;
 
 contract PingPong {
-    function ping() public pure returns (string memory pong) {
+    event Pong(string pong);
+
+    function ping() public returns (string memory pong) {
         pong = "pong";
+        emit Pong(pong);
     }
 }
