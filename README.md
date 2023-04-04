@@ -24,9 +24,12 @@
 
 Hashi is an EVM Hash Oracle Aggregator, designed to facilitate a
 [principled approach to cross-chain bridge security](https://ethresear.ch/t/a-principled-approach-to-bridges/14725?u=auryn).
+
 The primary insight being that the vast majority of bridge-related security incidents could have had minimal impact if
 the systems relying on them had built in some redundancy. In other words, it's much more secure to require messages be
 validated by multiple independent mechanisms, rather than by just one.
+
+We call this setup a **RAIHO** (Redundant Array of Independent Hash Oracles).
 
 ## Features
 
@@ -52,7 +55,7 @@ security incidents.
 
 ## Audits
 
-Hashi is currently unaudited. Proceed with caution, there is probably dragons. 🐲
+Hashi is currently unaudited. Proceed with caution, there are probably dragons. 🐲
 
 ## Security and Liability
 
