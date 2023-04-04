@@ -42,9 +42,9 @@ GiriGiriBashi allows users to:
 - Define a set of oracles for each chainId.
 - Define a threshold of oracles that must agree on a hash for each domain.
 - Query for a unanimously agreed on hash from that full set of oracles.
-- Query for a hash agreed upon by a threshold of oracles for a given block on a given chain; the provided
-  oracles must all agree on the hash for the ID, must all be enabled as oracles for the given domain, and must
-  exceed the threshold for the domain.
+- Query for a hash agreed upon by a threshold of oracles for a given block on a given chain; the provided oracles must
+  all agree on the hash for the ID, must all be enabled as oracles for the given domain, and must exceed the threshold
+  for the domain.
 
 Hashi's additional redundancy obviously comes with a higher gas cost, along with moving only as quickly as the slowest
 oracle in a given set. However, this trade-off seems well worth it given the scope and frequency of past bridge-related
