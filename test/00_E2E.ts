@@ -32,9 +32,9 @@ const setup = async () => {
   const AMB = await ethers.getContractFactory("MockAMB")
   const amb = await AMB.deploy()
 
-  // deploy MessageExecutor
-  const MessageExecutor = await ethers.getContractFactory("MessageExecutor")
-  const messageExecutor = await MessageExecutor.deploy(hashi.address, yaho.address)
+  // deploy Yaru
+  const Yaru = await ethers.getContractFactory("Yaru")
+  const yaru = await Yaru.deploy(hashi.address, yaho.address)
 
   // deploy ping
   const PingPong = await ethers.getContractFactory("PingPong")
@@ -70,7 +70,7 @@ const setup = async () => {
     wallet,
     hashi,
     giriGiriBashi,
-    messageExecutor,
+    yaru,
     // oracleAdapter,
     yaho,
     hash_one,
@@ -92,7 +92,7 @@ describe("End-to-end tests", function () {
   })
   describe("Messages", function () {
     it("Executes messages agreed on by N adapters", async function () {
-      const { amb, messageExecutor, wallet, message_1, message_2, yaho } = await setup()
+      const { amb, yaru, wallet, message_1, message_2, yaho } = await setup()
 
       // deply Oracle Adapter
       const AMBMessageRelay = await ethers.getContractFactory("AMBMessageRelay")
@@ -104,7 +104,7 @@ describe("End-to-end tests", function () {
       await yaho.dispatchMessagesToAdapters([message_1, message_2], [ambMessageRelay.address], [ambAdapter.address])
 
       // execute messages
-      const response = await messageExecutor.callStatic.executeMessagesFromOracles(
+      const response = await yaru.callStatic.executeMessagesFromOracles(
         [DOMAIN_ID, DOMAIN_ID],
         [message_1, message_2],
         [ID_ZERO, ID_ONE],

@@ -10,10 +10,10 @@ const setup = async () => {
   const [wallet] = await ethers.getSigners()
   const Hashi = await ethers.getContractFactory("Hashi")
   const hashi = await Hashi.deploy()
-  const MessageExecutor = await ethers.getContractFactory("MessageExecutor")
+  const Yaru = await ethers.getContractFactory("Yaru")
   const Yaho = await ethers.getContractFactory("Yaho")
   const yaho = await Yaho.deploy()
-  const messageExecutor = await MessageExecutor.deploy(hashi.address, yaho.address)
+  const yaru = await Yaru.deploy(hashi.address, yaho.address)
   const OracleAdapter = await ethers.getContractFactory("MockOracleAdapter")
   const oracleAdapter = await OracleAdapter.deploy()
   const PingPong = await ethers.getContractFactory("PingPong")
@@ -42,7 +42,7 @@ const setup = async () => {
   return {
     wallet,
     hashi,
-    messageExecutor,
+    yaru,
     oracleAdapter,
     yaho,
     hash_one,
@@ -55,38 +55,38 @@ const setup = async () => {
   }
 }
 
-describe("MessageExecutor", function () {
+describe("Yaru", function () {
   describe("constructor()", function () {
     it("Successfully deploys contract", async function () {
-      const { messageExecutor } = await setup()
-      expect(await messageExecutor.deployed())
+      const { yaru } = await setup()
+      expect(await yaru.deployed())
     })
 
     it("Sets hashi address", async function () {
-      const { messageExecutor, hashi } = await setup()
-      expect(await messageExecutor.hashi()).to.equal(hashi.address)
+      const { yaru, hashi } = await setup()
+      expect(await yaru.hashi()).to.equal(hashi.address)
     })
 
     it("Sets yaho address", async function () {
-      const { messageExecutor, yaho } = await setup()
-      expect(await messageExecutor.yaho()).to.equal(yaho.address)
+      const { yaru, yaho } = await setup()
+      expect(await yaru.yaho()).to.equal(yaho.address)
     })
   })
 
   describe("calculateHash()", function () {
     it("calculates correct hash of the given message", async function () {
-      const { messageExecutor, wallet, hash_one, message_1, yaho } = await setup()
-      const calculatedHash = await messageExecutor.calculateHash(DOMAIN_ID, 0, yaho.address, wallet.address, message_1)
+      const { yaru, wallet, hash_one, message_1, yaho } = await setup()
+      const calculatedHash = await yaru.calculateHash(DOMAIN_ID, 0, yaho.address, wallet.address, message_1)
       expect(calculatedHash).to.equal(hash_one)
     })
   })
 
   describe("executeMessagesFromOracles()", function () {
     it("reverts if messages, messageIds, or senders are unequal lengths", async function () {
-      const { messageExecutor, wallet, oracleAdapter, message_1, message_2 } = await setup()
+      const { yaru, wallet, oracleAdapter, message_1, message_2 } = await setup()
 
       await expect(
-        messageExecutor.executeMessagesFromOracles(
+        yaru.executeMessagesFromOracles(
           [DOMAIN_ID, DOMAIN_ID],
           [message_1, message_2],
           [ID_ZERO],
@@ -94,10 +94,10 @@ describe("MessageExecutor", function () {
           [oracleAdapter.address],
         ),
       )
-        .to.be.revertedWithCustomError(messageExecutor, "UnequalArrayLengths")
-        .withArgs(messageExecutor.address)
+        .to.be.revertedWithCustomError(yaru, "UnequalArrayLengths")
+        .withArgs(yaru.address)
       await expect(
-        messageExecutor.executeMessagesFromOracles(
+        yaru.executeMessagesFromOracles(
           [DOMAIN_ID, DOMAIN_ID],
           [message_1],
           [ID_ZERO, ID_ONE],
@@ -105,10 +105,10 @@ describe("MessageExecutor", function () {
           [oracleAdapter.address],
         ),
       )
-        .to.be.revertedWithCustomError(messageExecutor, "UnequalArrayLengths")
-        .withArgs(messageExecutor.address)
+        .to.be.revertedWithCustomError(yaru, "UnequalArrayLengths")
+        .withArgs(yaru.address)
       await expect(
-        messageExecutor.executeMessagesFromOracles(
+        yaru.executeMessagesFromOracles(
           [DOMAIN_ID, DOMAIN_ID],
           [message_1, message_2],
           [ID_ZERO, ID_ONE],
@@ -116,10 +116,10 @@ describe("MessageExecutor", function () {
           [oracleAdapter.address],
         ),
       )
-        .to.be.revertedWithCustomError(messageExecutor, "UnequalArrayLengths")
-        .withArgs(messageExecutor.address)
+        .to.be.revertedWithCustomError(yaru, "UnequalArrayLengths")
+        .withArgs(yaru.address)
       await expect(
-        messageExecutor.executeMessagesFromOracles(
+        yaru.executeMessagesFromOracles(
           [DOMAIN_ID],
           [message_1, message_2],
           [ID_ZERO, ID_ONE],
@@ -127,47 +127,41 @@ describe("MessageExecutor", function () {
           [oracleAdapter.address],
         ),
       )
-        .to.be.revertedWithCustomError(messageExecutor, "UnequalArrayLengths")
-        .withArgs(messageExecutor.address)
+        .to.be.revertedWithCustomError(yaru, "UnequalArrayLengths")
+        .withArgs(yaru.address)
     })
     it("reverts if reported hash does not match calculated hash", async function () {
-      const { messageExecutor, wallet, oracleAdapter, message_1, message_2 } = await setup()
+      const { yaru, wallet, oracleAdapter, message_1, message_2 } = await setup()
       await expect(
-        messageExecutor.executeMessagesFromOracles(
+        yaru.executeMessagesFromOracles(
           [DOMAIN_ID, DOMAIN_ID],
           [message_1, message_2],
           [ID_ZERO, ID_TWO],
           [wallet.address, wallet.address],
           [oracleAdapter.address],
         ),
-      ).to.be.revertedWithCustomError(messageExecutor, "HashMismatch")
+      ).to.be.revertedWithCustomError(yaru, "HashMismatch")
       await expect(
-        messageExecutor.executeMessagesFromOracles(
-          [DOMAIN_ID],
-          [message_1],
-          [ID_TWO],
-          [wallet.address],
-          [oracleAdapter.address],
-        ),
-      ).to.be.revertedWithCustomError(messageExecutor, "HashMismatch")
+        yaru.executeMessagesFromOracles([DOMAIN_ID], [message_1], [ID_TWO], [wallet.address], [oracleAdapter.address]),
+      ).to.be.revertedWithCustomError(yaru, "HashMismatch")
     })
     it("reverts if call fails", async function () {
-      const { messageExecutor, wallet, oracleAdapter, failMessage } = await setup()
+      const { yaru, wallet, oracleAdapter, failMessage } = await setup()
       await expect(
-        messageExecutor.executeMessagesFromOracles(
+        yaru.executeMessagesFromOracles(
           [DOMAIN_ID],
           [failMessage],
           [ID_TWO],
           [wallet.address],
           [oracleAdapter.address],
         ),
-      ).to.be.revertedWithCustomError(messageExecutor, "CallFailed")
+      ).to.be.revertedWithCustomError(yaru, "CallFailed")
     })
     it("executes a message", async function () {
-      const { messageExecutor, wallet, oracleAdapter, message_1, message_2 } = await setup()
+      const { yaru, wallet, oracleAdapter, message_1, message_2 } = await setup()
 
       expect(
-        await messageExecutor.executeMessagesFromOracles(
+        await yaru.executeMessagesFromOracles(
           [DOMAIN_ID],
           [message_1],
           [ID_ZERO],
@@ -177,9 +171,9 @@ describe("MessageExecutor", function () {
       )
     })
     it("executes multiple messages", async function () {
-      const { messageExecutor, wallet, oracleAdapter, message_1, message_2 } = await setup()
+      const { yaru, wallet, oracleAdapter, message_1, message_2 } = await setup()
       expect(
-        await messageExecutor.executeMessagesFromOracles(
+        await yaru.executeMessagesFromOracles(
           [DOMAIN_ID, DOMAIN_ID],
           [message_1, message_2],
           [ID_ZERO, ID_ONE],
@@ -189,46 +183,28 @@ describe("MessageExecutor", function () {
       )
     })
     it("reverts if transaction was already executed", async function () {
-      const { messageExecutor, wallet, oracleAdapter, message_1 } = await setup()
+      const { yaru, wallet, oracleAdapter, message_1 } = await setup()
 
       await expect(
-        messageExecutor.executeMessagesFromOracles(
-          [DOMAIN_ID],
-          [message_1],
-          [ID_ZERO],
-          [wallet.address],
-          [oracleAdapter.address],
-        ),
+        yaru.executeMessagesFromOracles([DOMAIN_ID], [message_1], [ID_ZERO], [wallet.address], [oracleAdapter.address]),
       )
       await expect(
-        messageExecutor.executeMessagesFromOracles(
-          [DOMAIN_ID],
-          [message_1],
-          [ID_ZERO],
-          [wallet.address],
-          [oracleAdapter.address],
-        ),
-      ).to.be.revertedWithCustomError(messageExecutor, "AlreadyExecuted")
+        yaru.executeMessagesFromOracles([DOMAIN_ID], [message_1], [ID_ZERO], [wallet.address], [oracleAdapter.address]),
+      ).to.be.revertedWithCustomError(yaru, "AlreadyExecuted")
     })
     it("emits MessageIDExecuted", async function () {
-      const { messageExecutor, wallet, oracleAdapter, message_1 } = await setup()
+      const { yaru, wallet, oracleAdapter, message_1 } = await setup()
 
       await expect(
-        messageExecutor.executeMessagesFromOracles(
-          [DOMAIN_ID],
-          [message_1],
-          [ID_ZERO],
-          [wallet.address],
-          [oracleAdapter.address],
-        ),
+        yaru.executeMessagesFromOracles([DOMAIN_ID], [message_1], [ID_ZERO], [wallet.address], [oracleAdapter.address]),
       )
-        .to.emit(messageExecutor, "MessageIdExecuted")
+        .to.emit(yaru, "MessageIdExecuted")
         .withArgs(DOMAIN_ID, "0x0000000000000000000000000000000000000000000000000000000000000000")
     })
     it("returns returnDatas[] from executedMessages", async function () {
-      const { messageExecutor, wallet, oracleAdapter, message_1 } = await setup()
+      const { yaru, wallet, oracleAdapter, message_1 } = await setup()
 
-      const response = await messageExecutor.callStatic.executeMessagesFromOracles(
+      const response = await yaru.callStatic.executeMessagesFromOracles(
         [DOMAIN_ID],
         [message_1],
         [ID_ZERO],

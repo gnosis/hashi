@@ -3,13 +3,12 @@ pragma solidity ^0.8.17;
 
 import "./interfaces/IHashi.sol";
 import "./interfaces/IMessage.sol";
+import "./interfaces/IMessageExecutor.sol";
 
-contract MessageExecutor {
+contract Yaru is IMessageExecutor {
     IHashi public immutable hashi;
     address public immutable yaho;
     mapping(uint256 => bool) public executed;
-
-    event MessageIdExecuted(uint256 indexed fromChainId, bytes32 indexed messageId);
 
     error UnequalArrayLengths(address emitter);
     error AlreadyExecuted(address emitter, uint256 id);
@@ -37,6 +36,7 @@ contract MessageExecutor {
         for (uint i = 0; i < messages.length; i++) {
             uint256 id = messageIds[i];
             if (executed[id]) revert AlreadyExecuted(address(this), id);
+            executed[id] = true;
 
             uint256 chainId = chainIds[i];
             Message memory message = messages[i];
@@ -47,7 +47,6 @@ contract MessageExecutor {
             (bool success, bytes memory returnData) = address(message.to).call(message.data);
             if (!success) revert CallFailed(address(this), id);
             returnDatas[i] = returnData;
-            executed[id] = true;
             emit MessageIdExecuted(message.toChainId, bytes32(id));
         }
         return returnDatas;

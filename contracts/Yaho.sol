@@ -36,7 +36,7 @@ contract Yaho is MessageDispatcher {
         if (adapters.length != destinationAdapters.length) revert UnequalArrayLengths(address(this));
         uint256[] memory uintIds = new uint256[](messageIds.length);
         for (uint i = 0; i < messageIds.length; i++) {
-            uintIds[i] = uint256(messageIds[i]);
+            uintIds[i] = messageIds[i];
         }
         bytes32[] memory adapterReciepts = new bytes32[](adapters.length);
         for (uint i = 0; i < adapters.length; i++) {

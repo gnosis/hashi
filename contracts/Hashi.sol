@@ -87,15 +87,9 @@ contract Hashi {
         bytes32[] memory hashes = getHashesFromOracles(oracleAdapters, domain, id);
         hash = hashes[0];
         if (hash == bytes32(0)) revert OracleDidNotReport(address(this), oracleAdapters[0]);
-        if (hashes.length > 1) {
-            for (uint256 i = 1; i < hashes.length; i++) {
-                bytes32 previousHash = hash;
-                hash = hashes[i];
-                if (hash == bytes32(0)) revert OracleDidNotReport(address(this), oracleAdapters[i]);
-                if (hash != previousHash)
-                    revert OraclesDisagree(address(this), oracleAdapters[i - 1], oracleAdapters[i]);
-                previousHash = hash;
-            }
+        for (uint256 i = 1; i < hashes.length; i++) {
+            if (hashes[i] == bytes32(0)) revert OracleDidNotReport(address(this), oracleAdapters[i]);
+            if (hash != hashes[i]) revert OraclesDisagree(address(this), oracleAdapters[i - 1], oracleAdapters[i]);
         }
     }
 }
