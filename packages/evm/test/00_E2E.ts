@@ -109,7 +109,7 @@ describe("End-to-end tests", function () {
       const AMBAdapter = await ethers.getContractFactory("AMBAdapter")
       const ambAdapter = await AMBAdapter.deploy(amb.address, ambMessageRelay.address, BYTES32_DOMAIN_ID)
 
-      // dispatch messages
+      //// dispatch messages
       await yaho.dispatchMessagesToAdapters([message_1, message_2], [ambMessageRelay.address], [ambAdapter.address])
 
       // execute messages
@@ -120,7 +120,7 @@ describe("End-to-end tests", function () {
         // TODO: currently we query the AMB adapter twice. We should query two or more different adapters.
         [ambAdapter.address, ambAdapter.address],
       )
-      const data = await ethers.utils.defaultAbiCoder.decode(["string"], response[0])
+      const data = ethers.utils.defaultAbiCoder.decode(["string"], response[0])
       expect(data[0]).to.equal("pong")
     })
   })
