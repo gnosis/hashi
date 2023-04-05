@@ -32,69 +32,78 @@ const setup = async () => {
   const AMB = await ethers.getContractFactory("MockAMB")
   const amb = await AMB.deploy()
 
-  // deploy Yaru
-  const Yaru = await ethers.getContractFactory("Yaru")
-  const yaru = await Yaru.deploy(hashi.address, yaho.address)
-
-  // deploy ping
-  const PingPong = await ethers.getContractFactory("PingPong")
-  const pingPong = await PingPong.deploy()
-
-  // deploy Oracle Adapters
-  // const OracleAdapter = await ethers.getContractFactory("MockOracleAdapter")
-  // const oracleAdapter = await OracleAdapter.deploy()
-
-  const message_1 = {
-    to: pingPong.address,
-    toChainId: DOMAIN_ID,
-    data: pingPong.interface.getSighash("ping"),
-  }
-  const message_2 = {
-    to: "0x0000000000000000000000000000000000000002",
-    toChainId: DOMAIN_ID,
-    data: 0x02,
-  }
-
-  const hash_one = await yaho.calculateHash(DOMAIN_ID, ID_ZERO, yaho.address, wallet.address, message_1)
-  const hash_two = await yaho.calculateHash(DOMAIN_ID, ID_ONE, yaho.address, wallet.address, message_2)
-  const failMessage = {
-    to: hashi.address,
-    toChainId: 1,
-    data: 0x1111111111,
-  }
-  const hash_fail = await yaho.calculateHash(DOMAIN_ID, ID_TWO, yaho.address, wallet.address, failMessage)
-  // await oracleAdapter.setHashes(DOMAIN_ID, [ID_ZERO, ID_ONE, ID_TWO], [hash_one, hash_two, hash_fail])
-
   return {
     amb,
     wallet,
     hashi,
     giriGiriBashi,
-    yaru,
-    // oracleAdapter,
     yaho,
-    hash_one,
-    hash_two,
-    failMessage,
-    hash_fail,
-    pingPong,
-    message_1,
-    message_2,
   }
 }
 
 describe("End-to-end tests", function () {
-  describe("Consensus Layer", function () {
-    it("Reports consensus layer BeaconBlockHeader")
-  })
   describe("Execution layer", function () {
-    it("Reports execution layer block hash agreed on by M/N adapters")
+    it("Reports execution layer block hash agreed on by N adapters", async function () {
+      const { amb, hashi } = await setup()
+
+      // deploy header storage
+      const HeaderStorage = await ethers.getContractFactory("HeaderStorage")
+      const headerStorage = await HeaderStorage.deploy()
+
+      // deploy AMBHeaderReporter
+      const AMBHeaderReporter = await ethers.getContractFactory("AMBHeaderReporter")
+      const ambHeaderReporter = await AMBHeaderReporter.deploy(amb.address, headerStorage.address)
+
+      // deploy AMBAdapter
+      const AMBAdapter = await ethers.getContractFactory("AMBAdapter")
+      const ambAdapter = await AMBAdapter.deploy(amb.address, ambHeaderReporter.address, BYTES32_DOMAIN_ID)
+
+      await ambHeaderReporter.reportHeaders([ID_ONE, ID_TWO], ambAdapter.address, 10000000)
+
+      let expectedHash = await headerStorage.headers(ID_ONE)
+      expect(
+        await hashi.getHash(
+          DOMAIN_ID,
+          ID_ONE,
+          // TODO: currently we query the AMB adapter twice. We should query two or more different adapters.
+          [ambAdapter.address, ambAdapter.address],
+        ),
+      ).to.equal(expectedHash)
+      expectedHash = await headerStorage.headers(ID_TWO)
+      expect(
+        await hashi.getHash(
+          DOMAIN_ID,
+          ID_TWO,
+          // TODO: currently we query the AMB adapter twice. We should query two or more different adapters.
+          [ambAdapter.address, ambAdapter.address],
+        ),
+      ).to.equal(expectedHash)
+    })
   })
   describe("Messages", function () {
     it("Executes messages agreed on by N adapters", async function () {
-      const { amb, yaru, wallet, message_1, message_2, yaho } = await setup()
+      const { amb, hashi, wallet, yaho } = await setup()
 
-      // deply Oracle Adapter
+      // deploy ping
+      const PingPong = await ethers.getContractFactory("PingPong")
+      const pingPong = await PingPong.deploy()
+
+      const message_1 = {
+        to: pingPong.address,
+        toChainId: DOMAIN_ID,
+        data: pingPong.interface.getSighash("ping"),
+      }
+      const message_2 = {
+        to: "0x0000000000000000000000000000000000000002",
+        toChainId: DOMAIN_ID,
+        data: 0x02,
+      }
+
+      // deploy Yaru
+      const Yaru = await ethers.getContractFactory("Yaru")
+      const yaru = await Yaru.deploy(hashi.address, yaho.address)
+
+      // deploy Oracle Adapter
       const AMBMessageRelay = await ethers.getContractFactory("AMBMessageRelay")
       const ambMessageRelay = await AMBMessageRelay.deploy(amb.address, yaho.address)
       const AMBAdapter = await ethers.getContractFactory("AMBAdapter")
@@ -109,7 +118,8 @@ describe("End-to-end tests", function () {
         [message_1, message_2],
         [ID_ZERO, ID_ONE],
         [wallet.address, wallet.address],
-        [ambAdapter.address],
+        // TODO: currently we query the AMB adapter twice. We should query two or more different adapters.
+        [ambAdapter.address, ambAdapter.address],
       )
       const data = await ethers.utils.defaultAbiCoder.decode(["string"], response[0])
       expect(data[0]).to.equal("pong")
