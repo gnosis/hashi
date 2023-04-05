@@ -3,6 +3,7 @@ pragma solidity ^0.8.17;
 
 import "../HeaderStorage.sol";
 import "./IAMB.sol";
+import "./AMBAdapter.sol";
 
 contract AMBHeaderReporter {
     IAMB public immutable amb;
@@ -25,7 +26,7 @@ contract AMBHeaderReporter {
         uint256 gas
     ) public returns (bytes32 receipt) {
         bytes32[] memory blockHeaders = headerStorage.storeBlockHeaders(blockNumbers);
-        bytes memory data = abi.encodeWithSignature("storeHashes(uint256[],bytes32[])", blockNumbers, blockHeaders);
+        bytes memory data = abi.encodeCall(AMBAdapter.storeHashes, (blockNumbers, blockHeaders));
         receipt = amb.requireToPassMessage(ambAdapter, data, gas);
         for (uint i = 0; i < blockNumbers.length; i++) {
             emit HeaderReported(address(this), blockNumbers[i], blockHeaders[i]);

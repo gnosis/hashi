@@ -3,7 +3,7 @@ import { expect } from "chai"
 import { ethers, network } from "hardhat"
 
 const GAS = 1000000
-const DOMAIN_ID = "0x0000000000000000000000000000000000000000000000000000000000000064"
+const DOMAIN_ID = "0x0000000000000000000000000000000000000000000000000000000000007a69"
 
 const setup = async () => {
   await network.provider.request({ method: "hardhat_reset", params: [] })

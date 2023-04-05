@@ -1,7 +1,7 @@
 import { expect } from "chai"
 import { ethers, network } from "hardhat"
 
-const DOMAIN_ID = "0x0000000000000000000000000000000000000000000000000000000000000064"
+const DOMAIN_ID = "0x0000000000000000000000000000000000000000000000000000000000007a69"
 
 const setup = async () => {
   await network.provider.request({ method: "hardhat_reset", params: [] })
@@ -35,7 +35,7 @@ const setup = async () => {
   }
 }
 
-describe("AMBMessageReporter", function () {
+describe("AMBMessageRelayer", function () {
   describe("Deploy", function () {
     it("Successfully deploys contract", async function () {
       const { ambMessageRelay } = await setup()
