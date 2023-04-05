@@ -1,7 +1,12 @@
 {
+  "private": true,
   "name": "hashi-monorepo",
   "version": "1.0.0",
-  "private": true,
+  "description": "",
+  "author": {
+    "name": "gnosis",
+    "url": "https://github.com/gnosis"
+  },
   "scripts": {
     "prepare": "husky install",
     "preinstall": "yarn contracts:install",
@@ -16,6 +21,8 @@
     "contracts:coverage": "cd packages/evm && yarn coverage"
   },
   "devDependencies": {
+    "@commitlint/cli": "^17.5.1",
+    "@commitlint/config-conventional": "^17.4.4",
     "husky": "^8.0.3"
   },
   "packageManager": "yarn@3.2.1"
