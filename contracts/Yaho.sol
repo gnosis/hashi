@@ -3,8 +3,9 @@ pragma solidity ^0.8.17;
 
 import "./interfaces/IMessageRelay.sol";
 import "./interfaces/IMessageDispatcher.sol";
+import "./utils/MessageHashCalculator.sol";
 
-contract Yaho is MessageDispatcher {
+contract Yaho is MessageDispatcher, MessageHashCalculator {
     mapping(uint256 => bytes32) public hashes;
     uint256 private count;
 
@@ -13,6 +14,9 @@ contract Yaho is MessageDispatcher {
     error NoAdaptersGiven(address emitter);
     error UnequalArrayLengths(address emitter);
 
+    /// @dev Dispatches a batch of messages, putting their into storage and emitting their contents as an event.
+    /// @param messages An array of Messages to be dispatched.
+    /// @return messageIds An array of message IDs corresponding to the dispatched messages.
     function dispatchMessages(Message[] memory messages) public payable returns (bytes32[] memory) {
         if (messages.length == 0) revert NoMessagesGiven(address(this));
         bytes32[] memory messageIds = new bytes32[](messages.length);
@@ -26,6 +30,11 @@ contract Yaho is MessageDispatcher {
         return messageIds;
     }
 
+    /// @dev Relays hashes of the given messageIds to the given adapters.
+    /// @param messageIds Array of IDs of the message hashes to relay to the given adapters.
+    /// @param adapters Array of relay adapter addresses to which hashes should be relayed.
+    /// @param destinationAdapters Array of oracle adapter addresses to receive hashes.
+    /// @return adapterReciepts Reciepts from each of the relay adapters.
     function relayMessagesToAdapters(
         uint256[] memory messageIds,
         address[] memory adapters,
@@ -45,6 +54,12 @@ contract Yaho is MessageDispatcher {
         return adapterReciepts;
     }
 
+    /// @dev Dispatches an array of messages and relays their hashes to an array of relay adapters.
+    /// @param messages An array of Messages to be dispatched.
+    /// @param adapters Array of relay adapter addresses to which hashes should be relayed.
+    /// @param destinationAdapters Array of oracle adapter addresses to receive hashes.
+    /// @return messageIds An array of message IDs corresponding to the dispatched messages.
+    /// @return adapterReciepts Reciepts from each of the relay adapters.
     function dispatchMessagesToAdapters(
         Message[] memory messages,
         address[] memory adapters,
@@ -61,15 +76,5 @@ contract Yaho is MessageDispatcher {
             adapterReciepts[i] = IMessageRelay(adapters[i]).relayMessages(uintIds, destinationAdapters[i]);
         }
         return (messageIds, adapterReciepts);
-    }
-
-    function calculateHash(
-        uint256 chainId,
-        uint256 id,
-        address origin,
-        address sender,
-        Message memory message
-    ) public pure returns (bytes32 calculatedHash) {
-        calculatedHash = keccak256(abi.encode(chainId, id, origin, sender, message));
     }
 }

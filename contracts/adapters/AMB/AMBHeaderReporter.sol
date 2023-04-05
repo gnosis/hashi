@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity ^0.8.17;
 
-import "../HeaderStorage.sol";
+import "../../utils/HeaderStorage.sol";
 import "./IAMB.sol";
 import "./AMBAdapter.sol";
 

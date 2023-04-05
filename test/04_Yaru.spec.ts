@@ -1,7 +1,7 @@
 import { expect } from "chai"
-import { ethers } from "hardhat"
+import { ethers, network } from "hardhat"
 
-const DOMAIN_ID = 1
+const DOMAIN_ID = network.config.chainId
 const ID_ZERO = 0
 const ID_ONE = 1
 const ID_TWO = 2
@@ -13,7 +13,7 @@ const setup = async () => {
   const Yaru = await ethers.getContractFactory("Yaru")
   const Yaho = await ethers.getContractFactory("Yaho")
   const yaho = await Yaho.deploy()
-  const yaru = await Yaru.deploy(hashi.address, yaho.address)
+  const yaru = await Yaru.deploy(hashi.address, yaho.address, DOMAIN_ID)
   const OracleAdapter = await ethers.getContractFactory("MockOracleAdapter")
   const oracleAdapter = await OracleAdapter.deploy()
   const PingPong = await ethers.getContractFactory("PingPong")
@@ -21,12 +21,12 @@ const setup = async () => {
 
   const message_1 = {
     to: pingPong.address,
-    toChainId: 1,
+    toChainId: DOMAIN_ID,
     data: pingPong.interface.getSighash("ping"),
   }
   const message_2 = {
     to: "0x0000000000000000000000000000000000000002",
-    toChainId: 2,
+    toChainId: DOMAIN_ID,
     data: 0x02,
   }
   const hash_one = await yaho.calculateHash(DOMAIN_ID, ID_ZERO, yaho.address, wallet.address, message_1)
@@ -87,7 +87,6 @@ describe("Yaru", function () {
 
       await expect(
         yaru.executeMessagesFromOracles(
-          [DOMAIN_ID, DOMAIN_ID],
           [message_1, message_2],
           [ID_ZERO],
           [wallet.address, wallet.address],
@@ -98,7 +97,6 @@ describe("Yaru", function () {
         .withArgs(yaru.address)
       await expect(
         yaru.executeMessagesFromOracles(
-          [DOMAIN_ID, DOMAIN_ID],
           [message_1],
           [ID_ZERO, ID_ONE],
           [wallet.address, wallet.address],
@@ -109,21 +107,9 @@ describe("Yaru", function () {
         .withArgs(yaru.address)
       await expect(
         yaru.executeMessagesFromOracles(
-          [DOMAIN_ID, DOMAIN_ID],
           [message_1, message_2],
           [ID_ZERO, ID_ONE],
           [wallet.address],
-          [oracleAdapter.address],
-        ),
-      )
-        .to.be.revertedWithCustomError(yaru, "UnequalArrayLengths")
-        .withArgs(yaru.address)
-      await expect(
-        yaru.executeMessagesFromOracles(
-          [DOMAIN_ID],
-          [message_1, message_2],
-          [ID_ZERO, ID_ONE],
-          [wallet.address, wallet.address],
           [oracleAdapter.address],
         ),
       )
@@ -134,7 +120,6 @@ describe("Yaru", function () {
       const { yaru, wallet, oracleAdapter, message_1, message_2 } = await setup()
       await expect(
         yaru.executeMessagesFromOracles(
-          [DOMAIN_ID, DOMAIN_ID],
           [message_1, message_2],
           [ID_ZERO, ID_TWO],
           [wallet.address, wallet.address],
@@ -142,39 +127,24 @@ describe("Yaru", function () {
         ),
       ).to.be.revertedWithCustomError(yaru, "HashMismatch")
       await expect(
-        yaru.executeMessagesFromOracles([DOMAIN_ID], [message_1], [ID_TWO], [wallet.address], [oracleAdapter.address]),
+        yaru.executeMessagesFromOracles([message_1], [ID_TWO], [wallet.address], [oracleAdapter.address]),
       ).to.be.revertedWithCustomError(yaru, "HashMismatch")
     })
     it("reverts if call fails", async function () {
       const { yaru, wallet, oracleAdapter, failMessage } = await setup()
       await expect(
-        yaru.executeMessagesFromOracles(
-          [DOMAIN_ID],
-          [failMessage],
-          [ID_TWO],
-          [wallet.address],
-          [oracleAdapter.address],
-        ),
+        yaru.executeMessagesFromOracles([failMessage], [ID_TWO], [wallet.address], [oracleAdapter.address]),
       ).to.be.revertedWithCustomError(yaru, "CallFailed")
     })
     it("executes a message", async function () {
       const { yaru, wallet, oracleAdapter, message_1, message_2 } = await setup()
 
-      expect(
-        await yaru.executeMessagesFromOracles(
-          [DOMAIN_ID],
-          [message_1],
-          [ID_ZERO],
-          [wallet.address],
-          [oracleAdapter.address],
-        ),
-      )
+      expect(await yaru.executeMessagesFromOracles([message_1], [ID_ZERO], [wallet.address], [oracleAdapter.address]))
     })
     it("executes multiple messages", async function () {
       const { yaru, wallet, oracleAdapter, message_1, message_2 } = await setup()
       expect(
         await yaru.executeMessagesFromOracles(
-          [DOMAIN_ID, DOMAIN_ID],
           [message_1, message_2],
           [ID_ZERO, ID_ONE],
           [wallet.address, wallet.address],
@@ -185,19 +155,15 @@ describe("Yaru", function () {
     it("reverts if transaction was already executed", async function () {
       const { yaru, wallet, oracleAdapter, message_1 } = await setup()
 
+      await expect(yaru.executeMessagesFromOracles([message_1], [ID_ZERO], [wallet.address], [oracleAdapter.address]))
       await expect(
-        yaru.executeMessagesFromOracles([DOMAIN_ID], [message_1], [ID_ZERO], [wallet.address], [oracleAdapter.address]),
-      )
-      await expect(
-        yaru.executeMessagesFromOracles([DOMAIN_ID], [message_1], [ID_ZERO], [wallet.address], [oracleAdapter.address]),
+        yaru.executeMessagesFromOracles([message_1], [ID_ZERO], [wallet.address], [oracleAdapter.address]),
       ).to.be.revertedWithCustomError(yaru, "AlreadyExecuted")
     })
     it("emits MessageIDExecuted", async function () {
       const { yaru, wallet, oracleAdapter, message_1 } = await setup()
 
-      await expect(
-        yaru.executeMessagesFromOracles([DOMAIN_ID], [message_1], [ID_ZERO], [wallet.address], [oracleAdapter.address]),
-      )
+      await expect(yaru.executeMessagesFromOracles([message_1], [ID_ZERO], [wallet.address], [oracleAdapter.address]))
         .to.emit(yaru, "MessageIdExecuted")
         .withArgs(DOMAIN_ID, "0x0000000000000000000000000000000000000000000000000000000000000000")
     })
@@ -205,7 +171,6 @@ describe("Yaru", function () {
       const { yaru, wallet, oracleAdapter, message_1 } = await setup()
 
       const response = await yaru.callStatic.executeMessagesFromOracles(
-        [DOMAIN_ID],
         [message_1],
         [ID_ZERO],
         [wallet.address],
