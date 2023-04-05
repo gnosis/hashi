@@ -9,6 +9,7 @@ on:
   push:
     branches:
       - main
+      - monorepo
 
 jobs:
   ci:
@@ -43,6 +44,7 @@ jobs:
       - name: Coveralls
         uses: coverallsapp/github-action@master
         with:
+          path-to-lcov: packages/evm/coverage/lcov.info
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Add test summary"
