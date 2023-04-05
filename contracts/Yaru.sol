@@ -11,6 +11,7 @@ contract Yaru is IMessageExecutor, MessageHashCalculator {
     address public immutable yaho;
     uint256 public immutable chainId;
     mapping(uint256 => bool) public executed;
+    address public sender;
 
     error UnequalArrayLengths(address emitter);
     error AlreadyExecuted(address emitter, uint256 id);
@@ -31,7 +32,7 @@ contract Yaru is IMessageExecutor, MessageHashCalculator {
     /// @param senders Array of addresses that sent the corresponding messages.
     /// @param oracleAdapters Array of oracle adapters to query.
     /// @return returnDatas Array of data returned from each executed message.
-    function executeMessagesFromOracles(
+    function executeMessages(
         Message[] memory messages,
         uint256[] memory messageIds,
         address[] memory senders,
@@ -46,12 +47,14 @@ contract Yaru is IMessageExecutor, MessageHashCalculator {
             executed[id] = true;
 
             Message memory message = messages[i];
+            sender = senders[i];
             bytes32 reportedHash = hashi.getHash(chainId, id, oracleAdapters);
-            bytes32 calculatedHash = calculateHash(chainId, id, yaho, senders[i], message);
+            bytes32 calculatedHash = calculateHash(chainId, id, yaho, sender, message);
             if (reportedHash != calculatedHash) revert HashMismatch(address(this), id, reportedHash, calculatedHash);
 
             (bool success, bytes memory returnData) = address(message.to).call(message.data);
             if (!success) revert CallFailed(address(this), id);
+            delete sender;
             returnDatas[i] = returnData;
             emit MessageIdExecuted(message.toChainId, bytes32(id));
         }

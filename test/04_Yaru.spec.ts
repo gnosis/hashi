@@ -81,12 +81,12 @@ describe("Yaru", function () {
     })
   })
 
-  describe("executeMessagesFromOracles()", function () {
+  describe("executeMessages()", function () {
     it("reverts if messages, messageIds, or senders are unequal lengths", async function () {
       const { yaru, wallet, oracleAdapter, message_1, message_2 } = await setup()
 
       await expect(
-        yaru.executeMessagesFromOracles(
+        yaru.executeMessages(
           [message_1, message_2],
           [ID_ZERO],
           [wallet.address, wallet.address],
@@ -96,22 +96,12 @@ describe("Yaru", function () {
         .to.be.revertedWithCustomError(yaru, "UnequalArrayLengths")
         .withArgs(yaru.address)
       await expect(
-        yaru.executeMessagesFromOracles(
-          [message_1],
-          [ID_ZERO, ID_ONE],
-          [wallet.address, wallet.address],
-          [oracleAdapter.address],
-        ),
+        yaru.executeMessages([message_1], [ID_ZERO, ID_ONE], [wallet.address, wallet.address], [oracleAdapter.address]),
       )
         .to.be.revertedWithCustomError(yaru, "UnequalArrayLengths")
         .withArgs(yaru.address)
       await expect(
-        yaru.executeMessagesFromOracles(
-          [message_1, message_2],
-          [ID_ZERO, ID_ONE],
-          [wallet.address],
-          [oracleAdapter.address],
-        ),
+        yaru.executeMessages([message_1, message_2], [ID_ZERO, ID_ONE], [wallet.address], [oracleAdapter.address]),
       )
         .to.be.revertedWithCustomError(yaru, "UnequalArrayLengths")
         .withArgs(yaru.address)
@@ -119,7 +109,7 @@ describe("Yaru", function () {
     it("reverts if reported hash does not match calculated hash", async function () {
       const { yaru, wallet, oracleAdapter, message_1, message_2 } = await setup()
       await expect(
-        yaru.executeMessagesFromOracles(
+        yaru.executeMessages(
           [message_1, message_2],
           [ID_ZERO, ID_TWO],
           [wallet.address, wallet.address],
@@ -127,24 +117,24 @@ describe("Yaru", function () {
         ),
       ).to.be.revertedWithCustomError(yaru, "HashMismatch")
       await expect(
-        yaru.executeMessagesFromOracles([message_1], [ID_TWO], [wallet.address], [oracleAdapter.address]),
+        yaru.executeMessages([message_1], [ID_TWO], [wallet.address], [oracleAdapter.address]),
       ).to.be.revertedWithCustomError(yaru, "HashMismatch")
     })
     it("reverts if call fails", async function () {
       const { yaru, wallet, oracleAdapter, failMessage } = await setup()
       await expect(
-        yaru.executeMessagesFromOracles([failMessage], [ID_TWO], [wallet.address], [oracleAdapter.address]),
+        yaru.executeMessages([failMessage], [ID_TWO], [wallet.address], [oracleAdapter.address]),
       ).to.be.revertedWithCustomError(yaru, "CallFailed")
     })
     it("executes a message", async function () {
       const { yaru, wallet, oracleAdapter, message_1, message_2 } = await setup()
 
-      expect(await yaru.executeMessagesFromOracles([message_1], [ID_ZERO], [wallet.address], [oracleAdapter.address]))
+      expect(await yaru.executeMessages([message_1], [ID_ZERO], [wallet.address], [oracleAdapter.address]))
     })
     it("executes multiple messages", async function () {
       const { yaru, wallet, oracleAdapter, message_1, message_2 } = await setup()
       expect(
-        await yaru.executeMessagesFromOracles(
+        await yaru.executeMessages(
           [message_1, message_2],
           [ID_ZERO, ID_ONE],
           [wallet.address, wallet.address],
@@ -155,22 +145,22 @@ describe("Yaru", function () {
     it("reverts if transaction was already executed", async function () {
       const { yaru, wallet, oracleAdapter, message_1 } = await setup()
 
-      await expect(yaru.executeMessagesFromOracles([message_1], [ID_ZERO], [wallet.address], [oracleAdapter.address]))
+      await expect(yaru.executeMessages([message_1], [ID_ZERO], [wallet.address], [oracleAdapter.address]))
       await expect(
-        yaru.executeMessagesFromOracles([message_1], [ID_ZERO], [wallet.address], [oracleAdapter.address]),
+        yaru.executeMessages([message_1], [ID_ZERO], [wallet.address], [oracleAdapter.address]),
       ).to.be.revertedWithCustomError(yaru, "AlreadyExecuted")
     })
     it("emits MessageIDExecuted", async function () {
       const { yaru, wallet, oracleAdapter, message_1 } = await setup()
 
-      await expect(yaru.executeMessagesFromOracles([message_1], [ID_ZERO], [wallet.address], [oracleAdapter.address]))
+      await expect(yaru.executeMessages([message_1], [ID_ZERO], [wallet.address], [oracleAdapter.address]))
         .to.emit(yaru, "MessageIdExecuted")
         .withArgs(DOMAIN_ID, "0x0000000000000000000000000000000000000000000000000000000000000000")
     })
     it("returns returnDatas[] from executedMessages", async function () {
       const { yaru, wallet, oracleAdapter, message_1 } = await setup()
 
-      const response = await yaru.callStatic.executeMessagesFromOracles(
+      const response = await yaru.callStatic.executeMessages(
         [message_1],
         [ID_ZERO],
         [wallet.address],

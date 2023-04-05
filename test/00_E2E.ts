@@ -101,7 +101,7 @@ describe("End-to-end tests", function () {
 
       // deploy Yaru
       const Yaru = await ethers.getContractFactory("Yaru")
-      const yaru = await Yaru.deploy(hashi.address, yaho.address)
+      const yaru = await Yaru.deploy(hashi.address, yaho.address, DOMAIN_ID)
 
       // deploy Oracle Adapter
       const AMBMessageRelay = await ethers.getContractFactory("AMBMessageRelay")
@@ -113,8 +113,7 @@ describe("End-to-end tests", function () {
       await yaho.dispatchMessagesToAdapters([message_1, message_2], [ambMessageRelay.address], [ambAdapter.address])
 
       // execute messages
-      const response = await yaru.callStatic.executeMessagesFromOracles(
-        [DOMAIN_ID, DOMAIN_ID],
+      const response = await yaru.callStatic.executeMessages(
         [message_1, message_2],
         [ID_ZERO, ID_ONE],
         [wallet.address, wallet.address],
