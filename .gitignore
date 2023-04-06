@@ -15,6 +15,7 @@
 **/dist
 **/node_modules
 **/types
+**/.yarn
 
 # files
 *.env
