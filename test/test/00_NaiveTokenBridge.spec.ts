@@ -1,4 +1,5 @@
 import { expect } from "chai"
+import exp from "constants"
 import { ethers, network } from "hardhat"
 
 const DOMAIN_ID = network.config.chainId
@@ -79,7 +80,7 @@ describe("Naive Token Bridge", function () {
       await tokenBridgeOne.bridgeTokens(erc20Token.address, wallet.address, AMOUNT)
       await yaho.relayMessagesToAdapters([messageId], [ambMessageRelay.address], [ambAdapter.address])
 
-      const call = await tokenBridgeTwo.populateTransaction.releaseTokens(
+      const call = await tokenBridgeTwo.populateTransaction.mintTokens(
         erc20Token.address,
         wallet.address,
         AMOUNT,
@@ -95,68 +96,65 @@ describe("Naive Token Bridge", function () {
       await yaru.executeMessages([message], [messageId], [tokenBridgeOne.address], [ambAdapter.address])
 
       const twinToken = await ethers.getContractAt("LocalToken", predictedAddress)
+      expect(await erc20Token.balanceOf(wallet.address)).to.equal(0)
+      expect(await erc20Token.balanceOf(tokenBridgeOne.address)).to.equal(AMOUNT)
       expect(await twinToken.balanceOf(wallet.address)).to.equal(AMOUNT)
     })
 
-    it(
-      "Burns local tokens to release canonical tokens",
-      // , async function () {
-      //   const { tokenBridgeOne, tokenBridgeTwo, erc20Token, wallet, yaho, yaru, ambMessageRelay, ambAdapter } =
-      //     await setup()
-      //   const predictedAddress = await tokenBridgeOne.calculateTokenTwinAddress(
-      //     tokenBridgeTwo.address,
-      //     erc20Token.address,
-      //     await erc20Token.name(),
-      //     await erc20Token.symbol(),
-      //   )
+    it("Burns local tokens to release canonical tokens", async function () {
+      const { tokenBridgeOne, tokenBridgeTwo, erc20Token, wallet, yaho, yaru, ambMessageRelay, ambAdapter } =
+        await setup()
+      const predictedAddress = await tokenBridgeOne.calculateTokenTwinAddress(
+        tokenBridgeTwo.address,
+        erc20Token.address,
+        await erc20Token.name(),
+        await erc20Token.symbol(),
+      )
 
-      //   await erc20Token.approve(tokenBridgeOne.address, await erc20Token.balanceOf(wallet.address))
+      await erc20Token.approve(tokenBridgeOne.address, await erc20Token.balanceOf(wallet.address))
 
-      //   const messageIdOne = await tokenBridgeOne.callStatic.bridgeTokens(erc20Token.address, wallet.address, AMOUNT)
-      //   await tokenBridgeOne.bridgeTokens(erc20Token.address, wallet.address, AMOUNT)
-      //   await yaho.relayMessagesToAdapters([messageIdOne], [ambMessageRelay.address], [ambAdapter.address])
+      const messageIdOne = await tokenBridgeOne.callStatic.bridgeTokens(erc20Token.address, wallet.address, AMOUNT)
+      await tokenBridgeOne.bridgeTokens(erc20Token.address, wallet.address, AMOUNT)
+      await yaho.relayMessagesToAdapters([messageIdOne], [ambMessageRelay.address], [ambAdapter.address])
 
-      //   const callOne = await tokenBridgeTwo.populateTransaction.releaseTokens(
-      //     erc20Token.address,
-      //     wallet.address,
-      //     AMOUNT,
-      //     await erc20Token.name(),
-      //     await erc20Token.symbol(),
-      //   )
-      //   const messageOne = {
-      //     to: tokenBridgeTwo.address,
-      //     toChainId: DOMAIN_ID,
-      //     data: callOne.data,
-      //   }
+      const callOne = await tokenBridgeTwo.populateTransaction.mintTokens(
+        erc20Token.address,
+        wallet.address,
+        AMOUNT,
+        await erc20Token.name(),
+        await erc20Token.symbol(),
+      )
+      const messageOne = {
+        to: tokenBridgeTwo.address,
+        toChainId: DOMAIN_ID,
+        data: callOne.data,
+      }
 
-      //   await yaru.executeMessages([messageOne], [messageIdOne], [tokenBridgeOne.address], [ambAdapter.address])
+      await yaru.executeMessages([messageOne], [messageIdOne], [tokenBridgeOne.address], [ambAdapter.address])
 
-      //   const twinToken = await ethers.getContractAt("LocalToken", predictedAddress)
-      //   expect(await twinToken.balanceOf(wallet.address)).to.equal(AMOUNT)
+      const twinToken = await ethers.getContractAt("LocalToken", predictedAddress)
+      expect(await twinToken.balanceOf(wallet.address)).to.equal(AMOUNT)
 
-      //   await twinToken.approve(tokenBridgeTwo.address, twinToken.balanceOf(wallet.address))
+      await twinToken.approve(tokenBridgeTwo.address, twinToken.balanceOf(wallet.address))
 
-      //   const messageIdTwo = await tokenBridgeTwo.callStatic.bridgeTokens(twinToken.address, wallet.address, AMOUNT)
-      //   await tokenBridgeTwo.bridgeTokens(twinToken.address, wallet.address, AMOUNT)
-      //   await yaho.relayMessagesToAdapters([messageIdTwo], [ambMessageRelay.address], [ambAdapter.address])
+      const messageIdTwo = await tokenBridgeTwo.callStatic.bridgeTokens(twinToken.address, wallet.address, AMOUNT)
+      await tokenBridgeTwo.bridgeTokens(twinToken.address, wallet.address, AMOUNT)
 
-      //   const callTwo = await tokenBridgeOne.populateTransaction.releaseTokens(
-      //     twinToken.address,
-      //     wallet.address,
-      //     AMOUNT,
-      //     await twinToken.name(),
-      //     await twinToken.symbol(),
-      //   )
-      //   const messageTwo = {
-      //     to: tokenBridgeOne.address,
-      //     toChainId: DOMAIN_ID,
-      //     data: callTwo.data,
-      //   }
+      await yaho.relayMessagesToAdapters([messageIdTwo], [ambMessageRelay.address], [ambAdapter.address])
 
-      //   await yaru.executeMessages([messageTwo], [messageIdTwo], [tokenBridgeTwo.address], [ambAdapter.address])
+      const callTwo = await tokenBridgeOne.populateTransaction.releaseTokens(erc20Token.address, wallet.address, AMOUNT)
+      const messageTwo = {
+        to: tokenBridgeOne.address,
+        toChainId: DOMAIN_ID,
+        data: callTwo.data,
+      }
 
-      //   expect(await erc20Token.balanceOf(wallet.address)).to.equal(AMOUNT)
-      // }
-    )
+      await yaru.executeMessages([messageTwo], [messageIdTwo], [tokenBridgeTwo.address], [ambAdapter.address])
+
+      expect(await twinToken.totalSupply()).to.equal(0)
+      expect(await erc20Token.totalSupply()).to.equal(AMOUNT)
+      expect(await erc20Token.balanceOf(tokenBridgeOne.address)).to.equal(0)
+      expect(await erc20Token.balanceOf(wallet.address)).to.equal(AMOUNT)
+    })
   })
 })

@@ -53,17 +53,15 @@ contract NaiveTokenBridge is OwnableUpgradeable {
             revert InsuffientTokenBalance(address(this), msg.sender, token, amount);
 
         ERC20Upgradeable(token).transferFrom(msg.sender, address(this), amount);
+
         address tokenTwin = tokenTwins[token];
         bytes memory data;
         if (tokenTwin != address(0)) {
-            LocalToken(address(token)).burn(amount);
-            data = abi.encodeCall(
-                NaiveTokenBridge.releaseTokens,
-                (tokenTwin, receiver, amount, ERC20Upgradeable(token).name(), ERC20Upgradeable(token).symbol())
-            );
+            LocalToken(token).burn(amount);
+            data = abi.encodeCall(NaiveTokenBridge.releaseTokens, (tokenTwin, receiver, amount));
         } else {
             data = abi.encodeCall(
-                NaiveTokenBridge.releaseTokens,
+                NaiveTokenBridge.mintTokens,
                 (token, receiver, amount, ERC20Upgradeable(token).name(), ERC20Upgradeable(token).symbol())
             );
         }
@@ -78,7 +76,12 @@ contract NaiveTokenBridge is OwnableUpgradeable {
     }
 
     /// called by yaru.executeMessages, only callable by yaru and if yaru.sender == twin
-    function releaseTokens(
+    function releaseTokens(address token, address receiver, uint256 amount) external onlyValid {
+        ERC20Upgradeable(token).transfer(receiver, amount);
+        emit TokensReleased(address(this), token, receiver, amount);
+    }
+
+    function mintTokens(
         address token,
         address receiver,
         uint256 amount,
@@ -98,14 +101,7 @@ contract NaiveTokenBridge is OwnableUpgradeable {
             tokenTwins[calculatedAddress] = token;
             require(localToken == calculatedAddress, "not equal");
         }
-
-        /// if non-local token, release held tokens, else mint new tokens.
-        if (tokenTwins[calculatedAddress] == address(0)) {
-            ERC20Upgradeable(token).transfer(receiver, amount);
-        } else {
-            LocalToken(calculatedAddress).mint(receiver, amount);
-        }
-
+        LocalToken(calculatedAddress).mint(receiver, amount);
         emit TokensReleased(address(this), token, receiver, amount);
     }
 
