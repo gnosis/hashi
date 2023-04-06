@@ -25,6 +25,22 @@ contract NaiveTokenBridge is OwnableUpgradeable {
     error InvalidCaller(address emitter, address caller);
     error InvalidSender(address emitter, address sender);
 
+    constructor(address _owner, Yaho _yaho, Yaru _yaru, uint256 _destinationChain) {
+        initialize(_owner, _yaho, _yaru, _destinationChain);
+    }
+
+    function initialize(address _owner, Yaho _yaho, Yaru _yaru, uint256 _destinationChain) public initializer {
+        yaho = _yaho;
+        yaru = _yaru;
+        destinationChain = _destinationChain;
+        __Ownable_init();
+        transferOwnership(_owner);
+    }
+
+    function setTwin(address _twin) public onlyOwner {
+        twin = _twin;
+    }
+
     modifier onlyValid() {
         if (msg.sender != address(yaru)) revert InvalidCaller(address(this), msg.sender);
         if (yaru.sender() != twin) revert InvalidSender(address(this), yaru.sender());
@@ -32,13 +48,12 @@ contract NaiveTokenBridge is OwnableUpgradeable {
     }
 
     /// calls yaho.dispatchMessage with a payload to trigger twin.releaseTokens
-    function bridgeTokens(address token, address receiver, uint256 amount) external {
+    function bridgeTokens(address token, address receiver, uint256 amount) external returns (bytes32 messageId) {
         if (ERC20Upgradeable(token).allowance(msg.sender, address(this)) < amount)
             revert InsuffientTokenBalance(address(this), msg.sender, token, amount);
 
         ERC20Upgradeable(token).transferFrom(msg.sender, address(this), amount);
-
-        address tokenTwin = tokenTwins[address(token)];
+        address tokenTwin = tokenTwins[token];
         bytes memory data;
         if (tokenTwin != address(0)) {
             LocalToken(address(token)).burn(amount);
@@ -55,8 +70,11 @@ contract NaiveTokenBridge is OwnableUpgradeable {
 
         Message[] memory messages = new Message[](1);
         messages[0] = Message({ to: twin, toChainId: destinationChain, data: data });
-        yaho.dispatchMessages(messages);
-        emit tokensBridged(address(this), token, receiver, amount);
+        bytes32[] memory messageIds = new bytes32[](1);
+        messageIds = yaho.dispatchMessages(messages);
+        messageId = messageIds[0];
+
+        emit TokensBridged(address(this), token, receiver, amount);
     }
 
     /// called by yaru.executeMessages, only callable by yaru and if yaru.sender == twin
@@ -67,29 +85,31 @@ contract NaiveTokenBridge is OwnableUpgradeable {
         string memory name,
         string memory symbol
     ) external onlyValid {
-        /// If no, deploy contract
-        /// If yes, check if localToken
-        /// If yes, mint tokens
-        /// If no, transfer tokens
-
-        address calculatedAddress = calculatedAddress(
+        address calculatedAddress = calculateTokenTwinAddress(
             address(this),
             token,
-            ERC20Upgradeable.name(),
-            ERC20Upgradeable.symbol()
+            ERC20Upgradeable(token).name(),
+            ERC20Upgradeable(token).symbol()
         );
-        /// no code is deployed at address, deploy new token.
-        if (!AddressUpgradeable.isContract(calculatedAddress))
-            tokenTwins[address(new LocalToken{ salt: keccak256(abi.encode(token)) }(name, symbol))] = token;
-        if (tokenTwins[token] == address(0)) {
+
+        /// if no code is deployed at address, deploy new token.
+        if (!AddressUpgradeable.isContract(calculatedAddress)) {
+            address localToken = address(new LocalToken{ salt: keccak256(abi.encode(token)) }(name, symbol));
+            tokenTwins[calculatedAddress] = token;
+            require(localToken == calculatedAddress, "not equal");
+        }
+
+        /// if non-local token, release held tokens, else mint new tokens.
+        if (tokenTwins[calculatedAddress] == address(0)) {
             ERC20Upgradeable(token).transfer(receiver, amount);
         } else {
-            LocalToken(token).mint(receiver, amount);
+            LocalToken(calculatedAddress).mint(receiver, amount);
         }
-        emit tokensReleased(address(this), token, receiver, amount);
+
+        emit TokensReleased(address(this), token, receiver, amount);
     }
 
-    function calculateTwinAddress(
+    function calculateTokenTwinAddress(
         address creator,
         address token,
         string memory name,
