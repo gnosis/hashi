@@ -12,5 +12,8 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "editor.formatOnSave": true,
-  "liveServer.settings.root": "/coverage"
+  "eslint.workingDirectories": [
+    "packages/evm",
+    "packages/sdk"
+  ]
 }
