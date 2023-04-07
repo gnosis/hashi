@@ -1,5 +1,4 @@
 import { expect } from "chai"
-import exp from "constants"
 import { ethers, network } from "hardhat"
 
 const DOMAIN_ID = network.config.chainId
