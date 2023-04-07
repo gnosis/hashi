@@ -1,0 +1,14 @@
+{
+  "name": "sdk",
+  "packageManager": "yarn@3.2.1",
+  "dependencies": {
+    "ethers": "^6.2.3"
+  },
+  "devDependencies": {
+    "@typechain/ethers-v5": "^10.2.0",
+    "typechain": "^8.1.1"
+  },
+  "resolutions": {
+    "typechain": "^8.1.1"
+  }
+}
