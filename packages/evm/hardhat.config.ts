@@ -5,7 +5,9 @@ import type { NetworkUserConfig } from "hardhat/types"
 import { resolve } from "path"
 
 import "./tasks/accounts"
+import "./tasks/amb"
 import "./tasks/deploy"
+import "./tasks/utils"
 
 const dotenvConfigPath: string = process.env.DOTENV_CONFIG_PATH || "./.env"
 dotenvConfig({ path: resolve(__dirname, dotenvConfigPath) })
@@ -33,6 +35,7 @@ const chainIds = {
   "polygon-mainnet": 137,
   "polygon-mumbai": 80001,
   sepolia: 11155111,
+  chiado: 10200,
 }
 
 function getChainConfig(chain: keyof typeof chainIds): NetworkUserConfig {
@@ -43,6 +46,9 @@ function getChainConfig(chain: keyof typeof chainIds): NetworkUserConfig {
       break
     case "bsc":
       jsonRpcUrl = "https://bsc-dataseed1.binance.org"
+      break
+    case "chiado":
+      jsonRpcUrl = "https://rpc.chiadochain.net"
       break
     default:
       jsonRpcUrl = "https://" + chain + ".infura.io/v3/" + infuraApiKey
@@ -97,6 +103,7 @@ const config: HardhatUserConfig = {
     "polygon-mumbai": getChainConfig("polygon-mumbai"),
     sepolia: getChainConfig("sepolia"),
     goerli: getChainConfig("goerli"),
+    chiado: getChainConfig("chiado"),
   },
   paths: {
     artifacts: "./artifacts",
