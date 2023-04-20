@@ -43,13 +43,9 @@ contract Yaho is MessageDispatcher, MessageHashCalculator {
         if (messageIds.length == 0) revert NoMessageIdsGiven(address(this));
         if (adapters.length == 0) revert NoAdaptersGiven(address(this));
         if (adapters.length != destinationAdapters.length) revert UnequalArrayLengths(address(this));
-        uint256[] memory uintIds = new uint256[](messageIds.length);
-        for (uint i = 0; i < messageIds.length; i++) {
-            uintIds[i] = messageIds[i];
-        }
         bytes32[] memory adapterReciepts = new bytes32[](adapters.length);
         for (uint i = 0; i < adapters.length; i++) {
-            adapterReciepts[i] = IMessageRelay(adapters[i]).relayMessages(uintIds, destinationAdapters[i]);
+            adapterReciepts[i] = IMessageRelay(adapters[i]).relayMessages(messageIds, destinationAdapters[i]);
         }
         return adapterReciepts;
     }
