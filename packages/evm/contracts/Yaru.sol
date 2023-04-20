@@ -13,6 +13,7 @@ contract Yaru is IMessageExecutor, MessageHashCalculator {
     mapping(uint256 => bool) public executed;
     address public sender;
 
+    error ReentranceNotAllowed(address);
     error UnequalArrayLengths(address emitter);
     error AlreadyExecuted(address emitter, uint256 id);
     error HashMismatch(address emitter, uint256 id, bytes32 reportedHash, bytes32 calculatedHash);
@@ -38,6 +39,7 @@ contract Yaru is IMessageExecutor, MessageHashCalculator {
         address[] memory senders,
         IOracleAdapter[] memory oracleAdapters
     ) public returns (bytes[] memory) {
+        if (sender != address(0)) revert ReentranceNotAllowed(address(0));
         if (messages.length != senders.length || messages.length != messageIds.length)
             revert UnequalArrayLengths(address(this));
         bytes[] memory returnDatas = new bytes[](messages.length);
