@@ -88,13 +88,14 @@ contract AxiomV02StoragePf is Ownable, IAxiomV0StoragePf {
 
     // Verify a storage proof for 10 storage slots in a single account at a single block
     function attestSlotsWithHashi(
-        IAxiomV0.BlockHashWitness calldata blockData,
         bytes calldata proof,
         uint256 domain,
+        uint32 blockNumber,
+        bytes32 blockHash,
         IOracleAdapter[] memory oracleAdapters
     ) external {
-        bytes32 hashFromHashi = IHashi(hashiAddress).getHash(domain, blockData.blockNumber, oracleAdapters);
-        require(hashFromHashi == blockData.claimedBlockHash, "block hash mismatch with hash block hash");
+        bytes32 hashFromHashi = IHashi(hashiAddress).getHash(domain, blockNumber, oracleAdapters);
+        require(hashFromHashi == blockHash, "block hash mismatch with hash block hash");
 
         // Extract instances from proof
         uint256 _blockHash = (uint256(bytes32(proof[384:384 + 32])) << 128) | uint128(bytes16(proof[384 + 48:384 + 64]));
@@ -102,8 +103,8 @@ contract AxiomV02StoragePf is Ownable, IAxiomV0StoragePf {
         address account = address(bytes20(proof[384 + 108:384 + 128]));
 
         // Check block hash and block number
-        require(_blockHash == uint256(blockData.claimedBlockHash), "Invalid block hash in instance");
-        require(_blockNumber == blockData.blockNumber, "Invalid block number in instance");
+        require(_blockHash == uint256(blockHash), "Invalid block hash in instance");
+        require(_blockNumber == blockNumber, "Invalid block number in instance");
 
         (bool success,) = verifierAddress.call(proof);
         if (!success) {
@@ -115,9 +116,9 @@ contract AxiomV02StoragePf is Ownable, IAxiomV0StoragePf {
                 | uint128(bytes16(proof[384 + 176 + 128 * i:384 + 192 + 128 * i]));
             uint256 slotValue = (uint256(bytes32(proof[384 + 192 + 128 * i:384 + 224 + 128 * i])) << 128)
                 | uint128(bytes16(proof[384 + 240 + 128 * i:384 + 256 + 128 * i]));
-            (bytes32 hashedVal) = keccak256(abi.encodePacked(blockData.blockNumber, account, slot, slotValue));
+            (bytes32 hashedVal) = keccak256(abi.encodePacked(blockNumber, account, slot, slotValue));
             slotAttestations[hashedVal] = true;
-            emit SlotAttestationEvent(blockData.blockNumber, account, slot, slotValue);
+            emit SlotAttestationEvent(blockNumber, account, slot, slotValue);
         }
     }
 }
