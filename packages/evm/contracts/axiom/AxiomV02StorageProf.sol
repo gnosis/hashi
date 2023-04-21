@@ -7,8 +7,8 @@ import {IAxiomV0} from "./IAxiomV0.sol";
 import {IAxiomV0StoragePf} from "./IAxiomV0StoragePf.sol";
 // import {Ownable} from "openzeppelin-contracts/access/Ownable.sol";
 import {Ownable} from "./Ownable.sol";
-
-import "hardhat/console.sol";
+import {IHashi} from "../interfaces/IHashi.sol";
+import {IOracleAdapter} from  "../interfaces/IOracleAdapter.sol";
 
 uint8 constant SLOT_NUMBER = 10;
 
@@ -73,7 +73,6 @@ contract AxiomV02StoragePf is Ownable, IAxiomV0StoragePf {
 
         (bool success,) = verifierAddress.call(proof);
         if (!success) {
-            console.log('!!');
             revert("Proof verification failed");
         }
 
@@ -83,6 +82,42 @@ contract AxiomV02StoragePf is Ownable, IAxiomV0StoragePf {
             uint256 slotValue = (uint256(bytes32(proof[384 + 192 + 128 * i:384 + 224 + 128 * i])) << 128)
                 | uint128(bytes16(proof[384 + 240 + 128 * i:384 + 256 + 128 * i]));
             slotAttestations[keccak256(abi.encodePacked(blockData.blockNumber, account, slot, slotValue))] = true;
+            emit SlotAttestationEvent(blockData.blockNumber, account, slot, slotValue);
+        }
+    }
+
+    // Verify a storage proof for 10 storage slots in a single account at a single block
+    function attestSlotsWithHashi(
+        IAxiomV0.BlockHashWitness calldata blockData,
+        bytes calldata proof,
+        uint256 domain,
+        uint256 id,
+        IOracleAdapter[] memory oracleAdapters
+    ) external {
+        bytes32 hashFromHashi = IHashi(hashiAddress).getHash(domain, id, oracleAdapters);
+        require(hashFromHashi == blockData.claimedBlockHash, "block hash mismatch with hash block hash");
+
+        // Extract instances from proof
+        uint256 _blockHash = (uint256(bytes32(proof[384:384 + 32])) << 128) | uint128(bytes16(proof[384 + 48:384 + 64]));
+        uint256 _blockNumber = uint256(bytes32(proof[384 + 64:384 + 96]));
+        address account = address(bytes20(proof[384 + 108:384 + 128]));
+
+        // Check block hash and block number
+        require(_blockHash == uint256(blockData.claimedBlockHash), "Invalid block hash in instance");
+        require(_blockNumber == blockData.blockNumber, "Invalid block number in instance");
+
+        (bool success,) = verifierAddress.call(proof);
+        if (!success) {
+            revert("Proof verification failed");
+        }
+
+        for (uint16 i = 0; i < SLOT_NUMBER; i++) {
+            uint256 slot = (uint256(bytes32(proof[384 + 128 + 128 * i:384 + 160 + 128 * i])) << 128)
+                | uint128(bytes16(proof[384 + 176 + 128 * i:384 + 192 + 128 * i]));
+            uint256 slotValue = (uint256(bytes32(proof[384 + 192 + 128 * i:384 + 224 + 128 * i])) << 128)
+                | uint128(bytes16(proof[384 + 240 + 128 * i:384 + 256 + 128 * i]));
+            (bytes32 hashedVal) = keccak256(abi.encodePacked(blockData.blockNumber, account, slot, slotValue));
+            slotAttestations[hashedVal] = true;
             emit SlotAttestationEvent(blockData.blockNumber, account, slot, slotValue);
         }
     }

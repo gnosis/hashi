@@ -13,8 +13,9 @@ const BYTES32_DOMAIN_ID = "0x000000000000000000000000000000000000000000000000000
 const ID_ONE = 10000000 
 const ID_TWO = 2
 
-
-// storage key for punk 0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB
+// https://etherscan.io/tx/0x324ba0703e783108b0b5f66ab520de9b13529b6bb7db789ce8f39f1369973a43
+// storage key for cryptopunk 0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB
+// https://demo.axiom.xyz/custom
 // Function: attestSlots((uint32,bytes32,bytes32,uint32,bytes32[10]), bytes)
 // #	Name	Type	Data
 // 0	blockData.blockNumber	uint32	10000000
@@ -110,7 +111,7 @@ describe("End-to-end tests", function () {
       ).to.equal(expectedHash)
       console.log(expectedHash)
 
-      const attestation = await storageProof.attestSlots(blockHashWitness, proof)
+      const attestation = await storageProof.attestSlotsWithHashi(blockHashWitness, proof, DOMAIN_ID, ID_ONE, [ambAdapter.address, ambAdapter.address])
       console.log(attestation)
       // expectedHash = await headerStorage.headers(ID_TWO)
       // expect(
@@ -123,48 +124,4 @@ describe("End-to-end tests", function () {
       // ).to.equal(expectedHash)
     })
   })
-  // describe("Messages", function () {
-  //   it("Executes messages agreed on by N adapters", async function () {
-  //     const { amb, hashi, wallet, yaho } = await setup()
-
-  //     // deploy ping
-  //     const PingPong = await ethers.getContractFactory("PingPong")
-  //     const pingPong = await PingPong.deploy()
-
-  //     const message_1 = {
-  //       to: pingPong.address,
-  //       toChainId: DOMAIN_ID,
-  //       data: pingPong.interface.getSighash("ping"),
-  //     }
-  //     const message_2 = {
-  //       to: "0x0000000000000000000000000000000000000002",
-  //       toChainId: DOMAIN_ID,
-  //       data: 0x02,
-  //     }
-
-  //     // deploy Yaru
-  //     const Yaru = await ethers.getContractFactory("Yaru")
-  //     const yaru = await Yaru.deploy(hashi.address, yaho.address, DOMAIN_ID)
-
-  //     // deploy Oracle Adapter
-  //     const AMBMessageRelay = await ethers.getContractFactory("AMBMessageRelay")
-  //     const ambMessageRelay = await AMBMessageRelay.deploy(amb.address, yaho.address)
-  //     const AMBAdapter = await ethers.getContractFactory("AMBAdapter")
-  //     const ambAdapter = await AMBAdapter.deploy(amb.address, ambMessageRelay.address, BYTES32_DOMAIN_ID)
-
-  //     //// dispatch messages
-  //     await yaho.dispatchMessagesToAdapters([message_1, message_2], [ambMessageRelay.address], [ambAdapter.address])
-
-  //     // execute messages
-  //     const response = await yaru.callStatic.executeMessages(
-  //       [message_1, message_2],
-  //       [ID_ZERO, ID_ONE],
-  //       [wallet.address, wallet.address],
-  //       // TODO: currently we query the AMB adapter twice. We should query two or more different adapters.
-  //       [ambAdapter.address, ambAdapter.address],
-  //     )
-  //     const data = ethers.utils.defaultAbiCoder.decode(["string"], response[0])
-  //     expect(data[0]).to.equal("pong")
-  //   })
-  // })
 })
