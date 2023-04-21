@@ -82,8 +82,8 @@ const setup = async () => {
   const AxiomV02 = await ethers.getContractFactory("AxiomV02")
   const axiomV02 = await AxiomV02.deploy(axiomAddressMainnet, verifierAddress)
 
-  const AxiomV02StorageProf = await ethers.getContractFactory("AxiomV02StoragePf")
-  const storageProof = await AxiomV02StorageProf.deploy(axiomAddressMainnet, verifierAddress, hashi.address)
+  const AxiomV02StoragePf = await ethers.getContractFactory("AxiomV02StoragePf")
+  const storageProof = await AxiomV02StoragePf.deploy(axiomAddressMainnet, verifierAddress, hashi.address)
 
   return {
     amb,
