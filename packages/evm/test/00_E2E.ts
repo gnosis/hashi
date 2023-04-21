@@ -10,8 +10,8 @@ const DOMAIN_ID = network.config.chainId
 const BYTES32_DOMAIN_ID = "0x0000000000000000000000000000000000000000000000000000000000007A69"
 
 const ID_ZERO = 0
-const ID_ONE = 1
-const ID_TWO = 2
+const ID_ONE = 17093561// 1
+const ID_TWO = 17093560//2
 
 const setup = async () => {
   const [wallet] = await ethers.getSigners()
