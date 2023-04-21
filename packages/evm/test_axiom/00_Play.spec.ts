@@ -12,7 +12,7 @@ const BYTES32_DOMAIN_ID = "0x000000000000000000000000000000000000000000000000000
 // const ID_ZERO = 0
 const ID_ONE = 10000000 
 const ID_TWO = 2
-
+const CryptoPunkAddress = "0xb47e3cd837ddf8e4c57f05d70ab865de6e193bbb";
 // https://etherscan.io/tx/0x324ba0703e783108b0b5f66ab520de9b13529b6bb7db789ce8f39f1369973a43
 // storage key for cryptopunk 0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB
 // https://demo.axiom.xyz/custom
@@ -83,7 +83,7 @@ const setup = async () => {
 
 describe("End-to-end tests", function () {
   describe("Execution layer", function () {
-    it("Reports execution layer block hash agreed on by N adapters", async function () {
+    it("Attest slots for the claimed block head with the block hash agreed on by N adapters", async function () {
       const { amb, hashi, storageProof } = await setup()
 
       // deploy header storage
@@ -109,19 +109,49 @@ describe("End-to-end tests", function () {
           [ambAdapter.address, ambAdapter.address],
         ),
       ).to.equal(expectedHash)
-      console.log(expectedHash)
 
       const attestation = await storageProof.attestSlotsWithHashi(blockHashWitness, proof, DOMAIN_ID, ID_ONE, [ambAdapter.address, ambAdapter.address])
-      console.log(attestation)
-      // expectedHash = await headerStorage.headers(ID_TWO)
-      // expect(
-      //   await hashi.getHash(
-      //     DOMAIN_ID,
-      //     ID_TWO,
-      //     // TODO: currently we query the AMB adapter twice. We should query two or more different adapters.
-      //     [ambAdapter.address, ambAdapter.address],
-      //   ),
-      // ).to.equal(expectedHash)
+
+      // uint32 blockNumber, address addr, uint256 slot, uint256 slotValue
+      // https://etherscan.io/tx/0x324ba0703e783108b0b5f66ab520de9b13529b6bb7db789ce8f39f1369973a43#eventlog
+      await expect(attestation).to.emit(storageProof, "SlotAttestationEvent");
+    })
+
+    it("Reverts if the claimed block header is different from the block hash agreed on by N adapters", async function () {
+      const { amb, hashi, storageProof } = await setup()
+
+      // deploy header storage
+      const HeaderStorage = await ethers.getContractFactory("HeaderStorage")
+      const headerStorage = await HeaderStorage.deploy()
+
+      // deploy AMBHeaderReporter
+      const AMBHeaderReporter = await ethers.getContractFactory("AMBHeaderReporter")
+      const ambHeaderReporter = await AMBHeaderReporter.deploy(amb.address, headerStorage.address)
+
+      // deploy AMBAdapter
+      const AMBAdapter = await ethers.getContractFactory("AMBAdapter")
+      const ambAdapter = await AMBAdapter.deploy(amb.address, ambHeaderReporter.address, BYTES32_DOMAIN_ID)
+
+      await ambHeaderReporter.reportHeaders([ID_ONE], ambAdapter.address, 10000000)
+
+      let expectedHash = await headerStorage.headers(ID_ONE)
+      expect(
+        await hashi.getHash(
+          DOMAIN_ID,
+          ID_ONE,
+          // TODO: currently we query the AMB adapter twice. We should query two or more different adapters.
+          [ambAdapter.address, ambAdapter.address],
+        ),
+      ).to.equal(expectedHash)
+
+      const invalidBlockHashWitness = {
+        ...blockHashWitness,
+        claimedBlockHash: '0x30db8cd39796630f83af6d4cb062a50f90d1768f8723f37af018be8b1d664e50',
+      };
+
+      await expect(
+        storageProof.attestSlotsWithHashi(invalidBlockHashWitness, proof, DOMAIN_ID, ID_ONE, [ambAdapter.address, ambAdapter.address])
+      ).to.revertedWith("block hash mismatch with hash block hash");
     })
   })
 })
