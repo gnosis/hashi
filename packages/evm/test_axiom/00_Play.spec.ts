@@ -110,7 +110,7 @@ describe("End-to-end tests", function () {
         ),
       ).to.equal(expectedHash)
 
-      const attestation = await storageProof.attestSlotsWithHashi(blockHashWitness, proof, DOMAIN_ID, ID_ONE, [ambAdapter.address, ambAdapter.address])
+      const attestation = await storageProof.attestSlotsWithHashi(blockHashWitness, proof, DOMAIN_ID, [ambAdapter.address, ambAdapter.address])
 
       // uint32 blockNumber, address addr, uint256 slot, uint256 slotValue
       // https://etherscan.io/tx/0x324ba0703e783108b0b5f66ab520de9b13529b6bb7db789ce8f39f1369973a43#eventlog
@@ -150,7 +150,7 @@ describe("End-to-end tests", function () {
       };
 
       await expect(
-        storageProof.attestSlotsWithHashi(invalidBlockHashWitness, proof, DOMAIN_ID, ID_ONE, [ambAdapter.address, ambAdapter.address])
+        storageProof.attestSlotsWithHashi(invalidBlockHashWitness, proof, DOMAIN_ID, [ambAdapter.address, ambAdapter.address])
       ).to.revertedWith("block hash mismatch with hash block hash");
     })
   })
