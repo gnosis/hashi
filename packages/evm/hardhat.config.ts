@@ -99,7 +99,8 @@ const config: HardhatUserConfig = {
       }], 
       forking: {
         url: getChainConfig("mainnet").url,
-        blockNumber: 10000000, //'Fri Apr 21 2023 17:26:13 GMT+0900 (Korean Standard Time)'
+        // block number of attestation block. this version can only attest the latest block.
+        blockNumber: 10000000,
       },
       chainId: chainIds.hardhat,
     },
