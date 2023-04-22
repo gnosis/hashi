@@ -84,7 +84,14 @@ const config: HardhatUserConfig = {
     hardhat: {
       accounts: {
         mnemonic,
+        accountsBalance: "1000000000000000000000",
       },
+      // Used for testing axiom
+      // forking: {
+      //   url: getChainConfig("mainnet").url,
+      //   // block number of attestation block
+      //   blockNumber: 10000000,
+      // },
       chainId: chainIds.hardhat,
     },
     arbitrum: getChainConfig("arbitrum-mainnet"),
@@ -103,6 +110,7 @@ const config: HardhatUserConfig = {
     cache: "./cache",
     sources: "./contracts",
     tests: "./test",
+    // tests: "./test_axiom",
   },
   solidity: {
     version: "0.8.17",
