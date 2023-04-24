@@ -16,6 +16,7 @@ contract Yaru is IMessageExecutor, MessageHashCalculator {
     error ReentranceNotAllowed(address);
     error UnequalArrayLengths(address emitter);
     error AlreadyExecuted(address emitter, uint256 id);
+    error InvalidSender(address emitter, address sender);
     error HashMismatch(address emitter, uint256 id, bytes32 reportedHash, bytes32 calculatedHash);
     error CallFailed(address emitter, uint256 id);
 
@@ -45,9 +46,12 @@ contract Yaru is IMessageExecutor, MessageHashCalculator {
         bytes[] memory returnDatas = new bytes[](messages.length);
         for (uint i = 0; i < messages.length; i++) {
             uint256 id = messageIds[i];
-            if (executed[id]) revert AlreadyExecuted(address(this), id);
-            executed[id] = true;
 
+            if (executed[id]) revert AlreadyExecuted(address(this), id);
+            if (senders[i] == address(0)) revert InvalidSender(address(this), senders[i]);
+
+            executed[id] = true;
+            
             Message memory message = messages[i];
             sender = senders[i];
             bytes32 reportedHash = hashi.getHash(chainId, id, oracleAdapters);
@@ -56,6 +60,7 @@ contract Yaru is IMessageExecutor, MessageHashCalculator {
 
             (bool success, bytes memory returnData) = address(message.to).call(message.data);
             if (!success) revert CallFailed(address(this), id);
+            
             delete sender;
             returnDatas[i] = returnData;
             emit MessageIdExecuted(message.toChainId, bytes32(id));
