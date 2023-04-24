@@ -33,8 +33,8 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity ^0.8.17;
 
-import "./Hashi.sol";
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import { Hashi, IOracleAdapter } from "./Hashi.sol";
+import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 struct Link {
     IOracleAdapter previous;
@@ -114,7 +114,7 @@ contract GiriGiriBashi is OwnableUpgradeable {
             adapters[domainId][LIST_END].previous = LIST_END;
         }
         if (_adapters.length == 0) revert NoAdaptersGiven(address(this));
-        for (uint i = 0; i < _adapters.length; i++) {
+        for (uint256 i = 0; i < _adapters.length; i++) {
             IOracleAdapter adapter = _adapters[i];
             if (adapter == IOracleAdapter(address(0)) || adapter == LIST_END)
                 revert InvalidAdapter(address(this), adapter);
@@ -138,7 +138,7 @@ contract GiriGiriBashi is OwnableUpgradeable {
     function disableOracleAdapters(uint256 domainId, IOracleAdapter[] memory _adapters) public onlyOwner {
         if (domains[domainId].count == 0) revert NoAdaptersEnabled(address(this), domainId);
         if (_adapters.length == 0) revert NoAdaptersGiven(address(this));
-        for (uint i = 0; i < _adapters.length; i++) {
+        for (uint256 i = 0; i < _adapters.length; i++) {
             IOracleAdapter adapter = _adapters[i];
             if (adapter == IOracleAdapter(address(0)) || adapter == LIST_END)
                 revert InvalidAdapter(address(this), adapter);
@@ -160,7 +160,7 @@ contract GiriGiriBashi is OwnableUpgradeable {
     function getOracleAdapters(uint256 domainId) public view returns (IOracleAdapter[] memory) {
         IOracleAdapter[] memory _adapters = new IOracleAdapter[](domains[domainId].count);
         IOracleAdapter currentAdapter = adapters[domainId][LIST_END].next;
-        for (uint i = 0; i < _adapters.length; i++) {
+        for (uint256 i = 0; i < _adapters.length; i++) {
             _adapters[i] = currentAdapter;
             currentAdapter = adapters[domainId][currentAdapter].next;
         }
@@ -215,7 +215,7 @@ contract GiriGiriBashi is OwnableUpgradeable {
         if (_adapters.length == 0) revert NoAdaptersGiven(address(this));
         if (count == 0) revert NoAdaptersEnabled(address(this), domainId);
         if (_adapters.length < threshold) revert ThresholdNotMet(address(this));
-        for (uint i = 0; i < _adapters.length; i++) {
+        for (uint256 i = 0; i < _adapters.length; i++) {
             IOracleAdapter adapter = _adapters[i];
             if (i > 0 && adapter <= _adapters[i - 1])
                 revert DuplicateOrOutOfOrderAdapters(address(this), adapter, _adapters[i - 1]);

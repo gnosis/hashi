@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity ^0.8.17;
 
-import "../../interfaces/IMessageRelay.sol";
-import "./IAMB.sol";
-import "../../Yaho.sol";
-import "./AMBAdapter.sol";
+import { IMessageRelay } from "../../interfaces/IMessageRelay.sol";
+import { IAMB } from "./IAMB.sol";
+import { Yaho } from "../../Yaho.sol";
+import { AMBAdapter } from "./AMBAdapter.sol";
 
 contract AMBMessageRelay is IMessageRelay {
     IAMB public immutable amb;
@@ -19,7 +19,7 @@ contract AMBMessageRelay is IMessageRelay {
 
     function relayMessages(uint256[] memory messageIds, address ambAdapter) public payable returns (bytes32 receipt) {
         bytes32[] memory hashes = new bytes32[](messageIds.length);
-        for (uint i = 0; i < messageIds.length; i++) {
+        for (uint256 i = 0; i < messageIds.length; i++) {
             uint256 id = messageIds[i];
             hashes[i] = yaho.hashes(id);
             emit MessageRelayed(address(this), messageIds[i]);

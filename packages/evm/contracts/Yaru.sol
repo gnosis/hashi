@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity ^0.8.17;
 
-import "./interfaces/IHashi.sol";
-import "./interfaces/IMessage.sol";
-import "./interfaces/IMessageExecutor.sol";
-import "./utils/MessageHashCalculator.sol";
+import { IHashi, IOracleAdapter } from "./interfaces/IHashi.sol";
+import { Message } from "./interfaces/IMessage.sol";
+import { IMessageExecutor } from "./interfaces/IMessageExecutor.sol";
+import { MessageHashCalculator } from "./utils/MessageHashCalculator.sol";
 
 contract Yaru is IMessageExecutor, MessageHashCalculator {
     IHashi public immutable hashi;
@@ -44,14 +44,14 @@ contract Yaru is IMessageExecutor, MessageHashCalculator {
         if (messages.length != senders.length || messages.length != messageIds.length)
             revert UnequalArrayLengths(address(this));
         bytes[] memory returnDatas = new bytes[](messages.length);
-        for (uint i = 0; i < messages.length; i++) {
+        for (uint256 i = 0; i < messages.length; i++) {
             uint256 id = messageIds[i];
 
             if (executed[id]) revert AlreadyExecuted(address(this), id);
             if (senders[i] == address(0)) revert InvalidSender(address(this), senders[i]);
 
             executed[id] = true;
-            
+
             Message memory message = messages[i];
             sender = senders[i];
             bytes32 reportedHash = hashi.getHash(chainId, id, oracleAdapters);
@@ -60,7 +60,7 @@ contract Yaru is IMessageExecutor, MessageHashCalculator {
 
             (bool success, bytes memory returnData) = address(message.to).call(message.data);
             if (!success) revert CallFailed(address(this), id);
-            
+
             delete sender;
             returnDatas[i] = returnData;
             emit MessageIdExecuted(message.toChainId, bytes32(id));

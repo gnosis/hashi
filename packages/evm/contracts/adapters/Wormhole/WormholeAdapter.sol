@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity ^0.8.17;
 
-import "./IWormhole.sol";
-import "../OracleAdapter.sol";
-import "../BlockHashOracleAdapter.sol";
+import { IWormhole, VM } from "./IWormhole.sol";
+import { OracleAdapter } from "../OracleAdapter.sol";
+import { BlockHashOracleAdapter } from "../BlockHashOracleAdapter.sol";
 
 contract WormholeAdapter is OracleAdapter, BlockHashOracleAdapter {
     IWormhole public wormhole;

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity ^0.8.17;
 
-import "./IMessage.sol";
+import { Message } from "./IMessage.sol";
 
-interface MessageDispatcher {
+interface IMessageDispatcher {
     event MessageDispatched(
         bytes32 indexed messageId,
         address indexed from,

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity ^0.8.17;
 
-import "../../utils/HeaderStorage.sol";
-import "./IWormhole.sol";
+import { HeaderStorage } from "../../utils/HeaderStorage.sol";
+import { IWormhole } from "./IWormhole.sol";
 
 contract WormholeHeaderReporter {
     IWormhole public immutable wormhole;

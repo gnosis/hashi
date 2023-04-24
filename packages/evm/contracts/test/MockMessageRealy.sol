@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity ^0.8.17;
 
-import "../interfaces/IMessageRelay.sol";
+import { IMessageRelay } from "../interfaces/IMessageRelay.sol";
 
 contract MockMessageRelay is IMessageRelay {
     uint256 public count;

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity ^0.8.17;
 
-import "../../utils/HeaderStorage.sol";
-import "./IAMB.sol";
-import "./AMBAdapter.sol";
+import { HeaderStorage } from "../../utils/HeaderStorage.sol";
+import { IAMB } from "./IAMB.sol";
+import { AMBAdapter } from "./AMBAdapter.sol";
 
 contract AMBHeaderReporter {
     IAMB public immutable amb;
@@ -28,7 +28,7 @@ contract AMBHeaderReporter {
         bytes32[] memory blockHeaders = headerStorage.storeBlockHeaders(blockNumbers);
         bytes memory data = abi.encodeCall(AMBAdapter.storeHashes, (blockNumbers, blockHeaders));
         receipt = amb.requireToPassMessage(ambAdapter, data, gas);
-        for (uint i = 0; i < blockNumbers.length; i++) {
+        for (uint256 i = 0; i < blockNumbers.length; i++) {
             emit HeaderReported(address(this), blockNumbers[i], blockHeaders[i]);
         }
     }

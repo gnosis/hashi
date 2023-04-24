@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity ^0.8.17;
 
-import "../IAMB.sol";
-import "../AMBAdapter.sol";
+import { IAMB } from "../IAMB.sol";
+import { AMBAdapter } from "../AMBAdapter.sol";
 
 contract MockAMB is IAMB {
     address private sender;
