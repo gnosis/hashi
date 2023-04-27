@@ -80,6 +80,7 @@
     "coverage": "hardhat coverage --solcoverjs ./.solcover.js --temp artifacts --testfiles \"test/**/*.ts\" && yarn typechain",
     "deploy:hashi": "hardhat deploy:Hashi",
     "deploy:girigiribashi": "hardhat deploy:GiriGiriBashi",
+    "deploy:headerstorage": "hardhat deploy:HeaderStorage",
     "lint": "yarn lint:sol && yarn lint:ts && yarn prettier:check",
     "lint:sol": "solhint --max-warnings 0 \"contracts/**/*.sol\"",
     "lint:ts": "eslint --ignore-path ./.eslintignore --ext .js,.ts .",

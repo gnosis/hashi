@@ -1,39 +1,14 @@
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
-import { Contract } from "ethers"
 import { task } from "hardhat/config"
-import type { HardhatRuntimeEnvironment, TaskArguments } from "hardhat/types"
+import type { TaskArguments } from "hardhat/types"
 
+import { verify } from "."
 import type { GiriGiriBashi } from "../../types/contracts/GiriGiriBashi"
 import type { Hashi } from "../../types/contracts/Hashi"
+import type { HeaderStorage } from "../../types/contracts/utils/HeaderStorage"
 import type { GiriGiriBashi__factory } from "../../types/factories/contracts/GiriGiriBashi__factory"
-import { Hashi__factory } from "../../types/factories/contracts/Hashi__factory"
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const verify = async (hre: HardhatRuntimeEnvironment, contract: Contract, constructorArguments: any = []) => {
-  console.log("Waiting for 5 confirmations...")
-  await contract.deployTransaction.wait(5)
-  console.log("Verifying contract...")
-  try {
-    await hre.run("verify:verify", {
-      address: contract.address,
-      constructorArguments,
-    })
-  } catch (e) {
-    if (
-      e instanceof Error &&
-      e.stack &&
-      (e.stack.indexOf("Reason: Already Verified") > -1 ||
-        e.stack.indexOf("Contract source code already verified") > -1)
-    ) {
-      console.log("  ✔ Contract is already verified")
-    } else {
-      console.log(
-        "  ✘ Verifying the contract failed. This is probably because Etherscan is still indexing the contract. Try running this same command again in a few seconds.",
-      )
-      throw e
-    }
-  }
-}
+import type { Hashi__factory } from "../../types/factories/contracts/Hashi__factory"
+import type { HeaderStorage__factory } from "../../types/factories/contracts/utils/HeaderStorage__factory"
 
 task("deploy:Hashi")
   .addFlag("verify", "whether to verify the contract on Etherscan")
@@ -64,4 +39,18 @@ task("deploy:GiriGiriBashi")
     await giriGiriBashi.deployed()
     console.log("GiriGiriBashi deployed to:", giriGiriBashi.address)
     if (taskArguments.verify) await verify(hre, giriGiriBashi, constructorArguments)
+  })
+
+task("deploy:HeaderStorage")
+  .addFlag("verify", "whether to verify the contract on Etherscan")
+  .setAction(async function (taskArguments: TaskArguments, hre) {
+    console.log("Deploying HeaderStorage...")
+    const signers: SignerWithAddress[] = await hre.ethers.getSigners()
+    const headerStorageFactory: HeaderStorage__factory = <HeaderStorage__factory>(
+      await hre.ethers.getContractFactory("HeaderStorage")
+    )
+    const headerStorage: HeaderStorage = <HeaderStorage>await headerStorageFactory.connect(signers[0]).deploy()
+    await headerStorage.deployed()
+    console.log("HeaderStorage deployed to:", headerStorage.address)
+    if (taskArguments.verify) await verify(hre, headerStorage)
   })
