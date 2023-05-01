@@ -19,6 +19,8 @@ contract AxiomV02StoragePf is Ownable, IAxiomV0StoragePf {
     address private verifierAddress; // address of deployed ZKP verifier for storage proofs
     address private hashiAddress; // address of deployed Hashi contract
 
+    address private cryptoPunk420OwnerAtBlock10Mil; // address of attested owner of CryptoPunk#420 at Block 10000000
+
     // slotAttestations[keccak256(blockNumber || addr || slot || slotValue)] = true
     // if and only if it has been checked that:
     //    at block number `blockNumber`, the account storage of `addr` has value `slotValue` at slot `slot`
@@ -120,5 +122,46 @@ contract AxiomV02StoragePf is Ownable, IAxiomV0StoragePf {
             slotAttestations[hashedVal] = true;
             emit SlotAttestationEvent(blockNumber, account, slot, slotValue);
         }
+    }
+
+     // Verify a storage proof for 10 storage slots in a single account at a single block
+    function attestCryptoPunk420AddressWithHashi(
+        bytes calldata proof,
+        uint256 domain,
+        uint32 blockNumber,
+        bytes32 blockHash,
+        IOracleAdapter[] memory oracleAdapters
+    ) external returns (address) {
+        bytes32 hashFromHashi = IHashi(hashiAddress).getHash(domain, blockNumber, oracleAdapters);
+        require(hashFromHashi == blockHash, "block hash mismatch with hash block hash");
+
+        // Extract instances from proof
+        uint256 _blockHash = (uint256(bytes32(proof[384:384 + 32])) << 128) | uint128(bytes16(proof[384 + 48:384 + 64]));
+        uint256 _blockNumber = uint256(bytes32(proof[384 + 64:384 + 96]));
+        address account = address(bytes20(proof[384 + 108:384 + 128]));
+
+        // Check block hash and block number
+        require(_blockHash == uint256(blockHash), "Invalid block hash in instance");
+        require(_blockNumber == blockNumber, "Invalid block number in instance");
+
+        (bool success,) = verifierAddress.call(proof);
+        if (!success) {
+            revert("Proof verification failed");
+        }
+
+        uint256 slot = (uint256(bytes32(proof[384 + 128:384 + 160])) << 128)
+                | uint128(bytes16(proof[384 + 176:384 + 192]));
+        uint256 slotValue = (uint256(bytes32(proof[384 + 192:384 + 224])) << 128)
+            | uint128(bytes16(proof[384 + 240:384 + 256]));
+        (bytes32 hashedVal) = keccak256(abi.encodePacked(blockNumber, account, slot, slotValue));
+        slotAttestations[hashedVal] = true;
+        cryptoPunk420OwnerAtBlock10Mil = address(uint160(slotValue));
+        // CryptoPunk#420 address at the slot for the given block
+        return cryptoPunk420OwnerAtBlock10Mil;
+    }
+
+    // Return the stored CryptoPunk#420 owner at block 10,000,000 on Ethereum
+    function getCryptoPunk420OwnerAtBlock10Mil() view external returns (address) {
+        return cryptoPunk420OwnerAtBlock10Mil;
     }
 }
