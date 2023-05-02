@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity ^0.8.17;
 
-import "./IOracleAdapter.sol";
+import { IOracleAdapter } from "./IOracleAdapter.sol";
 
 interface IBlockHashOracleAdapter is IOracleAdapter {
     /// @dev Proves and stores valid ancestral block hashes for a given chain ID.

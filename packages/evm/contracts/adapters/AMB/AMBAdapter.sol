@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity ^0.8.17;
 
-import "./IAMB.sol";
-import "../OracleAdapter.sol";
-import "../BlockHashOracleAdapter.sol";
+import { IAMB } from "./IAMB.sol";
+import { OracleAdapter } from "../OracleAdapter.sol";
+import { BlockHashOracleAdapter } from "../BlockHashOracleAdapter.sol";
 
 contract AMBAdapter is OracleAdapter, BlockHashOracleAdapter {
     IAMB public amb;
@@ -36,7 +36,7 @@ contract AMBAdapter is OracleAdapter, BlockHashOracleAdapter {
     /// @notice Will revert if given array lengths do not match.
     function storeHashes(uint256[] memory ids, bytes32[] memory _hashes) public onlyValid {
         if (ids.length != _hashes.length) revert ArrayLengthMissmatch(address(this));
-        for (uint i = 0; i < ids.length; i++) {
+        for (uint256 i = 0; i < ids.length; i++) {
             _storeHash(uint256(chainId), ids[i], _hashes[i]);
         }
     }

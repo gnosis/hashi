@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity ^0.8.17;
 
-import "../interfaces/IOracleAdapter.sol";
+import { IOracleAdapter } from "../interfaces/IOracleAdapter.sol";
 
 abstract contract OracleAdapter is IOracleAdapter {
     mapping(uint256 => mapping(uint256 => bytes32)) public hashes;

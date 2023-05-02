@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity ^0.8.17;
 
-import "solidity-rlp/contracts/RLPReader.sol";
+import { RLPReader } from "solidity-rlp/contracts/RLPReader.sol";
 
-import "./OracleAdapter.sol";
+import { OracleAdapter } from "./OracleAdapter.sol";
 
 abstract contract BlockHashOracleAdapter is OracleAdapter {
     using RLPReader for RLPReader.RLPItem;
