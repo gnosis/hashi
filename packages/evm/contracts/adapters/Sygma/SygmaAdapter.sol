@@ -7,7 +7,7 @@ import "../BlockHashOracleAdapter.sol";
 
 contract SygmaAdapter is AccessControl, OracleAdapter, BlockHashOracleAdapter {
     struct Reporter {
-        uint256 chainID;
+        uint128 chainID;
         bool enabled;
     }
 
@@ -40,7 +40,7 @@ contract SygmaAdapter is AccessControl, OracleAdapter, BlockHashOracleAdapter {
         @param chainID ChainID of the source chain.
         @param enabled Status of the reporter.
     */
-    function setReporter(address reporterAddress, uint256 chainID, bool enabled) public onlyAdmin {
+    function setReporter(address reporterAddress, uint128 chainID, bool enabled) public onlyAdmin {
         reporters[reporterAddress] = Reporter(chainID, enabled);
         emit ReporterSet(reporterAddress, chainID, enabled);
     }
@@ -58,7 +58,7 @@ contract SygmaAdapter is AccessControl, OracleAdapter, BlockHashOracleAdapter {
         if (msg.sender != _handler) revert InvalidHandler(msg.sender);
 
         if (!reporters[reporterAddress].enabled) revert InvalidReporter(reporterAddress);
-        uint256 chainID = reporters[reporterAddress].chainID;
+        uint256 chainID = uint256(reporters[reporterAddress].chainID);
 
         for (uint i = 0; i < ids.length; i++) {
             _storeHash(chainID, ids[i], hashes[i]);
