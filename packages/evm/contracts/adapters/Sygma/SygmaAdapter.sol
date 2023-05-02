@@ -53,7 +53,7 @@ contract SygmaAdapter is AccessControl, OracleAdapter, BlockHashOracleAdapter {
         @notice Only callable by `_handler` with a message passed from an authorized reporter.
         @notice Will revert if array lengths do not match.
     */
-    function storeHashes(address reporterAddress, uint256[] memory ids, bytes32[] memory hashes) public {
+    function storeHashes(address reporterAddress, uint256[] calldata ids, bytes32[] calldata hashes) public {
         if (ids.length != hashes.length) revert ArrayLengthMismatch();
         if (msg.sender != _handler) revert InvalidHandler(msg.sender);
 
