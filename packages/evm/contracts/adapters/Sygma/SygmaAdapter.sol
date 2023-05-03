@@ -57,8 +57,9 @@ contract SygmaAdapter is AccessControl, OracleAdapter, BlockHashOracleAdapter {
         if (ids.length != hashes.length) revert ArrayLengthMismatch();
         if (msg.sender != _handler) revert InvalidHandler(msg.sender);
 
-        if (!reporters[reporterAddress].enabled) revert InvalidReporter(reporterAddress);
-        uint256 chainID = uint256(reporters[reporterAddress].chainID);
+        Reporter memory reporter = reporters[reporterAddress];
+        if (!reporter.enabled) revert InvalidReporter(reporterAddress);
+        uint256 chainID = uint256(reporter.chainID);
 
         for (uint i = 0; i < ids.length; i++) {
             _storeHash(chainID, ids[i], hashes[i]);
