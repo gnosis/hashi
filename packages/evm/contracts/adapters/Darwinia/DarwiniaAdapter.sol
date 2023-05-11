@@ -20,7 +20,7 @@ contract DarwiniaAdapter is BlockHashOracleAdapter {
     /// @param blockNumber Block number for the block for which to store the header hash.
     function storeBlockHeader(uint256 chainId, uint256 blockNumber) external {
         ILightClient lightClient = IDarwiniaRouter(router).lightClientOf(chainId);
-        if (address(lightClient) == address(0) {
+        if (address(lightClient) == address(0)) {
             revert NoLightClientOnChain(chainId);
         }
         bytes32 blockHeadHash = lightClient.headerOf(blockNumber);
