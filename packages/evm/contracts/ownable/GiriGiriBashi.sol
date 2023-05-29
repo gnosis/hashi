@@ -117,7 +117,7 @@ contract GiriGiriBashi is ShuSo {
         if (settings[adapter].quarantined) revert AlreadyQuarantined(address(this), adapter);
 
         // check if challenge already exists, revert if true
-        bytes32 challengeId = keccak256(abi.encode(domain, id, adapter));
+        bytes32 challengeId = getChallengeId(domain, id, adapter);
         if (challenges[challengeId].challenger != address(0))
             revert DuplicateChallenge(address(this), challengeId, domain, id, adapter);
 
@@ -150,7 +150,7 @@ contract GiriGiriBashi is ShuSo {
         IOracleAdapter[] memory _adapters
     ) public returns (bool success) {
         // check if challenge exists, revert if false
-        bytes32 challengeId = keccak256(abi.encode(domain, id, adapter));
+        bytes32 challengeId = getChallengeId(domain, id, adapter);
         if (challenges[challengeId].challenger == address(0))
             revert ChallengeNotFound(address(this), challengeId, domain, id, adapter);
 
@@ -162,7 +162,7 @@ contract GiriGiriBashi is ShuSo {
         // if no hash reported
         if (reportedHash == bytes32(0)) {
             // check block.timestamp is greater than challenge.timestamp + adapterSettings.timeout, revert if false.
-            if (block.timestamp > challenge.timestamp + adapterSettings.timeout)
+            if (block.timestamp < challenge.timestamp + adapterSettings.timeout)
                 revert AdapterHasNotYetTimedOut(address(this), adapter);
             // quaratine oracle adapter.
             adapterSettings.quarantined = true;
@@ -287,6 +287,14 @@ contract GiriGiriBashi is ShuSo {
     function updateHead(uint256 domain, uint256 id) private {
         if (id > heads[domain]) heads[domain] = id;
         emit NewHead(address(this), domain, id);
+    }
+
+    function getChallengeId(
+        uint256 domain,
+        uint256 id,
+        IOracleAdapter adapter
+    ) public pure returns (bytes32 challengeId) {
+        challengeId = keccak256(abi.encode(domain, id, adapter));
     }
 
     /// @dev Returns the hash unanimously agreed upon by ALL of the enabled oraclesAdapters.

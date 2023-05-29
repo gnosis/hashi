@@ -10,6 +10,7 @@ const LIST_END = "0x0000000000000000000000000000000000000001"
 const ADDRESS_TWO = "0x0000000000000000000000000000000000000002"
 const ADDRESS_THREE = "0x0000000000000000000000000000000000000003"
 const CHALLENGE_RANGE = 20
+const BOND = ethers.utils.parseEther("1")
 
 const setup = async () => {
   const [wallet] = await ethers.getSigners()
@@ -36,7 +37,7 @@ const setup = async () => {
 
   const settings = {
     quarantined: false,
-    minimumBond: 1,
+    minimumBond: BOND,
     startId: 1,
     idDepth: 20,
     timeout: 500,
@@ -247,7 +248,7 @@ describe.only("GiriGiriBashi", function () {
       const head = await giriGiriBashi.heads(DOMAIN_ID)
       expect(
         await giriGiriBashi.challengeOracleAdapter(DOMAIN_ID, head - CHALLENGE_RANGE + 1, mockOracleAdapter.address, {
-          value: 1,
+          value: BOND,
         }),
       )
       await expect(
@@ -256,7 +257,7 @@ describe.only("GiriGiriBashi", function () {
           head - CHALLENGE_RANGE + 1,
           mockOracleAdapter.address,
           {
-            value: 1,
+            value: BOND,
           },
         ),
       ).to.be.revertedWithCustomError(giriGiriBashi, "DuplicateChallenge")
@@ -280,7 +281,7 @@ describe.only("GiriGiriBashi", function () {
 
       // revert on block before start ID
       await expect(
-        giriGiriBashi.callStatic.challengeOracleAdapter(DOMAIN_ID, 0, mockOracleAdapter.address, { value: 1 }),
+        giriGiriBashi.callStatic.challengeOracleAdapter(DOMAIN_ID, 0, mockOracleAdapter.address, { value: BOND }),
       )
         .to.be.revertedWithCustomError(giriGiriBashi, "OutOfRange")
         .withArgs(giriGiriBashi.address, mockOracleAdapter.address, 0)
@@ -289,7 +290,7 @@ describe.only("GiriGiriBashi", function () {
       const outOfRangeBlock = head + CHALLENGE_RANGE + 1
       await expect(
         giriGiriBashi.callStatic.challengeOracleAdapter(DOMAIN_ID, outOfRangeBlock, mockOracleAdapter.address, {
-          value: 1,
+          value: BOND,
         }),
       )
         .to.be.revertedWithCustomError(giriGiriBashi, "OutOfRange")
@@ -299,7 +300,7 @@ describe.only("GiriGiriBashi", function () {
       const tooDeepBlock = 1
       await expect(
         giriGiriBashi.callStatic.challengeOracleAdapter(DOMAIN_ID, tooDeepBlock, mockOracleAdapter.address, {
-          value: 1,
+          value: BOND,
         }),
       )
         .to.be.revertedWithCustomError(giriGiriBashi, "OutOfRange")
@@ -308,7 +309,7 @@ describe.only("GiriGiriBashi", function () {
       // make sure it can actually be successful / doesn't always revert
       expect(
         await giriGiriBashi.challengeOracleAdapter(DOMAIN_ID, head - CHALLENGE_RANGE + 1, mockOracleAdapter.address, {
-          value: 1,
+          value: BOND,
         }),
       )
     })
@@ -329,7 +330,7 @@ describe.only("GiriGiriBashi", function () {
       const head = await giriGiriBashi.heads(DOMAIN_ID)
       expect(
         await giriGiriBashi.challengeOracleAdapter(DOMAIN_ID, head - CHALLENGE_RANGE + 1, mockOracleAdapter.address, {
-          value: 1,
+          value: BOND,
         }),
       )
     })
@@ -351,16 +352,89 @@ describe.only("GiriGiriBashi", function () {
       const head = await giriGiriBashi.heads(DOMAIN_ID)
       await expect(
         giriGiriBashi.challengeOracleAdapter(DOMAIN_ID, head - CHALLENGE_RANGE + 1, mockOracleAdapter.address, {
-          value: 1,
+          value: BOND,
         }),
       ).to.emit(giriGiriBashi, "ChallengeCreated")
     })
   })
 
   describe("resolveChallenge()", function () {
-    it("Reverts if challenge is not found")
-    it("Reverts if adapter has not yet timed out")
-    it("Quarantines adapter and returns bond if adapter times out")
+    it("Reverts if challenge is not found", async function () {
+      const { giriGiriBashi, mockOracleAdapter, anotherOracleAdapter } = await setup()
+      await expect(
+        giriGiriBashi.callStatic.resolveChallenge(DOMAIN_ID, 5, mockOracleAdapter.address, [
+          anotherOracleAdapter.address,
+        ]),
+      ).to.be.revertedWithCustomError(giriGiriBashi, "ChallengeNotFound")
+    })
+    it("Reverts if adapter has not yet timed out", async function () {
+      const { giriGiriBashi, mockOracleAdapter, anotherOracleAdapter, settings } = await setup()
+      await giriGiriBashi.enableOracleAdapters(
+        DOMAIN_ID,
+        [mockOracleAdapter.address, anotherOracleAdapter.address],
+        [settings, settings],
+      )
+      let adapters
+      if (anotherOracleAdapter.address > mockOracleAdapter.address) {
+        adapters = [mockOracleAdapter.address, anotherOracleAdapter.address]
+      } else {
+        adapters = [anotherOracleAdapter.address, mockOracleAdapter.address]
+      }
+      await giriGiriBashi.getHash(DOMAIN_ID, 22, adapters)
+      const head = await giriGiriBashi.heads(DOMAIN_ID)
+      const challengeBlock = head - CHALLENGE_RANGE + 1
+      await giriGiriBashi.challengeOracleAdapter(DOMAIN_ID, challengeBlock, mockOracleAdapter.address, {
+        value: BOND,
+      })
+      const challengeId = await giriGiriBashi.getChallengeId(DOMAIN_ID, challengeBlock, mockOracleAdapter.address)
+      const challenge = await giriGiriBashi.challenges(challengeId)
+      const increaseAmount = challenge.timestamp.add(settings.timeout).sub(1)
+
+      await network.provider.send("evm_setNextBlockTimestamp", [increaseAmount.toHexString()])
+
+      await expect(
+        giriGiriBashi.resolveChallenge(DOMAIN_ID, challengeBlock, mockOracleAdapter.address, [
+          anotherOracleAdapter.address,
+        ]),
+      ).to.be.revertedWithCustomError(giriGiriBashi, "AdapterHasNotYetTimedOut")
+    })
+    it("Quarantines adapter and returns bond if adapter times out", async function () {
+      const { giriGiriBashi, mockOracleAdapter, anotherOracleAdapter, settings, wallet } = await setup()
+      await giriGiriBashi.enableOracleAdapters(
+        DOMAIN_ID,
+        [mockOracleAdapter.address, anotherOracleAdapter.address],
+        [settings, settings],
+      )
+      let adapters
+      if (anotherOracleAdapter.address > mockOracleAdapter.address) {
+        adapters = [mockOracleAdapter.address, anotherOracleAdapter.address]
+      } else {
+        adapters = [anotherOracleAdapter.address, mockOracleAdapter.address]
+      }
+      await giriGiriBashi.getHash(DOMAIN_ID, 22, adapters)
+      const head = await giriGiriBashi.heads(DOMAIN_ID)
+      const challengeBlock = head - CHALLENGE_RANGE + 1
+      await giriGiriBashi.challengeOracleAdapter(DOMAIN_ID, challengeBlock, mockOracleAdapter.address, {
+        value: BOND,
+      })
+      const challengeId = await giriGiriBashi.getChallengeId(DOMAIN_ID, challengeBlock, mockOracleAdapter.address)
+      const challenge = await giriGiriBashi.challenges(challengeId)
+      const increaseAmount = challenge.timestamp.add(settings.timeout).add(1)
+
+      await network.provider.send("evm_setNextBlockTimestamp", [increaseAmount.toHexString()])
+
+      const previousBalance = await ethers.provider.getBalance(wallet.address)
+
+      await giriGiriBashi.resolveChallenge(DOMAIN_ID, challengeBlock, mockOracleAdapter.address, [
+        anotherOracleAdapter.address,
+      ])
+
+      const newBalance = await ethers.provider.getBalance(wallet.address)
+      await expect(newBalance).to.be.greaterThan(previousBalance)
+
+      const quarantined = (await giriGiriBashi.settings(mockOracleAdapter.address)).quarantined
+      await expect(quarantined).to.equal(true)
+    })
     it("Keeps bond of _adapters + adapter equals threshold and agree")
     it("Reverts if _adapters + adapter equals threshold and disagree")
     it("Keeps bond if canonical has matches has reported by challenged adapter")
@@ -369,11 +443,15 @@ describe.only("GiriGiriBashi", function () {
     it("Emits ChallengeResolved() event")
   })
 
-  describe("declareNoConfidence", function () {
+  describe("declareNoConfidence()", function () {
     it("Reverts if too few adapters were provided to prove no confidence")
     it("Reverts if any of the provided adapters agree")
     it("Clears state for domain")
     it("Emits NoConfidenceDeclareed() event")
+  })
+
+  describe("getChallengeId()", function () {
+    it("Returns the correct challangeId")
   })
 
   describe("replaceQuaratinedOrcales()", function () {
