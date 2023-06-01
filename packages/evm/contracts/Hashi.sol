@@ -58,7 +58,6 @@ contract Hashi {
     /// @param domain ID of the domain to query.
     /// @param id ID for which to return hashs.
     /// @return hashes Array of hash reported by the given oracle adapters for the given ID.
-    /// @notice This method MUST revert if the oracleAdapters array contains duplicates.
     function getHashesFromOracles(
         IOracleAdapter[] memory oracleAdapters,
         uint256 domain,

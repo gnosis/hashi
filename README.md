@@ -40,7 +40,7 @@ Hashi allows users to:
 - Query a set of oracles the hash for a given ID in a given domain.
 - Query for a unanimously agreed upon block hash from a set of oracles for a given ID in a given domain.
 
-GiriGiriBashi allows users to:
+ShoyuBashi allows users to:
 
 - Define a set of oracles for each chainId.
 - Define a threshold of oracles that must agree on a hash for each domain.
