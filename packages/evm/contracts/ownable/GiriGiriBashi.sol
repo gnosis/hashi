@@ -196,10 +196,6 @@ contract GiriGiriBashi is ShuSo {
                 }
             }
         }
-        // delete challenge
-        delete challenge.challenger;
-        delete challenge.timestamp;
-        delete challenge.bond;
         emit ChallengeResolved(
             address(this),
             challengeId,
@@ -210,6 +206,10 @@ contract GiriGiriBashi is ShuSo {
             challenge.bond,
             success
         );
+        // delete challenge
+        delete challenge.challenger;
+        delete challenge.timestamp;
+        delete challenge.bond;
     }
 
     // show that enough oracles disagree that they could not make a threshold if the remainder all agree with one.
@@ -228,8 +228,7 @@ contract GiriGiriBashi is ShuSo {
         // prove that each member of _adapters disagrees
         for (uint i = 0; i < hashes.length; i++)
             for (uint j = 0; j < hashes.length; j++)
-                if (_adapters[i] == _adapters[j] && i != j)
-                    revert AdaptersAgreed(address(this), _adapters[i], _adapters[j]);
+                if (hashes[i] == hashes[j] && i != j) revert AdaptersAgreed(address(this), _adapters[i], _adapters[j]);
 
         // set no confidence
         domains[domain].threshold = type(uint256).max;
@@ -294,7 +293,7 @@ contract GiriGiriBashi is ShuSo {
         uint256 id,
         IOracleAdapter adapter
     ) public pure returns (bytes32 challengeId) {
-        challengeId = keccak256(abi.encode(domain, id, adapter));
+        challengeId = keccak256(abi.encodePacked(domain, id, adapter));
     }
 
     /// @dev Returns the hash unanimously agreed upon by ALL of the enabled oraclesAdapters.
