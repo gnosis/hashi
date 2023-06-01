@@ -21,7 +21,7 @@ contract GiriGiriBashi is ShuSo {
     address payable public bondRecipient; // address that bonds from unsuccessful challenges should be sent to.
 
     mapping(uint256 => uint256) public heads; // highest Id reported.
-    mapping(uint256 => uint256) public challengeRanges; // how far beyond the current highestId can a challenge be raised, zero is infinite.
+    mapping(uint256 => uint256) public challengeRanges; // how far beyond the current highestId can a challenged.
     mapping(IOracleAdapter => Settings) public settings;
     mapping(bytes32 => Challenge) public challenges; // current challenges.
 
