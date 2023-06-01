@@ -12,9 +12,9 @@ const setup = async () => {
   const Hashi = await ethers.getContractFactory("Hashi")
   const hashi = await Hashi.deploy()
 
-  // deploy GiriGiriBashi
-  const GiriGiriBashi = await ethers.getContractFactory("GiriGiriBashi")
-  const giriGiriBashi = GiriGiriBashi.deploy(wallet.address, hashi.address)
+  // deploy ShoyuBashi
+  const ShoyuBashi = await ethers.getContractFactory("ShoyuBashi")
+  const shoyuBashi = ShoyuBashi.deploy(wallet.address, hashi.address)
 
   // deploy Yaho
   const Yaho = await ethers.getContractFactory("Yaho")
@@ -50,7 +50,7 @@ const setup = async () => {
     amb,
     wallet,
     hashi,
-    giriGiriBashi,
+    shoyuBashi,
     yaho,
     yaru,
     tokenBridgeOne,

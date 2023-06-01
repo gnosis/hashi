@@ -3,11 +3,11 @@ import { task } from "hardhat/config"
 import type { TaskArguments } from "hardhat/types"
 
 import { verify } from "."
-import type { GiriGiriBashi } from "../../types/contracts/GiriGiriBashi"
 import type { Hashi } from "../../types/contracts/Hashi"
+import type { ShoyuBashi } from "../../types/contracts/ShoyuBashi"
 import type { HeaderStorage } from "../../types/contracts/utils/HeaderStorage"
-import type { GiriGiriBashi__factory } from "../../types/factories/contracts/GiriGiriBashi__factory"
 import type { Hashi__factory } from "../../types/factories/contracts/Hashi__factory"
+import type { ShoyuBashi__factory } from "../../types/factories/contracts/ShoyuBashi__factory"
 import type { HeaderStorage__factory } from "../../types/factories/contracts/utils/HeaderStorage__factory"
 
 task("deploy:Hashi")
@@ -22,23 +22,23 @@ task("deploy:Hashi")
     if (taskArguments.verify) await verify(hre, hashi)
   })
 
-task("deploy:GiriGiriBashi")
+task("deploy:ShoyuBashi")
   .addParam("owner", "address to set as the owner of this contract")
   .addParam("hashi", "address of the hashi contract")
   .addFlag("verify", "whether to verify the contract on Etherscan")
   .setAction(async function (taskArguments: TaskArguments, hre) {
-    console.log("Deploying GiriGiriBashi...")
+    console.log("Deploying ShoyuBashi...")
     const signers: SignerWithAddress[] = await hre.ethers.getSigners()
-    const giriGiriBashiFactory: GiriGiriBashi__factory = <GiriGiriBashi__factory>(
-      await hre.ethers.getContractFactory("GiriGiriBashi")
+    const shoyuBashiFactory: ShoyuBashi__factory = <ShoyuBashi__factory>(
+      await hre.ethers.getContractFactory("ShoyuBashi")
     )
     const constructorArguments = [taskArguments.owner, taskArguments.hashi] as const
-    const giriGiriBashi: GiriGiriBashi = <GiriGiriBashi>(
-      await giriGiriBashiFactory.connect(signers[0]).deploy(...constructorArguments)
+    const shoyuBashi: ShoyuBashi = <ShoyuBashi>(
+      await shoyuBashiFactory.connect(signers[0]).deploy(...constructorArguments)
     )
-    await giriGiriBashi.deployed()
-    console.log("GiriGiriBashi deployed to:", giriGiriBashi.address)
-    if (taskArguments.verify) await verify(hre, giriGiriBashi, constructorArguments)
+    await shoyuBashi.deployed()
+    console.log("ShoyuBashi deployed to:", shoyuBashi.address)
+    if (taskArguments.verify) await verify(hre, shoyuBashi, constructorArguments)
   })
 
 task("deploy:HeaderStorage")
