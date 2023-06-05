@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity ^0.8.17;
 
-import "@connext/interfaces/core/IConnext.sol";
-import "@connext/interfaces/core/IXReceiver.sol";
-import "../OracleAdapter.sol";
-import "../BlockHashOracleAdapter.sol";
+import { IConnext } from "@connext/interfaces/core/IConnext.sol";
+import { IXReceiver } from "@connext/interfaces/core/IXReceiver.sol";
+import { OracleAdapter } from "../OracleAdapter.sol";
+import { BlockHashOracleAdapter } from "../BlockHashOracleAdapter.sol";
 
 contract ConnextAdapter is OracleAdapter, BlockHashOracleAdapter, IXReceiver {
     bytes32 public headerReporter;

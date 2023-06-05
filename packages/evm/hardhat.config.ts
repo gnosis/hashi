@@ -83,7 +83,6 @@ const config: HardhatUserConfig = {
   networks: {
     hardhat: {
       accounts: {
-        mnemonic,
         accountsBalance: "1000000000000000000000",
       },
       // Used for testing axiom

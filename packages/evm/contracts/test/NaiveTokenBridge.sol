@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity ^0.8.17;
 
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
-import "./LocalToken.sol";
-import "../Yaho.sol";
-import "../Yaru.sol";
+import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import { ERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
+import { SafeERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import { AddressUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
+import { LocalToken } from "./LocalToken.sol";
+import { Yaho, Message } from "../Yaho.sol";
+import { Yaru } from "../Yaru.sol";
 
 contract NaiveTokenBridge is OwnableUpgradeable {
     using SafeERC20Upgradeable for ERC20Upgradeable;
@@ -113,7 +113,7 @@ contract NaiveTokenBridge is OwnableUpgradeable {
     ) public pure returns (address calculatedAddress) {
         calculatedAddress = address(
             uint160(
-                uint(
+                uint256(
                     keccak256(
                         abi.encodePacked(
                             bytes1(0xff),

@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity ^0.8.17;
 
-import "./interfaces/IMessageRelay.sol";
-import "./interfaces/IMessageDispatcher.sol";
-import "./utils/MessageHashCalculator.sol";
+import { IMessageRelay } from "./interfaces/IMessageRelay.sol";
+import { IMessageDispatcher, Message } from "./interfaces/IMessageDispatcher.sol";
+import { MessageHashCalculator } from "./utils/MessageHashCalculator.sol";
 
-contract Yaho is MessageDispatcher, MessageHashCalculator {
+contract Yaho is IMessageDispatcher, MessageHashCalculator {
     mapping(uint256 => bytes32) public hashes;
     uint256 private count;
 
@@ -20,7 +20,7 @@ contract Yaho is MessageDispatcher, MessageHashCalculator {
     function dispatchMessages(Message[] memory messages) public payable returns (bytes32[] memory) {
         if (messages.length == 0) revert NoMessagesGiven(address(this));
         bytes32[] memory messageIds = new bytes32[](messages.length);
-        for (uint i = 0; i < messages.length; i++) {
+        for (uint256 i = 0; i < messages.length; i++) {
             uint256 id = count;
             hashes[id] = calculateHash(block.chainid, id, address(this), msg.sender, messages[i]);
             messageIds[i] = bytes32(id);
@@ -44,7 +44,7 @@ contract Yaho is MessageDispatcher, MessageHashCalculator {
         if (adapters.length == 0) revert NoAdaptersGiven(address(this));
         if (adapters.length != destinationAdapters.length) revert UnequalArrayLengths(address(this));
         bytes32[] memory adapterReciepts = new bytes32[](adapters.length);
-        for (uint i = 0; i < adapters.length; i++) {
+        for (uint256 i = 0; i < adapters.length; i++) {
             adapterReciepts[i] = IMessageRelay(adapters[i]).relayMessages(messageIds, destinationAdapters[i]);
         }
         return adapterReciepts;
@@ -64,11 +64,11 @@ contract Yaho is MessageDispatcher, MessageHashCalculator {
         if (adapters.length == 0) revert NoAdaptersGiven(address(this));
         messageIds = dispatchMessages(messages);
         uint256[] memory uintIds = new uint256[](messageIds.length);
-        for (uint i = 0; i < messageIds.length; i++) {
+        for (uint256 i = 0; i < messageIds.length; i++) {
             uintIds[i] = uint256(messageIds[i]);
         }
         bytes32[] memory adapterReciepts = new bytes32[](adapters.length);
-        for (uint i = 0; i < adapters.length; i++) {
+        for (uint256 i = 0; i < adapters.length; i++) {
             adapterReciepts[i] = IMessageRelay(adapters[i]).relayMessages(uintIds, destinationAdapters[i]);
         }
         return (messageIds, adapterReciepts);
