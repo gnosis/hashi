@@ -66,7 +66,7 @@ contract GiriGiriBashi is ShuSo {
     error ChallengeRangeAlreadySet(address emitter, uint256 domain);
 
     constructor(address _owner, address _hashi, address payable _bondRecipient) ShuSo(_owner, _hashi) {
-        setBondRecipient(_bondRecipient);
+        bondRecipient = _bondRecipient;
     }
 
     modifier noConfidence(uint256 domain) {
