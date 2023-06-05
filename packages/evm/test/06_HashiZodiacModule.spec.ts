@@ -68,7 +68,6 @@ const baseSetup = async () => {
     shoyuBashi,
     yaho,
     yaru,
-    ambAdapter,
     pingPong,
   }
 }
