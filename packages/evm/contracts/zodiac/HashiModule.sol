@@ -6,6 +6,19 @@ import { Module, Enum } from "@gnosis.pm/zodiac/contracts/core/Module.sol";
 
 contract HashiModule is Module {
     event HashiModuleSetup(address indexed initiator, address indexed owner, address indexed avatar, address target);
+    event YaruSet(address emitter, address yaru);
+    event ChainIdSet(address emitter, uint256 chainId);
+    event ControllerSet(address emitter, address controller);
+
+    error AvatarCannotBeZero(address emitter);
+    error TargetCannotBeZero(address emitter);
+    error UnauthorizedChainId(address emitter, uint256 chainId);
+    error UnauthorizedYaru(address emitter, address yaru);
+    error UnauthorizedController(address emitter, address sender);
+    error DuplicateYaru(address emitter, address yaru);
+    error DuplicateChainId(address emitter, uint256 chainId);
+    error DuplicateController(address emitter, address controller);
+    error ModuleTransactionFailed(address emitter);
 
     Yaru public yaru;
     address public controller;
@@ -22,13 +35,13 @@ contract HashiModule is Module {
         setUp(initParams);
     }
 
-    function setUp(bytes memory initParams) public override {
+    function setUp(bytes memory initParams) public override initializer {
         (address _owner, address _avatar, address _target, Yaru _yaru, address _controller, uint256 _chainId) = abi
             .decode(initParams, (address, address, address, Yaru, address, uint256));
         __Ownable_init();
 
-        require(_avatar != address(0), "Avatar can not be zero address");
-        require(_target != address(0), "Target can not be zero address");
+        if (_avatar == address(0)) revert AvatarCannotBeZero(address(this));
+        if (_target == address(0)) revert TargetCannotBeZero(address(this));
         avatar = _avatar;
         target = _target;
         yaru = _yaru;
@@ -42,9 +55,9 @@ contract HashiModule is Module {
 
     /// @dev Check that the yaru, chainId, and owner are valid
     modifier onlyValid() {
-        require(msg.sender == address(yaru), "Unauthorized yaru");
-        require(yaru.chainId() == chainId, "Unauthorized chainId");
-        require(yaru.sender() == controller, "Unauthorized controller");
+        if (msg.sender != address(yaru)) revert UnauthorizedYaru(address(this), msg.sender);
+        if (yaru.chainId() != chainId) revert UnauthorizedChainId(address(this), yaru.chainId());
+        if (yaru.sender() != controller) revert UnauthorizedController(address(this), yaru.sender());
         _;
     }
 
@@ -52,24 +65,27 @@ contract HashiModule is Module {
     /// @param _yaru Address of the Yaru contract
     /// @notice This can only be called by the owner
     function setYaru(address _yaru) public onlyOwner {
-        require(address(yaru) != _yaru, "Yaru address already set to this");
+        if (_yaru == address(yaru)) revert DuplicateYaru(address(this), _yaru);
         yaru = Yaru(_yaru);
+        emit YaruSet(address(this), _yaru);
     }
 
     /// @dev Set the approved chainId
     /// @param _chainId ID of the approved network
     /// @notice This can only be called by the owner
     function setChainId(uint256 _chainId) public onlyOwner {
-        require(chainId != _chainId, "chainId already set to this");
+        if (_chainId == chainId) revert DuplicateChainId(address(this), _chainId);
         chainId = _chainId;
+        emit ChainIdSet(address(this), _chainId);
     }
 
     /// @dev Set the controller address
     /// @param _controller Set the address of controller on the other side of the bridge
     /// @notice This can only be called by the owner
     function setController(address _controller) public onlyOwner {
-        require(controller != _controller, "controller already set to this");
+        if (_controller == controller) revert DuplicateController(address(this), _controller);
         controller = _controller;
+        emit ControllerSet(address(this), _controller);
     }
 
     /// @dev Executes a transaction initated by the Yaru
@@ -83,6 +99,6 @@ contract HashiModule is Module {
         bytes memory data,
         Enum.Operation operation
     ) public onlyValid {
-        require(exec(to, value, data, operation), "Module transaction failed");
+        if (!exec(to, value, data, operation)) revert ModuleTransactionFailed(address(this));
     }
 }
