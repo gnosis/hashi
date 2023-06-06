@@ -13,8 +13,12 @@ interface IAxiomV0StoragePf {
 
     event SlotAttestationEvent(uint32 blockNumber, address addr, uint256 slot, uint256 slotValue);
 
-    function isSlotAttestationValid(uint32 blockNumber, address addr, uint256 slot, uint256 slotValue)
-        external view returns (bool);
+    function isSlotAttestationValid(
+        uint32 blockNumber,
+        address addr,
+        uint256 slot,
+        uint256 slotValue
+    ) external view returns (bool);
 
     // Verify a storage proof for 10 storage slots in a single account at a single block
     function attestSlots(IAxiomV0.BlockHashWitness calldata blockData, bytes calldata proof) external;

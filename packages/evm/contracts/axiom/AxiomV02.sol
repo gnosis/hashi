@@ -3,8 +3,8 @@
 // DO NOT USE THIS CONTRACT FOR PRODUCTION
 pragma solidity ^0.8.12;
 
-import {IAxiomV0} from "./IAxiomV0.sol";
-import {Ownable} from "./Ownable.sol";
+import { IAxiomV0 } from "./IAxiomV0.sol";
+import { Ownable } from "./Ownable.sol";
 
 uint8 constant TREE_DEPTH = 10;
 uint32 constant NUM_LEAVES = 2 ** 10;
@@ -77,7 +77,7 @@ contract AxiomV02 is IAxiomV0, Ownable {
     }
 
     function verifyRaw(bytes calldata input) private returns (bool) {
-        (bool success,) = verifierAddress.call(input);
+        (bool success, ) = verifierAddress.call(input);
         return success;
     }
 
@@ -99,25 +99,28 @@ contract AxiomV02 is IAxiomV0, Ownable {
     }
 
     // The ZKP has block headers for [startBlockNumber, endBlockNumber] blocks. We extract some common information from the calldata.
-    function getBoundaryBlockData(bytes calldata proofData)
+    function getBoundaryBlockData(
+        bytes calldata proofData
+    )
         internal
         pure
         returns (bytes32 prevHash, bytes32 endHash, uint32 startBlockNumber, uint32 endBlockNumber, bytes32 root)
     {
         prevHash = bytes32(
-            uint256(bytes32(proofData[PUBLIC_BYTES_START_IDX:PUBLIC_BYTES_START_IDX + 32])) << 128
-                | uint128(bytes16(proofData[PUBLIC_BYTES_START_IDX + 32 + 16:PUBLIC_BYTES_START_IDX + 2 * 32]))
+            (uint256(bytes32(proofData[PUBLIC_BYTES_START_IDX:PUBLIC_BYTES_START_IDX + 32])) << 128) |
+                uint128(bytes16(proofData[PUBLIC_BYTES_START_IDX + 32 + 16:PUBLIC_BYTES_START_IDX + 2 * 32]))
         );
         endHash = bytes32(
-            uint256(bytes32(proofData[PUBLIC_BYTES_START_IDX + 2 * 32:PUBLIC_BYTES_START_IDX + 3 * 32])) << 128
-                | uint128(bytes16(proofData[PUBLIC_BYTES_START_IDX + 3 * 32 + 16:PUBLIC_BYTES_START_IDX + 4 * 32]))
+            (uint256(bytes32(proofData[PUBLIC_BYTES_START_IDX + 2 * 32:PUBLIC_BYTES_START_IDX + 3 * 32])) << 128) |
+                uint128(bytes16(proofData[PUBLIC_BYTES_START_IDX + 3 * 32 + 16:PUBLIC_BYTES_START_IDX + 4 * 32]))
         );
-        startBlockNumber =
-            uint32(bytes4(proofData[PUBLIC_BYTES_START_IDX + 5 * 32 - 8:PUBLIC_BYTES_START_IDX + 5 * 32 - 4]));
+        startBlockNumber = uint32(
+            bytes4(proofData[PUBLIC_BYTES_START_IDX + 5 * 32 - 8:PUBLIC_BYTES_START_IDX + 5 * 32 - 4])
+        );
         endBlockNumber = uint32(bytes4(proofData[PUBLIC_BYTES_START_IDX + 5 * 32 - 4:PUBLIC_BYTES_START_IDX + 5 * 32]));
         root = bytes32(
-            uint256(bytes32(proofData[ROOT_BYTES_START_IDX:ROOT_BYTES_START_IDX + 32])) << 128
-                | uint128(bytes16(proofData[ROOT_BYTES_START_IDX + 48:ROOT_BYTES_START_IDX + 64]))
+            (uint256(bytes32(proofData[ROOT_BYTES_START_IDX:ROOT_BYTES_START_IDX + 32])) << 128) |
+                uint128(bytes16(proofData[ROOT_BYTES_START_IDX + 48:ROOT_BYTES_START_IDX + 64]))
         );
     }
 
@@ -126,14 +129,22 @@ contract AxiomV02 is IAxiomV0, Ownable {
     // * roots[idx] is the root of a Merkle tree of height 2**(TREE_DEPTH - idx) in a Merkle mountain
     //   range which stores block hashes in the interval [startBlockNumber, endBlockNumber]
     function updateRecent(bytes calldata proofData) external {
-        (bytes32 prevHash, bytes32 endHash, uint32 startBlockNumber, uint32 endBlockNumber, bytes32 root) =
-            getBoundaryBlockData(proofData);
+        (
+            bytes32 prevHash,
+            bytes32 endHash,
+            uint32 startBlockNumber,
+            uint32 endBlockNumber,
+            bytes32 root
+        ) = getBoundaryBlockData(proofData);
         bytes32[TREE_DEPTH] memory roots;
         for (uint256 idx = 1; idx <= TREE_DEPTH; idx++) {
             roots[idx - 1] = bytes32(
-                uint256(bytes32(proofData[ROOT_BYTES_START_IDX + idx * 64:ROOT_BYTES_START_IDX + idx * 64 + 32])) << 128
-                    | uint128(
-                        bytes16(proofData[ROOT_BYTES_START_IDX + idx * 64 + 16 + 32:ROOT_BYTES_START_IDX + idx * 64 + 64])
+                (uint256(bytes32(proofData[ROOT_BYTES_START_IDX + idx * 64:ROOT_BYTES_START_IDX + idx * 64 + 32])) <<
+                    128) |
+                    uint128(
+                        bytes16(
+                            proofData[ROOT_BYTES_START_IDX + idx * 64 + 16 + 32:ROOT_BYTES_START_IDX + idx * 64 + 64]
+                        )
                     )
             );
         }
@@ -163,14 +174,20 @@ contract AxiomV02 is IAxiomV0, Ownable {
     // update older blocks in "backwards" direction, anchoring on more recent trusted blockhash
     // must be batch of NUM_LEAVES blocks
     function updateOld(bytes32 nextRoot, uint32 nextNumFinal, bytes calldata proofData) external {
-        (bytes32 prevHash, bytes32 endHash, uint32 startBlockNumber, uint32 endBlockNumber, bytes32 root) =
-            getBoundaryBlockData(proofData);
+        (
+            bytes32 prevHash,
+            bytes32 endHash,
+            uint32 startBlockNumber,
+            uint32 endBlockNumber,
+            bytes32 root
+        ) = getBoundaryBlockData(proofData);
 
         require(startBlockNumber % NUM_LEAVES == 0, "aa"); // "startBlockNumber not a multiple of NUM_LEAVES");
         require(endBlockNumber - startBlockNumber == NUM_LEAVES - 1, "bb"); // "Updating with incorrect number of blocks");
 
         require(
-            historicalRoots(endBlockNumber + 1) == keccak256(abi.encodePacked(endHash, nextRoot, nextNumFinal)), "cc"
+            historicalRoots(endBlockNumber + 1) == keccak256(abi.encodePacked(endHash, nextRoot, nextNumFinal)),
+            "cc"
         );
         // "endHash does not match"
         require(verifyRaw(proofData)); // "ZKP does not verify")
