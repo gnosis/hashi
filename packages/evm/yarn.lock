@@ -887,6 +887,7 @@ __metadata:
     ethers: ^5.7.2
     fs-extra: ^10.1.0
     hardhat: ^2.12.2
+    hardhat-change-network: ^0.0.7
     hardhat-gas-reporter: ^1.0.9
     lint-staged: ^13.0.4
     lodash: ^4.17.21
@@ -5064,6 +5065,15 @@ __metadata:
   version: 2.1.0
   resolution: "hard-rejection@npm:2.1.0"
   checksum: 7baaf80a0c7fff4ca79687b4060113f1529589852152fa935e6787a2bc96211e784ad4588fb3048136ff8ffc9dfcf3ae385314a5b24db32de20bea0d1597f9dc
+  languageName: node
+  linkType: hard
+
+"hardhat-change-network@npm:^0.0.7":
+  version: 0.0.7
+  resolution: "hardhat-change-network@npm:0.0.7"
+  peerDependencies:
+    hardhat: ^2.0.0
+  checksum: 3cdda51abd45851be3335faa34ac2a54fe304628492a834fcd36ccf476d78ba8df0b4648ef0d93223ac65c24060998408681b5892e968b825784df62da47f402
   languageName: node
   linkType: hard
 

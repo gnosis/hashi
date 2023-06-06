@@ -1,5 +1,6 @@
 import "@nomicfoundation/hardhat-toolbox"
 import { config as dotenvConfig } from "dotenv"
+import "hardhat-change-network"
 import type { HardhatUserConfig } from "hardhat/config"
 import type { NetworkUserConfig } from "hardhat/types"
 import { resolve } from "path"
