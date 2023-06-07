@@ -27,6 +27,7 @@ const chainIds = {
   avalanche: 43114,
   bsc: 56,
   gnosis: 100,
+  chiado: 10200,
   goerli: 5,
   hardhat: 31337,
   mainnet: 1,
@@ -47,6 +48,9 @@ function getChainConfig(chain: keyof typeof chainIds): NetworkUserConfig {
       break
     case "gnosis":
       jsonRpcUrl = "https://rpc.gnosis.gateway.fm"
+      break
+    case "chiado":
+      jsonRpcUrl = "https://rpc.chiadochain.net/"
       break
     default:
       jsonRpcUrl = "https://" + chain + ".infura.io/v3/" + infuraApiKey
@@ -101,6 +105,7 @@ const config: HardhatUserConfig = {
     avalanche: getChainConfig("avalanche"),
     bsc: getChainConfig("bsc"),
     gnosis: getChainConfig("gnosis"),
+    chiado: getChainConfig("chiado"),
     mainnet: getChainConfig("mainnet"),
     optimism: getChainConfig("optimism-mainnet"),
     "polygon-mainnet": getChainConfig("polygon-mainnet"),
