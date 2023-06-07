@@ -19,7 +19,6 @@ const logDeployError = function (error: any) {
 export const deploy = async ({ networks }: { networks: string[] }, hre: HardhatRuntimeEnvironment) => {
   const networkList = networks ? networks : Object.keys(hre.config.networks)
   const [deployer] = await hre.ethers.getSigners()
-  const signer = hre.ethers.provider.getSigner(deployer.address)
   console.log("-----------------")
   console.log("Deployer address: ", deployer.address)
   console.log("-----------------")
@@ -29,6 +28,8 @@ export const deploy = async ({ networks }: { networks: string[] }, hre: HardhatR
 
     try {
       hre.changeNetwork(network)
+      const [deployer] = await hre.ethers.getSigners()
+      const signer = hre.ethers.provider.getSigner(deployer.address)
 
       // deploy hashi
       try {
