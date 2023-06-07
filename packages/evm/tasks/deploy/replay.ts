@@ -30,6 +30,8 @@ export const deploy = async ({ networks }: { networks: string[] }, hre: HardhatR
       hre.changeNetwork(network)
       const [deployer] = await hre.ethers.getSigners()
       const signer = hre.ethers.provider.getSigner(deployer.address)
+      const balance = await deployer.getBalance()
+      if (balance.eq(0)) throw new Error("Deployer has zero balance")
 
       // deploy hashi
       try {
