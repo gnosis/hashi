@@ -26,24 +26,24 @@ export const deploy = async ({ networks }: { networks: string[] }, hre: HardhatR
       // deploy hashi
       console.log(`\x1B[4mHashi\x1B[0m`)
       const hashiFactory: Hashi__factory = <Hashi__factory>await hre.ethers.getContractFactory("Hashi")
-      const hashi = await deployMastercopy(signer, hashiFactory, [], hre.ethers.constants.HashZero)
+      await deployMastercopy(signer, hashiFactory, [], hre.ethers.constants.HashZero)
 
       // deploy yaho
       console.log(`\x1B[4mYaho\x1B[0m`)
       const yahoFactory: Yaho__factory = <Yaho__factory>await hre.ethers.getContractFactory("Yaho")
-      const yaho = await deployMastercopy(signer, yahoFactory, [], hre.ethers.constants.HashZero)
+      await deployMastercopy(signer, yahoFactory, [], hre.ethers.constants.HashZero)
 
       // deploy yaru
       console.log(`\x1B[4mYaru\x1B[0m`)
       const yaruFactory: Yaru__factory = <Yaru__factory>await hre.ethers.getContractFactory("Yaru")
-      const yaru = await deployMastercopy(signer, yaruFactory, [hashi, yaho, 1], hre.ethers.constants.HashZero)
+      await deployMastercopy(signer, yaruFactory, [ADDRESS_ONE, ADDRESS_ONE, 1], hre.ethers.constants.HashZero)
 
       // deploy shoyubashi
       console.log(`\x1B[4mShoyuBashi\x1B[0m`)
       const shoyuBashiFactory: ShoyuBashi__factory = <ShoyuBashi__factory>(
         await hre.ethers.getContractFactory("ShoyuBashi")
       )
-      await deployMastercopy(signer, shoyuBashiFactory, [ADDRESS_ONE, hashi], hre.ethers.constants.HashZero)
+      await deployMastercopy(signer, shoyuBashiFactory, [ADDRESS_ONE, ADDRESS_ONE], hre.ethers.constants.HashZero)
 
       // deploy girigiribashi
       console.log(`\x1B[4mGiriGiriBashi\x1B[0m`)
@@ -53,7 +53,7 @@ export const deploy = async ({ networks }: { networks: string[] }, hre: HardhatR
       await deployMastercopy(
         signer,
         giriGiriBashiFactory,
-        [ADDRESS_ONE, hashi, ADDRESS_ONE],
+        [ADDRESS_ONE, ADDRESS_ONE, ADDRESS_ONE],
         hre.ethers.constants.HashZero,
       )
 
@@ -72,7 +72,7 @@ export const deploy = async ({ networks }: { networks: string[] }, hre: HardhatR
       await deployMastercopy(
         signer,
         hashiModuleFactory,
-        [ADDRESS_ONE, ADDRESS_ONE, ADDRESS_ONE, yaru, ADDRESS_ONE, 1],
+        [ADDRESS_ONE, ADDRESS_ONE, ADDRESS_ONE, ADDRESS_ONE, ADDRESS_ONE, 1],
         hre.ethers.constants.HashZero,
       )
     } catch (error: any) {

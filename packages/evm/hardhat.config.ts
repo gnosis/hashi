@@ -45,6 +45,9 @@ function getChainConfig(chain: keyof typeof chainIds): NetworkUserConfig {
     case "bsc":
       jsonRpcUrl = "https://bsc-dataseed1.binance.org"
       break
+    case "gnosis":
+      jsonRpcUrl = "https://rpc.gnosis.gateway.fm"
+      break
     default:
       jsonRpcUrl = "https://" + chain + ".infura.io/v3/" + infuraApiKey
   }
