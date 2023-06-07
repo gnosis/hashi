@@ -79,7 +79,7 @@
     "compile": "cross-env TS_NODE_TRANSPILE_ONLY=true hardhat compile",
     "coverage": "hardhat coverage --solcoverjs ./.solcover.js --temp artifacts --testfiles \"test/**/*.ts\" && yarn typechain",
     "deploy:hashi": "hardhat deploy:Hashi",
-    "deploy:girigiribashi": "hardhat deploy:GiriGiriBashi",
+    "deploy:girigiribashi": "hardhat deploy:ShoyuBashi",
     "deploy:headerstorage": "hardhat deploy:HeaderStorage",
     "lint": "yarn lint:sol && yarn lint:ts && yarn prettier:check",
     "lint:sol": "solhint --max-warnings 0 \"contracts/**/*.sol\"",
@@ -94,7 +94,9 @@
   },
   "dependencies": {
     "@connext/interfaces": "^2.0.0",
+    "@gnosis.pm/zodiac": "^3.3.2",
     "@openzeppelin/contracts-upgradeable": "^4.8.1",
+    "hardhat-change-network": "^0.0.7",
     "solidity-rlp": "^2.0.7"
   }
 }

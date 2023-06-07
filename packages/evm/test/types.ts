@@ -1,7 +1,7 @@
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address"
 
-import type { GiriGiriBashi } from "../types/contracts/GiriGiriBashi"
 import type { Hashi } from "../types/contracts/Hashi"
+import type { ShoyuBashi } from "../types/contracts/ShoyuBashi"
 
 type Fixture<T> = () => Promise<T>
 
@@ -12,7 +12,7 @@ declare module "mocha" {
     signers: Signers
   }
   export interface Context {
-    giriGiriBashi: GiriGiriBashi
+    shoyuBashi: ShoyuBashi
     loadFixture: <T>(fixture: Fixture<T>) => Promise<T>
     signers: Signers
   }

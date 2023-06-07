@@ -238,6 +238,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@gnosis/hashi@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "@gnosis/hashi@workspace:."
+  dependencies:
+    "@commitlint/cli": ^17.5.1
+    "@commitlint/config-conventional": ^17.4.4
+    husky: ^8.0.3
+    prettier: ^2.8.7
+    prettier-plugin-solidity: ^1.0.0
+  languageName: unknown
+  linkType: soft
+
 "@jridgewell/resolve-uri@npm:^3.0.3":
   version: 3.1.0
   resolution: "@jridgewell/resolve-uri@npm:3.1.0"
@@ -813,18 +825,6 @@ __metadata:
   checksum: b9ad53d53be4af90ce5d1c38331e712522417d017d5ef1ebd0507e07c2fbad8686fffb8e12ddecd4c39ca9b9b47431afbb975b8abf7f3c3b82c98e9aad052792
   languageName: node
   linkType: hard
-
-"hashi-monorepo@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "hashi-monorepo@workspace:."
-  dependencies:
-    "@commitlint/cli": ^17.5.1
-    "@commitlint/config-conventional": ^17.4.4
-    husky: ^8.0.3
-    prettier: ^2.8.7
-    prettier-plugin-solidity: ^1.0.0
-  languageName: unknown
-  linkType: soft
 
 "hosted-git-info@npm:^2.1.4":
   version: 2.8.9
