@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity ^0.8.17;
 
-/// Title: ギリギリの塁
-
 import { Hashi, IOracleAdapter } from "../Hashi.sol";
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import { Domain } from "../interfaces/IDomain.sol";
