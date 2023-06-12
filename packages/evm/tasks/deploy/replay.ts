@@ -100,7 +100,7 @@ export const deploy = async ({ networks }: { networks: string[] }, hre: HardhatR
 
       // deploy hashi module
       try {
-        console.log(`\x1B[4mHeader Storage\x1B[0m`)
+        console.log(`\x1B[4mHashi Module\x1B[0m`)
         const hashiModuleFactory: HashiModule__factory = <HashiModule__factory>(
           await hre.ethers.getContractFactory("HashiModule")
         )
