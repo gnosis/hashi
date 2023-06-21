@@ -52,6 +52,16 @@ contract ShoyuBashi is ShuSo {
         hash = _getUnanimousHash(domain, id);
     }
 
+    /// @dev Returns the hash agreed upon by a threshold of the enabled oraclesAdapters.
+    /// @param domain Uint256 identifier for the domain to query.
+    /// @param id Uint256 identifier to query.
+    /// @return hash Bytes32 hash agreed upon by a threshold of the oracles for the given domain.
+    /// @notice Reverts if no threshold is not reached.
+    /// @notice Reverts if no oracles are set for the given domain.
+    function getThresholdHash(uint256 domain, uint256 id) public view returns (bytes32 hash) {
+        hash = _getThresholdHash(domain, id);
+    }
+
     /// @dev Returns the hash unanimously agreed upon by all of the given oraclesAdapters..
     /// @param domain Uint256 identifier for the domain to query.
     /// @param _adapters Array of oracle adapter addresses to query.
