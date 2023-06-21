@@ -72,13 +72,27 @@ contract SygmaHeaderReporter {
             // bytes executeContractAddress
             sygmaAdapter,
             // uint8 len(executionDataDepositor)
-            uint8(32),
+            uint8(20),
+            // bytes executionDataDepositor
+            address(this),
             // bytes executionDataDepositor + executionData
-            abi.encode(address(this), blockNumbers, blockHeaders)
+            prepareDepositData(blockNumbers, blockHeaders)
         );
         IBridge(_bridge).deposit{ value: msg.value }(destinationDomainID, _resourceID, depositData, feeData);
         for (uint i = 0; i < blockNumbers.length; i++) {
             emit HeaderReported(address(this), blockNumbers[i], blockHeaders[i]);
         }
+    }
+
+    function slice(bytes calldata input, uint256 position) public pure returns (bytes memory) {
+        return input[position:];
+    }
+
+    function prepareDepositData(
+        uint256[] memory blockNumbers,
+        bytes32[] memory blockHeaders
+    ) public view returns (bytes memory) {
+        bytes memory encoded = abi.encode(address(0), blockNumbers, blockHeaders);
+        return this.slice(encoded, 32);
     }
 }
