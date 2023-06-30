@@ -35,7 +35,9 @@ const setup = async () => {
 
 const prepareDepositData = async (reporterAddress: string, ids: string[], hashes: string[], adapter: string) => {
   const abiCoder = ethers.utils.defaultAbiCoder
-  const executionData = abiCoder.encode(["address", "uint256[]", "bytes32[]"], [reporterAddress, ids, hashes])
+  const executionData = abiCoder
+    .encode(["address", "uint256[]", "bytes32[]"], [ethers.constants.AddressZero, ids, hashes])
+    .substring(66)
 
   const SygmaAdapter = await ethers.getContractFactory("SygmaAdapter")
   const functionSig = SygmaAdapter.interface.getSighash("storeHashes")
@@ -46,8 +48,9 @@ const prepareDepositData = async (reporterAddress: string, ids: string[], hashes
   //     IDepositAdapterTarget(address(0)).execute.selector,
   //     uint8(20),
   //     _targetDepositAdapter,
-  //     uint8(32),
-  //     abi.encode(address(this), depositContractCalldata)
+  //     uint8(20),
+  //     _depositorAddress,
+  //     abi.encode(depositContractCalldata)
   // );
 
   const depositData =
@@ -56,8 +59,9 @@ const prepareDepositData = async (reporterAddress: string, ids: string[], hashes
     functionSig.substring(2) +
     "14" +
     adapter.toLowerCase().substring(2) +
-    "20" +
-    executionData.substring(2)
+    "14" +
+    reporterAddress.toLowerCase().substring(2) +
+    executionData
   return depositData
 }
 

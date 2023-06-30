@@ -169,6 +169,38 @@ abstract contract ShuSo is OwnableUpgradeable {
         hash = hashi.getHash(domain, id, _adapters);
     }
 
+    /// @dev Returns the hash agreed upon by a threshold of the enabled oraclesAdapters.
+    /// @param domain Uint256 identifier for the domain to query.
+    /// @param id Uint256 identifier to query.
+    /// @return hash Bytes32 hash agreed upon by a threshold of the oracles for the given domain.
+    /// @notice Reverts if no threshold is not reached.
+    /// @notice Reverts if no oracles are set for the given domain.
+    function _getThresholdHash(uint256 domain, uint256 id) internal view returns (bytes32 hash) {
+        IOracleAdapter[] memory _adapters = getOracleAdapters(domain);
+        (uint256 threshold, uint256 count) = getThresholdAndCount(domain);
+        if (count == 0) revert NoAdaptersEnabled(address(this), domain);
+        if (_adapters.length < threshold) revert ThresholdNotMet(address(this));
+
+        // get hashes
+        bytes32[] memory hashes = new bytes32[](_adapters.length);
+        for (uint i = 0; i < _adapters.length; i++) hashes[i] = _adapters[i].getHashFromOracle(domain, id);
+
+        // find a hash agreed on by a threshold of oracles
+        for (uint i = 0; i < hashes.length; i++) {
+            uint256 num = 1;
+
+            // increment num for each instance of the curent hash
+            for (uint j = 0; j < hashes.length; j++) {
+                if (hashes[i] == hashes[j] && i != j) {
+                    num++;
+                    // return current hash if num equals threshold
+                    if (num == threshold) return hashes[i];
+                }
+            }
+        }
+        revert ThresholdNotMet(address(this));
+    }
+
     /// @dev Returns the hash unanimously agreed upon by all of the given oraclesAdapters..
     /// @param domain Uint256 identifier for the domain to query.
     /// @param _adapters Array of oracle adapter addresses to query.

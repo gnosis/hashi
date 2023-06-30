@@ -219,6 +219,22 @@ describe("GiriGiriBashi", function () {
     })
   })
 
+  describe("getThresholdHash()", function () {
+    it("Updates head for given domain", async function () {
+      const { giriGiriBashi, mockOracleAdapter, secondMockOracleAdapter, settings } = await setup()
+      await giriGiriBashi.enableOracleAdapters(
+        DOMAIN_ID,
+        [mockOracleAdapter.address, secondMockOracleAdapter.address],
+        [settings, settings],
+      )
+      const oldHead = await giriGiriBashi.heads(DOMAIN_ID)
+      expect(await giriGiriBashi.callStatic.getThresholdHash(DOMAIN_ID, 1)).to.equal(HASH_GOOD)
+      await giriGiriBashi.getThresholdHash(DOMAIN_ID, 1)
+      const newHead = await giriGiriBashi.heads(DOMAIN_ID)
+      expect(newHead).not.to.equal(oldHead)
+    })
+  })
+
   describe("getHash()", function () {
     it("Updates head for given domain", async function () {
       const { giriGiriBashi, mockOracleAdapter, secondMockOracleAdapter, settings } = await setup()
