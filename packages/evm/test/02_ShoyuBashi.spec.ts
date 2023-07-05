@@ -294,7 +294,7 @@ describe("ShoyuBashi", function () {
         "ThresholdNotMet",
       )
     })
-    it.only("Reverts if threshold returns bytes(0)", async function () {
+    it("Reverts if threshold returns bytes(0)", async function () {
       const { shoyuBashi, mockOracleAdapter, anotherOracleAdapter } = await setup()
       await shoyuBashi.enableOracleAdapters(DOMAIN_ID, [mockOracleAdapter.address, anotherOracleAdapter.address])
       await expect(shoyuBashi.getThresholdHash(DOMAIN_ID, 0)).to.be.revertedWithCustomError(
