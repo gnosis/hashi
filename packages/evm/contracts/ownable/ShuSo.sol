@@ -183,15 +183,21 @@ abstract contract ShuSo is OwnableUpgradeable {
 
         // get hashes
         bytes32[] memory hashes = new bytes32[](_adapters.length);
-        for (uint i = 0; i < _adapters.length; i++) hashes[i] = _adapters[i].getHashFromOracle(domain, id);
+        for (uint i = 0; i < _adapters.length; i++) {
+            try _adapters[i].getHashFromOracle(domain, id) returns (bytes32 currentHash) {
+                hashes[i] = currentHash;
+            } catch {}
+        }
 
         // find a hash agreed on by a threshold of oracles
         for (uint i = 0; i < hashes.length; i++) {
-            uint256 num = 1;
+            bytes32 baseHash = hashes[i];
+            if (baseHash == bytes32(0)) continue;
 
             // increment num for each instance of the curent hash
+            uint256 num = 1;
             for (uint j = 0; j < hashes.length; j++) {
-                if (hashes[i] == hashes[j] && i != j) {
+                if (baseHash == hashes[j] && i != j) {
                     num++;
                     // return current hash if num equals threshold
                     if (num == threshold) return hashes[i];
