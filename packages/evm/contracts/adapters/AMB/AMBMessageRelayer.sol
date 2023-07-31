@@ -17,7 +17,11 @@ contract AMBMessageRelay is IMessageRelay {
         yaho = _yaho;
     }
 
-    function relayMessages(uint256[] memory messageIds, address ambAdapter) public payable returns (bytes32 receipt) {
+    function relayMessages(
+        uint256[] memory messageIds,
+        address ambAdapter,
+        uint256 gas
+    ) public payable returns (bytes32 receipt) {
         bytes32[] memory hashes = new bytes32[](messageIds.length);
         for (uint256 i = 0; i < messageIds.length; i++) {
             uint256 id = messageIds[i];
@@ -25,6 +29,6 @@ contract AMBMessageRelay is IMessageRelay {
             emit MessageRelayed(address(this), messageIds[i]);
         }
         bytes memory data = abi.encodeCall(AMBAdapter.storeHashes, (messageIds, hashes));
-        receipt = amb.requireToPassMessage(ambAdapter, data, 0);
+        receipt = amb.requireToPassMessage(ambAdapter, data, gas);
     }
 }

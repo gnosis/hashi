@@ -38,14 +38,15 @@ contract Yaho is IMessageDispatcher, MessageHashCalculator {
     function relayMessagesToAdapters(
         uint256[] memory messageIds,
         address[] memory adapters,
-        address[] memory destinationAdapters
+        address[] memory destinationAdapters,
+        uint256 gas
     ) external payable returns (bytes32[] memory) {
         if (messageIds.length == 0) revert NoMessageIdsGiven(address(this));
         if (adapters.length == 0) revert NoAdaptersGiven(address(this));
         if (adapters.length != destinationAdapters.length) revert UnequalArrayLengths(address(this));
         bytes32[] memory adapterReciepts = new bytes32[](adapters.length);
         for (uint256 i = 0; i < adapters.length; i++) {
-            adapterReciepts[i] = IMessageRelay(adapters[i]).relayMessages(messageIds, destinationAdapters[i]);
+            adapterReciepts[i] = IMessageRelay(adapters[i]).relayMessages(messageIds, destinationAdapters[i], gas);
         }
         return adapterReciepts;
     }
@@ -59,7 +60,8 @@ contract Yaho is IMessageDispatcher, MessageHashCalculator {
     function dispatchMessagesToAdapters(
         Message[] memory messages,
         address[] memory adapters,
-        address[] memory destinationAdapters
+        address[] memory destinationAdapters,
+        uint256 gas
     ) external payable returns (bytes32[] memory messageIds, bytes32[] memory) {
         if (adapters.length == 0) revert NoAdaptersGiven(address(this));
         messageIds = dispatchMessages(messages);
@@ -69,7 +71,7 @@ contract Yaho is IMessageDispatcher, MessageHashCalculator {
         }
         bytes32[] memory adapterReciepts = new bytes32[](adapters.length);
         for (uint256 i = 0; i < adapters.length; i++) {
-            adapterReciepts[i] = IMessageRelay(adapters[i]).relayMessages(uintIds, destinationAdapters[i]);
+            adapterReciepts[i] = IMessageRelay(adapters[i]).relayMessages(uintIds, destinationAdapters[i], gas);
         }
         return (messageIds, adapterReciepts);
     }
