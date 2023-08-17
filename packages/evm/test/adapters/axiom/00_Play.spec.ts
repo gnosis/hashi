@@ -85,7 +85,7 @@ const setup = async () => {
   }
 }
 
-describe("End-to-end tests", function () {
+describe("Axiom E2E test", function () {
   describe("Execution layer", function () {
     it("Attest slots for the claimed block head with the block hash agreed on by N adapters", async function () {
       const { amb, hashi, storageProof } = await setup()
