@@ -18,7 +18,8 @@ contract MockSygmaBridge {
         bytes32 resourceID,
         bytes calldata depositData,
         bytes calldata feeData
-    ) external payable {
+    ) external payable returns (uint64 depositNonce, bytes memory handlerResponse) {
         emit Deposit(destinationDomainID, resourceID, 1, msg.sender, depositData, feeData);
+        return (1, bytes("2"));
     }
 }
