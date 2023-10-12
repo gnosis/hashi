@@ -22,7 +22,6 @@ const setup = async () => {
     resourceID,
     DOMAIN_ID,
     adapter,
-    "0x00",
   )
   const PingPong = await ethers.getContractFactory("PingPong")
   const pingPong = await PingPong.deploy()
@@ -96,7 +95,9 @@ describe("SygmaMessageRelayer", function () {
       const hash0 = await yaho.calculateHash(network.config.chainId, 0, yaho.address, sender, message_1)
       const hash1 = await yaho.calculateHash(network.config.chainId, 1, yaho.address, sender, message_1)
       const depositData = await prepareDepositData(sygmaMessageRelayer.address, ["0", "1"], [hash0, hash1], adapter)
-      await expect(sygmaMessageRelayer.callStatic.relayMessages([0, 1], adapter)).to.equal(2)
+      expect(await sygmaMessageRelayer.callStatic.relayMessages([0, 1], adapter)).to.equal(
+        "0x0000000000000000000000000000000000000000000000000000000000000001",
+      )
       await expect(sygmaMessageRelayer.relayMessages([0, 1], adapter))
         .to.emit(sygmaMessageRelayer, "MessageRelayed")
         .withArgs(sygmaMessageRelayer.address, 0)

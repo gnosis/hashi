@@ -49,11 +49,8 @@ contract SygmaReporter {
         return input[position:];
     }
 
-    function prepareDepositData(
-        uint256[] memory blockNumbers,
-        bytes32[] memory blockHeaders
-    ) public view returns (bytes memory) {
-        bytes memory encoded = abi.encode(address(0), blockNumbers, blockHeaders);
+    function prepareDepositData(uint256[] memory ids, bytes32[] memory items) public view returns (bytes memory) {
+        bytes memory encoded = abi.encode(address(0), ids, items);
         return this.slice(encoded, 32);
     }
 }

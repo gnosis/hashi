@@ -15,8 +15,7 @@ contract SygmaMessageRelayer is SygmaReporter, IMessageRelay {
         Yaho yaho,
         bytes32 resourceID,
         uint8 defaultDestinationDomainID,
-        address defaultSygmaAdapter,
-        bytes memory defaultFeeData
+        address defaultSygmaAdapter
     ) SygmaReporter(bridge, resourceID, defaultDestinationDomainID, defaultSygmaAdapter) {
         _yaho = yaho;
     }
