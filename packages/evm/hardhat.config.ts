@@ -38,23 +38,26 @@ const chainIds = {
 }
 
 function getChainConfig(chain: keyof typeof chainIds): NetworkUserConfig {
-  let jsonRpcUrl: string
-  switch (chain) {
-    case "avalanche":
-      jsonRpcUrl = "https://api.avax.network/ext/bc/C/rpc"
-      break
-    case "bsc":
-      jsonRpcUrl = "https://bsc-dataseed1.binance.org"
-      break
-    case "gnosis":
-      jsonRpcUrl = "https://rpc.gnosis.gateway.fm"
-      break
-    case "chiado":
-      jsonRpcUrl = "https://rpc.chiadochain.net/"
-      break
-    default:
-      jsonRpcUrl = "https://" + chain + ".infura.io/v3/" + infuraApiKey
+  let jsonRpcUrl: string = process.env[`${chain.toUpperCase()}_JSON_RPC_URL`] as string
+  if (!jsonRpcUrl) {
+    switch (chain) {
+      case "avalanche":
+        jsonRpcUrl = "https://api.avax.network/ext/bc/C/rpc"
+        break
+      case "bsc":
+        jsonRpcUrl = "https://bsc-dataseed1.binance.org"
+        break
+      case "gnosis":
+        jsonRpcUrl = "https://rpc.gnosis.gateway.fm"
+        break
+      case "chiado":
+        jsonRpcUrl = "https://rpc.chiadochain.net/"
+        break
+      default:
+        jsonRpcUrl = "https://" + chain + ".infura.io/v3/" + infuraApiKey
+    }
   }
+
   return {
     accounts: {
       count: 10,
