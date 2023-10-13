@@ -8,21 +8,25 @@ const setup = async () => {
   await network.provider.request({ method: "hardhat_reset", params: [] })
   const signers = await ethers.getSigners()
   const sender = signers[0].address
-  const adapter = signers[1].address
   const otherAddress = signers[2].address
   const Yaho = await ethers.getContractFactory("Yaho")
   const yaho = await Yaho.deploy()
   const SygmaBridge = await ethers.getContractFactory("MockSygmaBridge")
   const sygmaBridge = await SygmaBridge.deploy()
   const SygmaMessageRelayer = await ethers.getContractFactory("SygmaMessageRelayer")
+  const SygmaAdapter = await ethers.getContractFactory("SygmaAdapter")
+  const sygmaAdapter = await SygmaAdapter.deploy(sygmaBridge.address)
   // IBridge bridge, HeaderStorage headerStorage, bytes32 resourceID, uint8 defaultDestinationDomainID, address defaultSygmaAdapter
   const sygmaMessageRelayer = await SygmaMessageRelayer.deploy(
     sygmaBridge.address,
     yaho.address,
     resourceID,
     DOMAIN_ID,
-    adapter,
+    sygmaAdapter.address,
   )
+
+  await sygmaAdapter.setReporter(sygmaMessageRelayer.address, DOMAIN_ID, true)
+
   const PingPong = await ethers.getContractFactory("PingPong")
   const pingPong = await PingPong.deploy()
   const message_1 = {
@@ -34,7 +38,7 @@ const setup = async () => {
   // await mine(10)
   return {
     sender,
-    adapter,
+    sygmaAdapter,
     otherAddress,
     yaho,
     sygmaBridge,
@@ -79,26 +83,31 @@ const prepareDepositData = async (reporterAddress: string, ids: string[], hashes
 describe("SygmaMessageRelayer", function () {
   describe("Deploy", function () {
     it("Successfully deploys contract", async function () {
-      const { sygmaBridge, yaho, adapter, sygmaMessageRelayer } = await setup()
+      const { sygmaBridge, yaho, sygmaAdapter, sygmaMessageRelayer } = await setup()
       expect(await sygmaMessageRelayer.deployed())
       expect(await sygmaMessageRelayer._bridge()).to.equal(sygmaBridge.address)
       expect(await sygmaMessageRelayer._yaho()).to.equal(yaho.address)
       expect(await sygmaMessageRelayer._resourceID()).to.equal(resourceID)
       expect(await sygmaMessageRelayer._defaultDestinationDomainID()).to.equal(DOMAIN_ID)
-      expect(await sygmaMessageRelayer._defaultSygmaAdapter()).to.equal(adapter)
+      expect(await sygmaMessageRelayer._defaultSygmaAdapter()).to.equal(sygmaAdapter.address)
     })
   })
 
   describe("relayMessages()", function () {
     it("Relays messages to Sygma to default domain", async function () {
-      const { sender, sygmaMessageRelayer, adapter, sygmaBridge, yaho, message_1 } = await setup()
+      const { sender, sygmaMessageRelayer, sygmaAdapter, sygmaBridge, yaho, message_1 } = await setup()
       const hash0 = await yaho.calculateHash(network.config.chainId, 0, yaho.address, sender, message_1)
       const hash1 = await yaho.calculateHash(network.config.chainId, 1, yaho.address, sender, message_1)
-      const depositData = await prepareDepositData(sygmaMessageRelayer.address, ["0", "1"], [hash0, hash1], adapter)
-      expect(await sygmaMessageRelayer.callStatic.relayMessages([0, 1], adapter)).to.equal(
+      const depositData = await prepareDepositData(
+        sygmaMessageRelayer.address,
+        ["0", "1"],
+        [hash0, hash1],
+        sygmaAdapter.address,
+      )
+      expect(await sygmaMessageRelayer.callStatic.relayMessages([0, 1], sygmaAdapter.address)).to.equal(
         "0x0000000000000000000000000000000000000000000000000000000000000001",
       )
-      await expect(sygmaMessageRelayer.relayMessages([0, 1], adapter))
+      await expect(sygmaMessageRelayer.relayMessages([0, 1], sygmaAdapter.address))
         .to.emit(sygmaMessageRelayer, "MessageRelayed")
         .withArgs(sygmaMessageRelayer.address, 0)
         .and.to.emit(sygmaMessageRelayer, "MessageRelayed")

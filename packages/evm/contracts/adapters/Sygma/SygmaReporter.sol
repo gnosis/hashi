@@ -18,8 +18,8 @@ contract SygmaReporter {
     }
 
     function _reportData(
-        uint256[] memory ids,
-        bytes32[] memory items,
+        uint256[] memory messageIds,
+        bytes32[] memory hashes,
         address sygmaAdapter,
         uint8 destinationDomainID,
         bytes memory feeData
@@ -40,7 +40,7 @@ contract SygmaReporter {
             // bytes executionDataDepositor
             address(this),
             // bytes executionDataDepositor + executionData
-            prepareDepositData(ids, items)
+            prepareDepositData(messageIds, hashes)
         );
         return IBridge(_bridge).deposit{ value: msg.value }(destinationDomainID, _resourceID, depositData, feeData);
     }
@@ -49,8 +49,11 @@ contract SygmaReporter {
         return input[position:];
     }
 
-    function prepareDepositData(uint256[] memory ids, bytes32[] memory items) public view returns (bytes memory) {
-        bytes memory encoded = abi.encode(address(0), ids, items);
+    function prepareDepositData(
+        uint256[] memory messageIds,
+        bytes32[] memory hashes
+    ) public view returns (bytes memory) {
+        bytes memory encoded = abi.encode(address(0), messageIds, hashes);
         return this.slice(encoded, 32);
     }
 }
