@@ -54,7 +54,7 @@ function getChainConfig(chain: keyof typeof chainIds): NetworkUserConfig {
         jsonRpcUrl = "https://rpc.chiadochain.net/"
         break
       default:
-        jsonRpcUrl = "https://" + chain + ".infura.io/v3/" + infuraApiKey
+        jsonRpcUrl = `https://${chain}.infura.io/v3/${infuraApiKey}`
     }
   }
 
