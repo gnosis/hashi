@@ -570,23 +570,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"reporter@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "reporter@workspace:."
-  dependencies:
-    "@typescript-eslint/eslint-plugin": ^6.7.5
-    "@typescript-eslint/parser": ^6.7.5
-    dotenv: ^16.3.1
-    eslint: ^8.51.0
-    eslint-config-prettier: ^9.0.0
-    nodemon: ^3.0.1
-    prettier: ^3.0.3
-    ts-node: ^10.9.1
-    typescript: ^5.2.2
-    viem: ^1.16.5
-  languageName: unknown
-  linkType: soft
-
 "brace-expansion@npm:^1.1.7":
   version: 1.1.11
   resolution: "brace-expansion@npm:1.1.11"
@@ -1715,6 +1698,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"node-cron@npm:^3.0.2":
+  version: 3.0.2
+  resolution: "node-cron@npm:3.0.2"
+  dependencies:
+    uuid: 8.3.2
+  checksum: dd21585c0d4069a0752022dad9b8380a4393c4783ec78355ffa99ff32b018c3743a35d4ebf9d7c7863949e94e302b440f58c884eb4960e71c7260d817e2d3f25
+  languageName: node
+  linkType: hard
+
 "node-gyp@npm:latest":
   version: 9.4.0
   resolution: "node-gyp@npm:9.4.0"
@@ -1967,6 +1959,24 @@ __metadata:
   checksum: 1ced032e6e45670b6d7352d71d21ce7edf7b9b928494dcaba6f11fba63180d9da6cd7061ebc34175ffda6ff529f481818c962952004d273178acd70f7059b320
   languageName: node
   linkType: hard
+
+"reporter@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "reporter@workspace:."
+  dependencies:
+    "@typescript-eslint/eslint-plugin": ^6.7.5
+    "@typescript-eslint/parser": ^6.7.5
+    dotenv: ^16.3.1
+    eslint: ^8.51.0
+    eslint-config-prettier: ^9.0.0
+    node-cron: ^3.0.2
+    nodemon: ^3.0.1
+    prettier: ^3.0.3
+    ts-node: ^10.9.1
+    typescript: ^5.2.2
+    viem: ^1.16.5
+  languageName: unknown
+  linkType: soft
 
 "resolve-from@npm:^4.0.0":
   version: 4.0.0
@@ -2360,6 +2370,15 @@ __metadata:
   version: 1.0.2
   resolution: "util-deprecate@npm:1.0.2"
   checksum: 474acf1146cb2701fe3b074892217553dfcf9a031280919ba1b8d651a068c9b15d863b7303cb15bd00a862b498e6cf4ad7b4a08fb134edd5a6f7641681cb54a2
+  languageName: node
+  linkType: hard
+
+"uuid@npm:8.3.2":
+  version: 8.3.2
+  resolution: "uuid@npm:8.3.2"
+  bin:
+    uuid: dist/bin/uuid
+  checksum: 5575a8a75c13120e2f10e6ddc801b2c7ed7d8f3c8ac22c7ed0c7b2ba6383ec0abda88c905085d630e251719e0777045ae3236f04c812184b7c765f63a70e58df
   languageName: node
   linkType: hard
 

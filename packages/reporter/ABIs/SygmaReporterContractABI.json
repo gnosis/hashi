@@ -1,0 +1,217 @@
+[
+	{
+		"inputs": [
+			{
+				"internalType": "contract IBridge",
+				"name": "bridge",
+				"type": "address"
+			},
+			{
+				"internalType": "contract HeaderStorage",
+				"name": "headerStorage",
+				"type": "address"
+			},
+			{
+				"internalType": "bytes32",
+				"name": "resourceID",
+				"type": "bytes32"
+			},
+			{
+				"internalType": "uint8",
+				"name": "defaultDestinationDomainID",
+				"type": "uint8"
+			},
+			{
+				"internalType": "address",
+				"name": "defaultSygmaAdapter",
+				"type": "address"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "emitter",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "blockNumber",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "bytes32",
+				"name": "blockHeader",
+				"type": "bytes32"
+			}
+		],
+		"name": "HeaderReported",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256[]",
+				"name": "blockNumbers",
+				"type": "uint256[]"
+			},
+			{
+				"internalType": "bytes",
+				"name": "feeData",
+				"type": "bytes"
+			}
+		],
+		"name": "reportHeaders",
+		"outputs": [],
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256[]",
+				"name": "blockNumbers",
+				"type": "uint256[]"
+			},
+			{
+				"internalType": "address",
+				"name": "sygmaAdapter",
+				"type": "address"
+			},
+			{
+				"internalType": "uint8",
+				"name": "destinationDomainID",
+				"type": "uint8"
+			},
+			{
+				"internalType": "bytes",
+				"name": "feeData",
+				"type": "bytes"
+			}
+		],
+		"name": "reportHeadersToDomain",
+		"outputs": [],
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "_bridge",
+		"outputs": [
+			{
+				"internalType": "contract IBridge",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "_defaultDestinationDomainID",
+		"outputs": [
+			{
+				"internalType": "uint8",
+				"name": "",
+				"type": "uint8"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "_defaultSygmaAdapter",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "_headerStorage",
+		"outputs": [
+			{
+				"internalType": "contract HeaderStorage",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "_resourceID",
+		"outputs": [
+			{
+				"internalType": "bytes32",
+				"name": "",
+				"type": "bytes32"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256[]",
+				"name": "blockNumbers",
+				"type": "uint256[]"
+			},
+			{
+				"internalType": "bytes32[]",
+				"name": "blockHeaders",
+				"type": "bytes32[]"
+			}
+		],
+		"name": "prepareDepositData",
+		"outputs": [
+			{
+				"internalType": "bytes",
+				"name": "",
+				"type": "bytes"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "bytes",
+				"name": "input",
+				"type": "bytes"
+			},
+			{
+				"internalType": "uint256",
+				"name": "position",
+				"type": "uint256"
+			}
+		],
+		"name": "slice",
+		"outputs": [
+			{
+				"internalType": "bytes",
+				"name": "",
+				"type": "bytes"
+			}
+		],
+		"stateMutability": "pure",
+		"type": "function"
+	}
+]
