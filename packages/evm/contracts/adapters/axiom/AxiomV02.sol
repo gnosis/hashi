@@ -36,11 +36,11 @@ function calcMerkleRoot(bytes32[HISTORICAL_NUM_ROOTS] calldata leaves) pure retu
 contract AxiomV02 is IAxiomV0, Ownable {
     string public constant VERSION = "0.2";
 
-    /// @notice The address of the snark verifier contract.
+    /// @notice The address of the snark verifier contract. */
     address public verifierAddress;
-    /// @dev The address of AxiomV0 version "0.1". We will read from the storage of the old contract for old block hashes.
+    /** @dev The address of AxiomV0 version "0.1". We will read from the storage of the old contract for old block hashes. */
     address public oldAxiomAddress;
-    /// @notice The block the contract was created at.
+    /// @notice The block the contract was created at
     uint256 public creationBlockNumber;
 
     // historicalRoots[startBlockNumber] is 0 unless (startBlockNumber % NUM_LEAVES == 0)
@@ -56,7 +56,7 @@ contract AxiomV02 is IAxiomV0, Ownable {
 
     event UpdateSnarkVerifierAddress(address newAddress);
 
-    /// @dev We do not re-import all historical blockhashes in this v0.2 contract, so we use the old v0.1 contract for older block numbers
+    /** @dev We do not re-import all historical blockhashes in this v0.2 contract, so we use the old v0.1 contract for older block numbers */
     function historicalRoots(uint32 startBlockNumber) public view returns (bytes32) {
         if (startBlockNumber < creationBlockNumber) {
             return IAxiomV0(oldAxiomAddress).historicalRoots(startBlockNumber);
@@ -98,7 +98,8 @@ contract AxiomV02 is IAxiomV0, Ownable {
         return emptyHashes[depth];
     }
 
-    // The ZKP has block headers for [startBlockNumber, endBlockNumber] blocks. We extract some common information from the calldata.
+    // The ZKP has block headers for [startBlockNumber, endBlockNumber] blocks.
+    // We extract some common information from the calldata.
     function getBoundaryBlockData(
         bytes calldata proofData
     )
