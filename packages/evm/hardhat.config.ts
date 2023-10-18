@@ -41,6 +41,9 @@ function getChainConfig(chain: keyof typeof chainIds): NetworkUserConfig {
   let jsonRpcUrl: string = process.env[`${chain.toUpperCase()}_JSON_RPC_URL`] as string
   if (!jsonRpcUrl) {
     switch (chain) {
+      case "mainnet":
+        jsonRpcUrl = "https://ethereum.publicnode.com"
+        break
       case "avalanche":
         jsonRpcUrl = "https://api.avax.network/ext/bc/C/rpc"
         break
