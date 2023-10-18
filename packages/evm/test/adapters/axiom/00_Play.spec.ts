@@ -221,7 +221,7 @@ describe("Axiom E2E test", function () {
     })
 
     it("Reverts if the proof for cryptopunk#420 owner address does not match with the block header", async function () {
-      const { amb, hashi/*, storageProof*/ } = await setup()
+      const { amb, hashi /*, storageProof*/ } = await setup()
 
       // deploy header storage
       const HeaderStorage = await ethers.getContractFactory("HeaderStorage")
