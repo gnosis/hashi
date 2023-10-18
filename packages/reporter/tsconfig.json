@@ -7,7 +7,7 @@
         "experimentalDecorators": true,
         "forceConsistentCasingInFileNames": true,
         "lib": [
-            "es6"
+            "es6","ESNext"
         ],
         "module": "commonjs",
         "moduleResolution": "node",
@@ -17,7 +17,7 @@
         "resolveJsonModule": true,
         "sourceMap": true,
         "strict": true,
-        "target": "es6"
+        "target": "ESNext"
     },
     "exclude": [
         "node_modules"
