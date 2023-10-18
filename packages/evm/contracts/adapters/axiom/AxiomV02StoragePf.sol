@@ -7,8 +7,8 @@ import { IAxiomV0 } from "./IAxiomV0.sol";
 import { IAxiomV0StoragePf } from "./IAxiomV0StoragePf.sol";
 // import {Ownable} from "openzeppelin-contracts/access/Ownable.sol";
 import { Ownable } from "./Ownable.sol";
-import { IHashi } from "../interfaces/IHashi.sol";
-import { IOracleAdapter } from "../interfaces/IOracleAdapter.sol";
+import { IHashi } from "../../interfaces/IHashi.sol";
+import { IOracleAdapter } from "../../interfaces/IOracleAdapter.sol";
 
 uint8 constant SLOT_NUMBER = 10;
 

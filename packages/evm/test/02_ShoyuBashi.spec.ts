@@ -20,8 +20,8 @@ const setup = async () => {
   const mockOracleAdapter = await MockOracleAdapter.deploy()
   const anotherOracleAdapter = await MockOracleAdapter.deploy()
 
-  await mockOracleAdapter.setHashes(DOMAIN_ID, [0, 1], [HASH_ZERO, HASH_GOOD])
-  await anotherOracleAdapter.setHashes(DOMAIN_ID, [0, 1], [HASH_ZERO, HASH_GOOD])
+  await mockOracleAdapter.setHashes(DOMAIN_ID, [0, 1, 2], [HASH_ZERO, HASH_GOOD, HASH_GOOD])
+  await anotherOracleAdapter.setHashes(DOMAIN_ID, [0, 1, 2], [HASH_ZERO, HASH_GOOD, HASH_BAD])
   await shoyuBashi.setThreshold(DOMAIN_ID, 2)
 
   return {
@@ -275,6 +275,37 @@ describe("ShoyuBashi", function () {
       const { shoyuBashi, mockOracleAdapter, anotherOracleAdapter } = await setup()
       await shoyuBashi.enableOracleAdapters(DOMAIN_ID, [mockOracleAdapter.address, anotherOracleAdapter.address])
       expect(await shoyuBashi.getUnanimousHash(DOMAIN_ID, 1)).to.equal(HASH_GOOD)
+    })
+  })
+
+  describe("getThresholdHash()", function () {
+    it("Reverts if no adapters are enabled", async function () {
+      const { shoyuBashi } = await setup()
+      await expect(shoyuBashi.getThresholdHash(DOMAIN_ID, 1)).to.be.revertedWithCustomError(
+        shoyuBashi,
+        "NoAdaptersEnabled",
+      )
+    })
+    it("Reverts if threshold is not met", async function () {
+      const { shoyuBashi, mockOracleAdapter, anotherOracleAdapter } = await setup()
+      await shoyuBashi.enableOracleAdapters(DOMAIN_ID, [mockOracleAdapter.address, anotherOracleAdapter.address])
+      await expect(shoyuBashi.getThresholdHash(DOMAIN_ID, 2)).to.be.revertedWithCustomError(
+        shoyuBashi,
+        "ThresholdNotMet",
+      )
+    })
+    it("Reverts if threshold returns bytes(0)", async function () {
+      const { shoyuBashi, mockOracleAdapter, anotherOracleAdapter } = await setup()
+      await shoyuBashi.enableOracleAdapters(DOMAIN_ID, [mockOracleAdapter.address, anotherOracleAdapter.address])
+      await expect(shoyuBashi.getThresholdHash(DOMAIN_ID, 0)).to.be.revertedWithCustomError(
+        shoyuBashi,
+        "ThresholdNotMet",
+      )
+    })
+    it("Returns unanimous agreed on hash", async function () {
+      const { shoyuBashi, mockOracleAdapter, anotherOracleAdapter } = await setup()
+      await shoyuBashi.enableOracleAdapters(DOMAIN_ID, [mockOracleAdapter.address, anotherOracleAdapter.address])
+      expect(await shoyuBashi.getThresholdHash(DOMAIN_ID, 1)).to.equal(HASH_GOOD)
     })
   })
 
