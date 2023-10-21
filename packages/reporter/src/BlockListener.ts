@@ -1,17 +1,20 @@
-import { createPublicClient, http, createWalletClient, PublicClient, Chain } from "viem"
+import { createPublicClient, http, createWalletClient, PublicClient, Chain, publicActions } from "viem"
 import { mainnet, goerli, gnosis } from "viem/chains"
+import Multiclient from "./MultiClient"
 import winston from "winston"
 class BlocksListener {
   controllers: any[]
   logger: winston.Logger
   timeFetchBlocksMs: number
   lastProcessedBlock: bigint = 0n
+  multiclient: Multiclient
   _interval: ReturnType<typeof setInterval> | undefined // NodeJs.Timeout
 
-  constructor(controllers: any[], timeFetchBlocksMs: number, logger: winston.Logger) {
+  constructor(controllers: any[], timeFetchBlocksMs: number, logger: winston.Logger, multiclient: Multiclient) {
     this.controllers = controllers
     this.timeFetchBlocksMs = timeFetchBlocksMs
     this.logger = logger
+    this.multiclient = multiclient
   }
 
   start() {
@@ -29,15 +32,14 @@ class BlocksListener {
   async _fetchBlocks() {
     try {
       this.logger.info("Start to fetch blocks")
-      const publicClient = createPublicClient({
-        chain:
-          process.env.SOURCE_CHAIN === "goerli" ? goerli : process.env.SOURCE_CHAIN === "mainnet" ? mainnet : undefined,
-        transport: http(process.env.SOURCE_RPC_URL),
-      })
-      const currentBlockNumber = await publicClient.getBlockNumber()
+
+      const client = this.multiclient
+        .getClientByChain(process.env.SOURCE_CHAIN === "goerli" ? goerli : mainnet)
+        .extend(publicActions)
+      const currentBlockNumber = await client.getBlockNumber()
       this.logger.info(`Current Block Number: ${currentBlockNumber} , on source chain: ${process.env.SOURCE_CHAIN}`)
       if (this.lastProcessedBlock !== currentBlockNumber) {
-        this.lastProcessedBlock = await publicClient.getBlockNumber()
+        this.lastProcessedBlock = await client.getBlockNumber()
 
         const queryBlockLength = 100n // the number of blocks to query
         const blockBuffer = 10n // put 10 blocks before the current block in case the node provider don't sync up at the head
@@ -46,6 +48,7 @@ class BlocksListener {
         const blocks = await Promise.all(
           Array.from({ length: Number(queryBlockLength + 1n) }, (value, index) => startBlock + BigInt(index)),
         )
+        console.log("blocks ", blocks)
         this.logger.info(`Fetching block from ${startBlock} to ${endBlock}`)
 
         await Promise.all(this.controllers.map((_controller: any) => _controller.onBlocks(blocks)))

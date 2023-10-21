@@ -1,42 +1,47 @@
-var cron = require("node-cron")
-import { createPublicClient, http, createWalletClient, parseEther } from "viem"
+import { parseEther, walletActions, publicActions } from "viem"
 import { mainnet, goerli, gnosis } from "viem/chains"
 import { privateKeyToAccount } from "viem/accounts"
 import "dotenv/config"
 import contract_address from "../utils/address.json"
 import contractABI from "../ABIs/SygmaReporterContractABI.json"
 import winston from "winston"
+import Multiclient from "../MultiClient"
 
 class SygmaController {
   sourceChain: string
   destinationChain: string
   isEnabled: boolean = false
   logger: winston.Logger
-  constructor(sourceChain: string, destinationChain: string, isEnabled: boolean, logger: winston.Logger) {
+  multiClient: Multiclient
+  constructor(
+    sourceChain: string,
+    destinationChain: string,
+    isEnabled: boolean,
+    logger: winston.Logger,
+    multiClient: Multiclient,
+  ) {
     this.sourceChain = sourceChain
     this.destinationChain = destinationChain
     this.isEnabled = isEnabled
     this.logger = logger
+    this.multiClient = multiClient
   }
 
   async onBlocks(blockNumbers: string[]) {
     try {
       this.logger.info("Sygma: Starting Sygma Reporter")
-      const walletClient = createWalletClient({
-        chain: this.sourceChain === "goerli" ? goerli : this.sourceChain === "mainnet" ? mainnet : undefined,
-        transport: http(process.env.SOURCE_RPC_URL),
-      })
-      const publicClient = createPublicClient({
-        chain: this.sourceChain === "goerli" ? goerli : this.sourceChain === "mainnet" ? mainnet : undefined,
-        transport: http(process.env.SOURCE_RPC_URL),
-      })
+      const client = this.multiClient
+        .getClientByChain(this.sourceChain === "goerli" ? goerli : mainnet)
+        .extend(walletActions)
+        .extend(publicActions)
+
       const account = privateKeyToAccount(process.env.PRIVATE_KEY as `0x${string}`)
 
       const reporterAddr = this.getSourceReporterAddr()
       const adapterAddr = this.getDestAdapter()
       const destDomainId = this.getDomainID()
 
-      const { result, request } = await publicClient.simulateContract({
+      const { result, request } = await client.simulateContract({
         account, // calling from account
         address: reporterAddr as `0x${string}`,
         abi: contractABI,
@@ -44,7 +49,7 @@ class SygmaController {
         args: [blockNumbers, adapterAddr, destDomainId, "0x"],
         value: parseEther("0.0001"),
       })
-      const txhash = await walletClient.writeContract(request)
+      const txhash = await client.writeContract(request)
       this.logger.info(`Sygma: TxHash from Sygma Controller:  ${txhash}`)
     } catch (error) {
       this.logger.error(`Sygma: Error from Sygma Controller: ${error}`)
