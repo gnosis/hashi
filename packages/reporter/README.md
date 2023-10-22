@@ -13,8 +13,14 @@ Script to call Header Reporter contracts of different oracle from source chain t
 
 Configure the mode you want to run by editing the variable in `.env`
 
-1. `REPORTER` (true/false): to enable the reporter
-2. `FREQUENCY` (cron job expression by default, seconds for telepathy reporterr): Define the frequency to run the
-   reporter script
-3. `SOURCE_CHAIN` (string value of chain): Define the source chain to collect the block header from. `DEST_CHAIN`
-   (string value of chain): Define the destination chain to report the source chain's block header to.
+1. `_CONTROLLER` (true/false): to enable the controller
+2. `SOURCE_CHAIN` (string value of chain): Define the source chain to collect the block header from.
+3. `DEST_CHAIN` (string value of chain): Define the destination chain to report the source chain's block header to.
+
+## Adding a new controller
+
+1. Add a new file under `/controller`, create the constructor and `onBlocks` function to call block header reporter
+   contract periodically.
+2. Add the contract addresses under `utils/address.json`.
+3. Add the new controller instant in `index.ts`.
+4. Add the env variable in `.env.example`.
