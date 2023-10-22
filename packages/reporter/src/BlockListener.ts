@@ -1,7 +1,7 @@
-import { createPublicClient, http, createWalletClient, PublicClient, Chain, publicActions } from "viem"
+import { publicActions } from "viem"
 import { mainnet, goerli, gnosis } from "viem/chains"
 import Multiclient from "./MultiClient"
-import winston from "winston"
+import winston, { query } from "winston"
 class BlocksListener {
   controllers: any[]
   logger: winston.Logger
@@ -41,14 +41,19 @@ class BlocksListener {
       if (this.lastProcessedBlock !== currentBlockNumber) {
         this.lastProcessedBlock = await client.getBlockNumber()
 
-        const queryBlockLength = 100n // the number of blocks to query
+        const queryBlockLength = 100n // the number of blocks to query, make sure it is less than 256
         const blockBuffer = 10n // put 10 blocks before the current block in case the node provider don't sync up at the head
-        const startBlock = this.lastProcessedBlock - queryBlockLength - blockBuffer
+        if (queryBlockLength > 256n - blockBuffer) {
+          this.logger.error("Please choose a block length less than 256-buffer!")
+        }
+        const startBlock = this.lastProcessedBlock - queryBlockLength
         const endBlock = this.lastProcessedBlock - blockBuffer
         const blocks = await Promise.all(
-          Array.from({ length: Number(queryBlockLength + 1n) }, (value, index) => startBlock + BigInt(index)),
+          Array.from(
+            { length: Number(queryBlockLength - blockBuffer + 1n) },
+            (value, index) => startBlock + BigInt(index),
+          ),
         )
-        console.log("blocks ", blocks)
         this.logger.info(`Fetching block from ${startBlock} to ${endBlock}`)
 
         await Promise.all(this.controllers.map((_controller: any) => _controller.onBlocks(blocks)))
@@ -60,7 +65,6 @@ class BlocksListener {
       // delay for 1000ms
       await new Promise((func) => setTimeout(func, 1000))
     } catch (_err) {
-      // logger.error(_err)
       this.logger.error(`error from block listener ${_err}`)
     }
   }

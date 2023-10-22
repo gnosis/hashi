@@ -16,6 +16,7 @@ function main() {
   const isAMBEnabled = process.env.AMB_CONTROLLER === "true"
   const isSygmaEnabled = process.env.SYGMA_CONTROLLER === "true"
   const isTelepathyEnabled = process.env.TELEPATHY_CONTROLLER === "true"
+  const timeFetchBlocksMs = 5 * 60 * 1000
 
   const logger = winston.createLogger({
     level: "info",
@@ -37,7 +38,7 @@ function main() {
 
   const blocksListener = new BlocksListener(
     [ambController, sygmaController, telepathyController].filter((controller) => controller.isEnabled == true),
-    5 * 60 * 1000, // every 5 minutes
+    timeFetchBlocksMs, // every 5 minutes
     logger,
     multiClient,
   )
