@@ -1,0 +1,229 @@
+[
+  {
+    "type": "constructor",
+    "stateMutability": "nonpayable",
+    "inputs": [
+      {
+        "type": "address",
+        "name": "_telepathyRouter",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "BlockHeaderNotAvailable",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "slot",
+        "internalType": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "ConflictingBlockHeader",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "blockNumber",
+        "internalType": "uint256"
+      },
+      {
+        "type": "bytes32",
+        "name": "reportedBlockHash",
+        "internalType": "bytes32"
+      },
+      {
+        "type": "bytes32",
+        "name": "storedBlockHash",
+        "internalType": "bytes32"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "InconsistentLightClient",
+    "inputs": [
+      {
+        "type": "address",
+        "name": "lightClient",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "InvalidBlockHashProof",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidBlockHeaderLength",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "length",
+        "internalType": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "InvalidBlockHeaderRLP",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidBlockNumberProof",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NoLightClientOnChain",
+    "inputs": [
+      {
+        "type": "uint32",
+        "name": "chainId",
+        "internalType": "uint32"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "HashStored",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "id",
+        "internalType": "uint256",
+        "indexed": true
+      },
+      {
+        "type": "bytes32",
+        "name": "hashes",
+        "internalType": "bytes32",
+        "indexed": true
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "function",
+    "stateMutability": "view",
+    "outputs": [
+      {
+        "type": "bytes32",
+        "name": "hash",
+        "internalType": "bytes32"
+      }
+    ],
+    "name": "getHashFromOracle",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "domain",
+        "internalType": "uint256"
+      },
+      {
+        "type": "uint256",
+        "name": "id",
+        "internalType": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "view",
+    "outputs": [
+      {
+        "type": "bytes32",
+        "name": "",
+        "internalType": "bytes32"
+      }
+    ],
+    "name": "hashes",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "",
+        "internalType": "uint256"
+      },
+      {
+        "type": "uint256",
+        "name": "",
+        "internalType": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "nonpayable",
+    "outputs": [],
+    "name": "proveAncestralBlockHashes",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "chainId",
+        "internalType": "uint256"
+      },
+      {
+        "type": "bytes[]",
+        "name": "blockHeaders",
+        "internalType": "bytes[]"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "nonpayable",
+    "outputs": [],
+    "name": "storeBlockHeader",
+    "inputs": [
+      {
+        "type": "uint32",
+        "name": "_chainId",
+        "internalType": "uint32"
+      },
+      {
+        "type": "uint64",
+        "name": "_slot",
+        "internalType": "uint64"
+      },
+      {
+        "type": "uint256",
+        "name": "_blockNumber",
+        "internalType": "uint256"
+      },
+      {
+        "type": "bytes32[]",
+        "name": "_blockNumberProof",
+        "internalType": "bytes32[]"
+      },
+      {
+        "type": "bytes32",
+        "name": "_blockHash",
+        "internalType": "bytes32"
+      },
+      {
+        "type": "bytes32[]",
+        "name": "_blockHashProof",
+        "internalType": "bytes32[]"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "view",
+    "outputs": [
+      {
+        "type": "address",
+        "name": "",
+        "internalType": "address"
+      }
+    ],
+    "name": "telepathyRouter",
+    "inputs": []
+  }
+]
