@@ -35,7 +35,7 @@ const setup = async () => {
   }
 }
 
-describe("AMBMessageRelayer", function () {
+describe("AMBMessageRelay", function () {
   describe("Deploy", function () {
     it("Successfully deploys contract", async function () {
       const { ambMessageRelay } = await setup()
