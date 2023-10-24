@@ -216,7 +216,7 @@ describe("HashiModule", function () {
       }
 
       // dispatch message
-      await yaho.dispatchMessagesToAdapters([message], [ambMessageRelay.address], [ambAdapter.address])
+      await yaho.dispatchMessagesToAdapters([message], [ambMessageRelay.address], [ambAdapter.address], ["0x"])
       // execute messages
       await expect(yaru.executeMessages([message], [ID_ZERO], [wallet.address], [ambAdapter.address])).to.be.reverted
     })
@@ -237,7 +237,7 @@ describe("HashiModule", function () {
       }
 
       // dispatch message
-      await yaho.dispatchMessagesToAdapters([message], [ambMessageRelay.address], [ambAdapter.address])
+      await yaho.dispatchMessagesToAdapters([message], [ambMessageRelay.address], [ambAdapter.address], ["0x"])
       // execute messages
       await expect(yaru.executeMessages([message], [ID_ZERO], [wallet.address], [ambAdapter.address])).to.be.reverted
     })
@@ -254,7 +254,7 @@ describe("HashiModule", function () {
       }
 
       // dispatch message
-      await yaho.dispatchMessagesToAdapters([message], [ambMessageRelay.address], [ambAdapter.address])
+      await yaho.dispatchMessagesToAdapters([message], [ambMessageRelay.address], [ambAdapter.address], ["0x"])
 
       await expect(yaru.executeMessages([message], [ID_ZERO], [wallet.address], [ambAdapter.address])).to.be.reverted
     })
@@ -270,7 +270,7 @@ describe("HashiModule", function () {
       const pingCount = await pingPong.count()
 
       // dispatch message
-      await yaho.dispatchMessagesToAdapters([message], [ambMessageRelay.address], [ambAdapter.address])
+      await yaho.dispatchMessagesToAdapters([message], [ambMessageRelay.address], [ambAdapter.address], ["0x"])
       // execute messages
       await yaru.executeMessages([message], [ID_ZERO], [wallet.address], [ambAdapter.address])
 

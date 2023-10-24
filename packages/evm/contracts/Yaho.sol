@@ -32,44 +32,56 @@ contract Yaho is IMessageDispatcher, MessageHashCalculator {
 
     /// @dev Relays hashes of the given messageIds to the given adapters.
     /// @param messageIds Array of IDs of the message hashes to relay to the given adapters.
-    /// @param adapters Array of relay adapter addresses to which hashes should be relayed.
+    /// @param messageRelays Array of message relays addresses to which hashes should be relayed.
     /// @param destinationAdapters Array of oracle adapter addresses to receive hashes.
+    /// @param data Array of bytes used as optional parameters to pass to the MessageRelay.
     /// @return adapterReciepts Reciepts from each of the relay adapters.
     function relayMessagesToAdapters(
         uint256[] memory messageIds,
-        address[] memory adapters,
-        address[] memory destinationAdapters
+        address[] memory messageRelays,
+        address[] memory destinationAdapters,
+        bytes[] calldata data
     ) external payable returns (bytes32[] memory) {
         if (messageIds.length == 0) revert NoMessageIdsGiven(address(this));
-        if (adapters.length == 0) revert NoAdaptersGiven(address(this));
-        if (adapters.length != destinationAdapters.length) revert UnequalArrayLengths(address(this));
-        bytes32[] memory adapterReciepts = new bytes32[](adapters.length);
-        for (uint256 i = 0; i < adapters.length; i++) {
-            adapterReciepts[i] = IMessageRelay(adapters[i]).relayMessages(messageIds, destinationAdapters[i]);
+        if (messageRelays.length == 0) revert NoAdaptersGiven(address(this));
+        if (messageRelays.length != destinationAdapters.length) revert UnequalArrayLengths(address(this));
+        bytes32[] memory adapterReciepts = new bytes32[](messageRelays.length);
+        for (uint256 i = 0; i < messageRelays.length; i++) {
+            adapterReciepts[i] = IMessageRelay(messageRelays[i]).relayMessages(
+                messageIds,
+                destinationAdapters[i],
+                data[i]
+            );
         }
         return adapterReciepts;
     }
 
     /// @dev Dispatches an array of messages and relays their hashes to an array of relay adapters.
     /// @param messages An array of Messages to be dispatched.
-    /// @param adapters Array of relay adapter addresses to which hashes should be relayed.
+    /// @param messageRelays Array of message relays addresses to which hashes should be relayed.
     /// @param destinationAdapters Array of oracle adapter addresses to receive hashes.
     /// @return messageIds An array of message IDs corresponding to the dispatched messages.
-    /// @return adapterReciepts Reciepts from each of the relay adapters.
+    /// @param data Array of bytes used as optional parameters to pass to the MessageRelay.
+    /// @return adapterReciepts Reciepts from each of the relay.
     function dispatchMessagesToAdapters(
-        Message[] memory messages,
-        address[] memory adapters,
-        address[] memory destinationAdapters
+        Message[] calldata messages,
+        address[] calldata messageRelays,
+        address[] calldata destinationAdapters,
+        bytes[] calldata data
     ) external payable returns (bytes32[] memory messageIds, bytes32[] memory) {
-        if (adapters.length == 0) revert NoAdaptersGiven(address(this));
+        if (messageRelays.length == 0) revert NoAdaptersGiven(address(this));
         messageIds = dispatchMessages(messages);
         uint256[] memory uintIds = new uint256[](messageIds.length);
         for (uint256 i = 0; i < messageIds.length; i++) {
             uintIds[i] = uint256(messageIds[i]);
         }
-        bytes32[] memory adapterReciepts = new bytes32[](adapters.length);
-        for (uint256 i = 0; i < adapters.length; i++) {
-            adapterReciepts[i] = IMessageRelay(adapters[i]).relayMessages(uintIds, destinationAdapters[i]);
+        bytes32[] memory adapterReciepts = new bytes32[](messageRelays.length);
+        for (uint256 i = 0; i < messageRelays.length; i++) {
+            adapterReciepts[i] = IMessageRelay(messageRelays[i]).relayMessages(
+                uintIds,
+                destinationAdapters[i],
+                data[i]
+            );
         }
         return (messageIds, adapterReciepts);
     }

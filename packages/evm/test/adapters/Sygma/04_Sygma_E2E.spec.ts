@@ -107,7 +107,7 @@ describe("SygmaMessageRelayer End-to-End", function () {
       const pingCount = await pingPong.count()
 
       // dispatch message
-      await yaho.dispatchMessagesToAdapters([message], [sygmaMessageRelayer.address], [sygmaAdapter.address])
+      await yaho.dispatchMessagesToAdapters([message], [sygmaMessageRelayer.address], [sygmaAdapter.address], ["0x"])
       // execute messages
       await yaru.executeMessages([message], [ID_ZERO], [wallet.address], [sygmaAdapter.address])
 

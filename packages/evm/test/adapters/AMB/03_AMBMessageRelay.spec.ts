@@ -46,12 +46,12 @@ describe("AMBMessageRelayer", function () {
   describe("relayMessages()", function () {
     it("Relays message hashes over AMB", async function () {
       const { ambMessageRelay, ambAdapter } = await setup()
-      const receipt = await ambMessageRelay.relayMessages([0, 1], ambAdapter.address)
+      const receipt = await ambMessageRelay.relayMessages([0, 1], ambAdapter.address, "0x")
       await expect(receipt).to.emit(ambMessageRelay, "MessageRelayed").withArgs(ambMessageRelay.address, 0)
     })
     it("Reports headers to AMB", async function () {
       const { ambMessageRelay, amb, ambAdapter, message_1, yaho, wallet } = await setup()
-      const receipt = await ambMessageRelay.relayMessages([0, 1], ambAdapter.address)
+      const receipt = await ambMessageRelay.relayMessages([0, 1], ambAdapter.address, "0x")
       await expect(receipt).to.emit(ambMessageRelay, "MessageRelayed").withArgs(ambMessageRelay.address, 0)
       await expect(receipt).to.emit(ambMessageRelay, "MessageRelayed").withArgs(ambMessageRelay.address, 1)
       const hash0 = await yaho.calculateHash(network.config.chainId, 0, yaho.address, wallet.address, message_1)
@@ -61,7 +61,7 @@ describe("AMBMessageRelayer", function () {
     })
     it("Returns receipt", async function () {
       const { ambMessageRelay, ambAdapter } = await setup()
-      const receipt = await ambMessageRelay.callStatic.relayMessages([0, 1], ambAdapter.address)
+      const receipt = await ambMessageRelay.callStatic.relayMessages([0, 1], ambAdapter.address, "0x")
       expect(receipt).is.not.null
     })
   })

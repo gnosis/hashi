@@ -104,10 +104,10 @@ describe("SygmaMessageRelayer", function () {
         [hash0, hash1],
         sygmaAdapter.address,
       )
-      expect(await sygmaMessageRelayer.callStatic.relayMessages([0, 1], sygmaAdapter.address)).to.equal(
+      expect(await sygmaMessageRelayer.callStatic.relayMessages([0, 1], sygmaAdapter.address, "0x")).to.equal(
         "0x0000000000000000000000000000000000000000000000000000000000000001",
       )
-      await expect(sygmaMessageRelayer.relayMessages([0, 1], sygmaAdapter.address))
+      await expect(sygmaMessageRelayer.relayMessages([0, 1], sygmaAdapter.address, "0x"))
         .to.emit(sygmaMessageRelayer, "MessageRelayed")
         .withArgs(sygmaMessageRelayer.address, 0)
         .and.to.emit(sygmaMessageRelayer, "MessageRelayed")

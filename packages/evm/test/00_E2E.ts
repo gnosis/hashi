@@ -110,7 +110,12 @@ describe("End-to-end tests", function () {
       const ambAdapter = await AMBAdapter.deploy(amb.address, ambMessageRelay.address, BYTES32_DOMAIN_ID)
 
       //// dispatch messages
-      await yaho.dispatchMessagesToAdapters([message_1, message_2], [ambMessageRelay.address], [ambAdapter.address])
+      await yaho.dispatchMessagesToAdapters(
+        [message_1, message_2],
+        [ambMessageRelay.address],
+        [ambAdapter.address],
+        ["0x", "0x"],
+      )
 
       // execute messages
       const response = await yaru.callStatic.executeMessages(

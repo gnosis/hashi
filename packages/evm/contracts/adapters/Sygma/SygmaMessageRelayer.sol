@@ -25,7 +25,11 @@ contract SygmaMessageRelayer is SygmaReporter, IMessageRelay {
         @param messageIds IDs of the messages to pass over the Sygma bridge.
         @param sygmaAdapter Address of the Sygma adapter on the target chain.
     */
-    function relayMessages(uint256[] memory messageIds, address sygmaAdapter) public payable returns (bytes32) {
+    function relayMessages(
+        uint256[] calldata messageIds,
+        address sygmaAdapter,
+        bytes calldata
+    ) public payable returns (bytes32) {
         bytes32[] memory hashes = new bytes32[](messageIds.length);
         for (uint256 i = 0; i < messageIds.length; i++) {
             uint256 id = messageIds[i];

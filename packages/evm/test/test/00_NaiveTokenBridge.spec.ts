@@ -77,7 +77,7 @@ describe("Naive Token Bridge", function () {
 
       const messageId = await tokenBridgeOne.callStatic.bridgeTokens(erc20Token.address, wallet.address, AMOUNT)
       await tokenBridgeOne.bridgeTokens(erc20Token.address, wallet.address, AMOUNT)
-      await yaho.relayMessagesToAdapters([messageId], [ambMessageRelay.address], [ambAdapter.address])
+      await yaho.relayMessagesToAdapters([messageId], [ambMessageRelay.address], [ambAdapter.address], ["0x"])
 
       const call = await tokenBridgeTwo.populateTransaction.mintTokens(
         erc20Token.address,
@@ -114,7 +114,7 @@ describe("Naive Token Bridge", function () {
 
       const messageIdOne = await tokenBridgeOne.callStatic.bridgeTokens(erc20Token.address, wallet.address, AMOUNT)
       await tokenBridgeOne.bridgeTokens(erc20Token.address, wallet.address, AMOUNT)
-      await yaho.relayMessagesToAdapters([messageIdOne], [ambMessageRelay.address], [ambAdapter.address])
+      await yaho.relayMessagesToAdapters([messageIdOne], [ambMessageRelay.address], [ambAdapter.address], ["0x"])
 
       const callOne = await tokenBridgeTwo.populateTransaction.mintTokens(
         erc20Token.address,
@@ -139,7 +139,7 @@ describe("Naive Token Bridge", function () {
       const messageIdTwo = await tokenBridgeTwo.callStatic.bridgeTokens(twinToken.address, wallet.address, AMOUNT)
       await tokenBridgeTwo.bridgeTokens(twinToken.address, wallet.address, AMOUNT)
 
-      await yaho.relayMessagesToAdapters([messageIdTwo], [ambMessageRelay.address], [ambAdapter.address])
+      await yaho.relayMessagesToAdapters([messageIdTwo], [ambMessageRelay.address], [ambAdapter.address], ["0x"])
 
       const callTwo = await tokenBridgeOne.populateTransaction.releaseTokens(erc20Token.address, wallet.address, AMOUNT)
       const messageTwo = {
