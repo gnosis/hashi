@@ -1,22 +1,19 @@
 import { gnosis, goerli, mainnet } from "viem/chains"
+import winston from "winston"
+import "dotenv/config"
+
 import Multiclient from "./MultiClient"
 import AMBReporterController from "./controllers/AMBReporterController"
 import SygmaReporterController from "./controllers/SygmaReporterController"
 import TelepathyReporterController from "./controllers/TelepathyReporterController"
 import BlocksListener from "./BlockListener"
-import "dotenv/config"
-import winston from "winston"
-import settings from "./utils/settings.json"
+import { settings } from "./settings/index"
+
 function main() {
   const goerliRPC = process.env.GOERLI_RPC_URL as string
   const gnosisRPC = process.env.GNOSIS_RPC_URL as string
-  const sourceChain = process.env.SOURCE_CHAIN
-  const destChain = process.env.DEST_CHAIN
   const privKey = process.env.PRIVATE_KEY as `0x${string}`
-  const isAMBEnabled = process.env.AMB_CONTROLLER === "true"
-  const isSygmaEnabled = process.env.SYGMA_CONTROLLER === "true"
-  const isTelepathyEnabled = process.env.TELEPATHY_CONTROLLER === "true"
-  const timeFetchBlocksMs = 10 * 1000
+  const timeFetchBlocksMs = 5 * 60 * 1000 // modify the frequency here
 
   const logger = winston.createLogger({
     level: "info",
@@ -35,7 +32,6 @@ function main() {
   const ambReporterController = new AMBReporterController({
     sourceChain: goerli,
     destinationChains: [gnosis],
-    isEnabled: isAMBEnabled,
     logger: logger,
     multiClient: multiClient,
     reporterAddress: settings.contractAddresses.goerli.AMBReporter,
@@ -44,7 +40,6 @@ function main() {
   const sygmaReporterController = new SygmaReporterController({
     sourceChain: goerli,
     destinationChains: [gnosis],
-    isEnabled: isSygmaEnabled,
     logger: logger,
     multiClient: multiClient,
     reporterAddress: settings.contractAddresses.goerli.SygmaReporter,
@@ -53,22 +48,22 @@ function main() {
   const telepathyReporterController = new TelepathyReporterController({
     sourceChain: goerli,
     destinationChains: [gnosis],
-    isEnabled: isTelepathyEnabled,
     logger: logger,
     multiClient: multiClient,
     reporterAddress: "",
     adapterAddress: { gnosis: settings.contractAddresses.gnosis.SygmaAdapter },
   })
 
+  const controllersEnabled = process.env.REPORTERS_ENABLED?.split(",")
   const blocksListener = new BlocksListener({
     controllers: [ambReporterController, sygmaReporterController, telepathyReporterController].filter(
-      (controller) => controller.isEnabled == true,
+      (controller) => controllersEnabled?.includes(controller.name),
     ),
     timeFetchBlocksMs: timeFetchBlocksMs,
     logger: logger,
     multiclient: multiClient,
     sourceChain: goerli,
-    queryBlockLength: 100,
+    queryBlockLength: 100, // modify the query block length here, <256
     lastProcessedBlock: 0n,
   })
   blocksListener.start()

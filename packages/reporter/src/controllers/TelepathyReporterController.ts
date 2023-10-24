@@ -7,13 +7,13 @@ import "dotenv/config"
 import lightClientContractABI from "../ABIs/TelepathyContractABI.json"
 import adapterContractABI from "../ABIs/TelepathyAdapterABI.json"
 import Multiclient from "../MultiClient"
-import { ControllerConfig } from "../utils/type"
-import settings from "../utils/settings.json"
+import { ControllerConfig } from "../types/index"
+import { settings } from "../settings"
 
 class TelepathyReporterController {
   sourceChain: Chain
   destinationChains: Chain[]
-  isEnabled: boolean = false
+  name: string = "telepathy"
   logger: winston.Logger
   multiClient: Multiclient
   reporterAddr: string
@@ -21,7 +21,6 @@ class TelepathyReporterController {
   constructor(props: ControllerConfig) {
     this.sourceChain = props.sourceChain
     this.destinationChains = props.destinationChains
-    this.isEnabled = props.isEnabled
     this.logger = props.logger
     this.multiClient = props.multiClient
     this.reporterAddr = props.reporterAddress
@@ -46,7 +45,9 @@ class TelepathyReporterController {
         const blockBuffer = 10n // put 10 blocks before the current block in case the node provider don't sync up at the head
         const startBlock = currentBlockNumber - queryBlockLength
         const endBlock = currentBlockNumber - blockBuffer
+
         this.logger.info(`Telepathy: Getting Contract Event from block ${startBlock} to block  ${currentBlockNumber}`)
+
         const logs = await client.getContractEvents({
           address: lightClientAddr as `0x${string}`,
           abi: lightClientContractABI,

@@ -2,7 +2,7 @@ import { Chain, publicActions } from "viem"
 import winston from "winston"
 
 import Multiclient from "./MultiClient"
-import { BlockListenerConfig } from "./utils/type"
+import { BlockListenerConfig } from "./types/index"
 
 class BlocksListener {
   controllers: any[]

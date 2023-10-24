@@ -5,12 +5,12 @@ import "dotenv/config"
 
 import contractABI from "../ABIs/AMBReporterContractABI.json"
 import Multiclient from "../MultiClient"
-import { ControllerConfig } from "../utils/type"
+import { ControllerConfig } from "../types/index"
 
 class AMBReporterController {
   sourceChain: Chain
   destinationChains: Chain[]
-  isEnabled: boolean = false
+  name: string = "amb"
   logger: winston.Logger
   multiClient: Multiclient
   reporterAddr: string
@@ -18,7 +18,6 @@ class AMBReporterController {
   constructor(props: ControllerConfig) {
     this.sourceChain = props.sourceChain
     this.destinationChains = props.destinationChains
-    this.isEnabled = props.isEnabled
     this.logger = props.logger
     this.multiClient = props.multiClient
     this.reporterAddr = props.reporterAddress
@@ -34,12 +33,13 @@ class AMBReporterController {
       const account = privateKeyToAccount(process.env.PRIVATE_KEY as `0x${string}`)
 
       for (const chain of this.destinationChains) {
+        let chainName = chain.name.toLocaleLowerCase()
         const { result, request } = await client.simulateContract({
           account, // calling from account
           address: this.reporterAddr as `0x${string}`,
           abi: contractABI,
           functionName: "reportHeaders",
-          args: [blockNumbers, this.adapterAddr[chain.name.toLocaleLowerCase()], process.env.GAS],
+          args: [blockNumbers, this.adapterAddr[chainName], process.env.GAS],
         })
 
         const txhash = await client.writeContract(request)

@@ -1,4 +1,4 @@
-import { createWalletClient, http, Chain, publicActions } from "viem"
+import { createWalletClient, http, Chain, publicActions, WalletClient, PublicClient } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 
 type ContructorConfigs = {
@@ -21,7 +21,7 @@ const getClient = ({ chain, privateKey, rpcUrl }: GetClientsConfigs) =>
   }).extend(publicActions)
 
 class Multiclient {
-  private _clients: { [chainName: string]: any }
+  private _clients: { [chainName: string]: PublicClient & WalletClient }
 
   constructor({ chains, privateKey, rpcUrls }: ContructorConfigs) {
     this._clients = chains.reduce((_acc: { [chainName: string]: any }, _chain: Chain) => {
