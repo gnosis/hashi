@@ -7,7 +7,6 @@ import lightClientContractABI from "../ABIs/TelepathyContractABI.json"
 import adapterContractABI from "../ABIs/TelepathyAdapterABI.json"
 import Multiclient from "../MultiClient"
 import { ControllerConfig } from "../types/index"
-import { settings } from "../settings"
 
 class TelepathyReporterController {
   sourceChain: Chain
@@ -15,34 +14,34 @@ class TelepathyReporterController {
   name: string = "telepathy"
   logger: winston.Logger
   multiClient: Multiclient
-  reporterAddr: string
-  adapterAddr: { [chainName: string]: string }
+  reporterAddress: string
+  adapterAddresses: { [chainName: string]: `0x${string}` }
   data: any
-  constructor(props: ControllerConfig) {
-    this.sourceChain = props.sourceChain
-    this.destinationChains = props.destinationChains
-    this.logger = props.logger
-    this.multiClient = props.multiClient
-    this.reporterAddr = props.reporterAddress
-    this.adapterAddr = props.adapterAddress
-    this.data = props.data
+  constructor(configs: ControllerConfig) {
+    this.sourceChain = configs.sourceChain
+    this.destinationChains = configs.destinationChains
+    this.logger = configs.logger
+    this.multiClient = configs.multiClient
+    this.reporterAddress = configs.reporterAddress
+    this.adapterAddresses = configs.adapterAddresses
+    this.data = configs.data
   }
   async onBlocks(blockNumbers: string[]) {
     try {
-      // Telepathy on support light client on Gnosis at the moment
+      // Telepathy only support light client on Gnosis at the moment
 
       for (const chain of this.destinationChains) {
         const client = this.multiClient.getClientByChain(chain)
 
-        const adapterAddr = this.adapterAddr[chain.name.toLocaleLowerCase()]
-        const lightClientAddr = settings.contractAddresses.gnosis.TelepathyLightClient
+        const adapterAddr = this.adapterAddresses[chain.name.toLocaleLowerCase()]
+        const lightClientAddr = this.data.lightClientAddress
 
         // Getting the latest block number from provider
         const currentBlockNumber = await client.getBlockNumber()
 
-        // get contract events from latest block - 1000 : latest block - 10
-        const queryBlockLength = 1000n // the number of blocks to query
-        const blockBuffer = 10n // put 10 blocks before the current block in case the node provider don't sync up at the head
+        // get contract events from latest block - queryBlockLength : latest block - blockBuffer
+        const queryBlockLength = BigInt(this.data.queryBlockLength) // the number of blocks to query
+        const blockBuffer = BigInt(this.data.blockBuffer) // put ${buffer} blocks before the current block in case the node provider don't sync up at the head
         const startBlock = currentBlockNumber - queryBlockLength
         const endBlock = currentBlockNumber - blockBuffer
 
@@ -65,13 +64,13 @@ class TelepathyReporterController {
           // get slot value from first indexed
           const slotValue = event.topics[1]
           this.logger.info(`Fetching proof for slot ${slotValue}`)
-          const postUrl = this.data + "5" + "/" + hexToNumber(slotValue!)
+          const postUrl = this.data.proofURL + "5" + "/" + hexToNumber(slotValue!)
 
           const response = await axios.post(postUrl)
           const { chainId, slot, blockNumber, blockNumberProof, blockHash, blockHashProof } = response.data.result
           this.logger.info(`Telepathy: Calling storeBlockHeader for block number ${blockNumber}`)
 
-          const { request, result } = await client.simulateContract({
+          const { request } = await client.simulateContract({
             address: adapterAddr as `0x${string}`,
             abi: adapterContractABI,
             functionName: "storeBlockHeader",

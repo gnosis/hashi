@@ -12,18 +12,18 @@ class AMBReporterController {
   name: string = "amb"
   logger: winston.Logger
   multiClient: Multiclient
-  reporterAddr: string
-  adapterAddr: { [chainName: string]: string }
+  reporterAddress: string
+  adapterAddresses: { [chainName: string]: `0x${string}` }
   gas: string
 
-  constructor(props: ControllerConfig) {
-    this.sourceChain = props.sourceChain
-    this.destinationChains = props.destinationChains
-    this.logger = props.logger
-    this.multiClient = props.multiClient
-    this.reporterAddr = props.reporterAddress
-    this.adapterAddr = props.adapterAddress
-    this.gas = props.data
+  constructor(configs: ControllerConfig) {
+    this.sourceChain = configs.sourceChain
+    this.destinationChains = configs.destinationChains
+    this.logger = configs.logger
+    this.multiClient = configs.multiClient
+    this.reporterAddress = configs.reporterAddress
+    this.adapterAddresses = configs.adapterAddresses
+    this.gas = configs.data
   }
 
   async onBlocks(blockNumbers: bigint[]) {
@@ -34,11 +34,11 @@ class AMBReporterController {
 
       for (const chain of this.destinationChains) {
         let chainName = chain.name.toLocaleLowerCase()
-        const { result, request } = await client.simulateContract({
-          address: this.reporterAddr as `0x${string}`,
+        const { request } = await client.simulateContract({
+          address: this.reporterAddress as `0x${string}`,
           abi: contractABI,
           functionName: "reportHeaders",
-          args: [blockNumbers, this.adapterAddr[chainName], this.gas],
+          args: [blockNumbers, this.adapterAddresses[chainName], this.gas],
         })
 
         const txhash = await client.writeContract(request)

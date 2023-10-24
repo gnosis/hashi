@@ -40,7 +40,6 @@ class BlocksListener {
       const client = this.multiclient.getClientByChain(this.sourceChain)
 
       const currentBlockNumber = await client.getBlockNumber()
-      this.logger.info(`Current Block Number: ${currentBlockNumber} , on source chain: ${process.env.SOURCE_CHAIN}`)
       if (!this.lastProcessedBlock) {
         this.lastProcessedBlock = await client.getBlockNumber()
       }

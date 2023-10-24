@@ -14,16 +14,16 @@ class SygmaReporterController {
   logger: winston.Logger
   multiClient: Multiclient
   reporterAddress: string
-  adapterAddress: { [chainName: string]: string }
+  adapterAddresses: { [chainName: string]: `0x${string}` }
   gas: string
-  constructor(props: ControllerConfig) {
-    this.sourceChain = props.sourceChain
-    this.destinationChains = props.destinationChains
-    this.logger = props.logger
-    this.multiClient = props.multiClient
-    this.reporterAddress = props.reporterAddress
-    this.adapterAddress = props.adapterAddress
-    this.gas = props.data
+  constructor(configs: ControllerConfig) {
+    this.sourceChain = configs.sourceChain
+    this.destinationChains = configs.destinationChains
+    this.logger = configs.logger
+    this.multiClient = configs.multiClient
+    this.reporterAddress = configs.reporterAddress
+    this.adapterAddresses = configs.adapterAddresses
+    this.gas = configs.data
   }
 
   async onBlocks(blockNumbers: string[]) {
@@ -33,13 +33,13 @@ class SygmaReporterController {
 
       for (const chain of this.destinationChains) {
         const chainName = chain.name.toLocaleLowerCase()
-        const { result, request } = await client.simulateContract({
+        const { request } = await client.simulateContract({
           address: this.reporterAddress as `0x${string}`,
           abi: contractABI,
           functionName: "reportHeadersToDomain",
           args: [
             blockNumbers,
-            this.adapterAddress[chainName],
+            this.adapterAddresses[chainName],
             settings.sygmaDomainID[chainName as keyof typeof settings.sygmaDomainID],
             "0x",
           ],

@@ -32,29 +32,34 @@ function main() {
   const ambReporterController = new AMBReporterController({
     sourceChain: goerli,
     destinationChains: [gnosis],
-    logger: logger,
-    multiClient: multiClient,
+    logger,
+    multiClient,
     reporterAddress: settings.contractAddresses.goerli.AMBReporter,
-    adapterAddress: { gnosis: settings.contractAddresses.gnosis.AMBAdapter },
+    adapterAddresses: { gnosis: settings.contractAddresses.gnosis.AMBAdapter as `0x${string}` },
     data: process.env.GAS, // gas to call amb
   })
   const sygmaReporterController = new SygmaReporterController({
     sourceChain: goerli,
     destinationChains: [gnosis],
-    logger: logger,
-    multiClient: multiClient,
+    logger,
+    multiClient,
     reporterAddress: settings.contractAddresses.goerli.SygmaReporter,
-    adapterAddress: { gnosis: settings.contractAddresses.gnosis.SygmaAdapter },
+    adapterAddresses: { gnosis: settings.contractAddresses.gnosis.SygmaAdapter as `0x${string}` },
     data: "0.0001", // msg.value in ether
   })
   const telepathyReporterController = new TelepathyReporterController({
     sourceChain: goerli,
     destinationChains: [gnosis],
-    logger: logger,
-    multiClient: multiClient,
+    logger,
+    multiClient,
     reporterAddress: "", // reporter address is not required in telepathy
-    adapterAddress: { gnosis: settings.contractAddresses.gnosis.SygmaAdapter },
-    data: process.env.TELEPATHY_PROOF_API_URL,
+    adapterAddresses: { gnosis: settings.contractAddresses.gnosis.SygmaAdapter as `0x${string}` },
+    data: {
+      proofURL: process.env.TELEPATHY_PROOF_API_URL,
+      lightClientAddress: settings.contractAddresses.gnosis.TelepathyLightClient,
+      queryBlockLength: 1000,
+      blockBuffer: 10,
+    },
   })
 
   const controllersEnabled = process.env.REPORTERS_ENABLED?.split(",")
@@ -63,7 +68,7 @@ function main() {
       (controller) => controllersEnabled?.includes(controller.name),
     ),
     timeFetchBlocksMs: timeFetchBlocksMs,
-    logger: logger,
+    logger,
     multiclient: multiClient,
     sourceChain: goerli,
     queryBlockLength: 100, // modify the query block length here, <256
