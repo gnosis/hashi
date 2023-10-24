@@ -1,6 +1,5 @@
 import axios from "axios"
 import { hexToNumber, Chain } from "viem"
-import { privateKeyToAccount } from "viem/accounts"
 import winston from "winston"
 import "dotenv/config"
 
@@ -18,6 +17,7 @@ class TelepathyReporterController {
   multiClient: Multiclient
   reporterAddr: string
   adapterAddr: { [chainName: string]: string }
+  data: any
   constructor(props: ControllerConfig) {
     this.sourceChain = props.sourceChain
     this.destinationChains = props.destinationChains
@@ -25,6 +25,7 @@ class TelepathyReporterController {
     this.multiClient = props.multiClient
     this.reporterAddr = props.reporterAddress
     this.adapterAddr = props.adapterAddress
+    this.data = props.data
   }
   async onBlocks(blockNumbers: string[]) {
     try {
@@ -32,7 +33,6 @@ class TelepathyReporterController {
 
       for (const chain of this.destinationChains) {
         const client = this.multiClient.getClientByChain(chain)
-        const account = privateKeyToAccount(process.env.PRIVATE_KEY as `0x${string}`)
 
         const adapterAddr = this.adapterAddr[chain.name.toLocaleLowerCase()]
         const lightClientAddr = settings.contractAddresses.gnosis.TelepathyLightClient
@@ -65,13 +65,13 @@ class TelepathyReporterController {
           // get slot value from first indexed
           const slotValue = event.topics[1]
           this.logger.info(`Fetching proof for slot ${slotValue}`)
-          const postUrl = process.env.TELEPATHY_PROOF_API_URL + "5" + "/" + hexToNumber(slotValue!)
+          const postUrl = this.data + "5" + "/" + hexToNumber(slotValue!)
+
           const response = await axios.post(postUrl)
-          this.logger.info(`Telepathy: Response from telepathy proof provider: ${response.data}`)
           const { chainId, slot, blockNumber, blockNumberProof, blockHash, blockHashProof } = response.data.result
           this.logger.info(`Telepathy: Calling storeBlockHeader for block number ${blockNumber}`)
+
           const { request, result } = await client.simulateContract({
-            account,
             address: adapterAddr as `0x${string}`,
             abi: adapterContractABI,
             functionName: "storeBlockHeader",

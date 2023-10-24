@@ -1,5 +1,4 @@
 import { Chain } from "viem"
-import { privateKeyToAccount } from "viem/accounts"
 import winston from "winston"
 import "dotenv/config"
 
@@ -15,6 +14,8 @@ class AMBReporterController {
   multiClient: Multiclient
   reporterAddr: string
   adapterAddr: { [chainName: string]: string }
+  gas: string
+
   constructor(props: ControllerConfig) {
     this.sourceChain = props.sourceChain
     this.destinationChains = props.destinationChains
@@ -22,6 +23,7 @@ class AMBReporterController {
     this.multiClient = props.multiClient
     this.reporterAddr = props.reporterAddress
     this.adapterAddr = props.adapterAddress
+    this.gas = props.data
   }
 
   async onBlocks(blockNumbers: bigint[]) {
@@ -30,16 +32,13 @@ class AMBReporterController {
 
       const client = this.multiClient.getClientByChain(this.sourceChain)
 
-      const account = privateKeyToAccount(process.env.PRIVATE_KEY as `0x${string}`)
-
       for (const chain of this.destinationChains) {
         let chainName = chain.name.toLocaleLowerCase()
         const { result, request } = await client.simulateContract({
-          account, // calling from account
           address: this.reporterAddr as `0x${string}`,
           abi: contractABI,
           functionName: "reportHeaders",
-          args: [blockNumbers, this.adapterAddr[chainName], process.env.GAS],
+          args: [blockNumbers, this.adapterAddr[chainName], this.gas],
         })
 
         const txhash = await client.writeContract(request)

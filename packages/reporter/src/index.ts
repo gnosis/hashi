@@ -36,6 +36,7 @@ function main() {
     multiClient: multiClient,
     reporterAddress: settings.contractAddresses.goerli.AMBReporter,
     adapterAddress: { gnosis: settings.contractAddresses.gnosis.AMBAdapter },
+    data: process.env.GAS, // gas to call amb
   })
   const sygmaReporterController = new SygmaReporterController({
     sourceChain: goerli,
@@ -44,14 +45,16 @@ function main() {
     multiClient: multiClient,
     reporterAddress: settings.contractAddresses.goerli.SygmaReporter,
     adapterAddress: { gnosis: settings.contractAddresses.gnosis.SygmaAdapter },
+    data: "0.0001", // msg.value in ether
   })
   const telepathyReporterController = new TelepathyReporterController({
     sourceChain: goerli,
     destinationChains: [gnosis],
     logger: logger,
     multiClient: multiClient,
-    reporterAddress: "",
+    reporterAddress: "", // reporter address is not required in telepathy
     adapterAddress: { gnosis: settings.contractAddresses.gnosis.SygmaAdapter },
+    data: process.env.TELEPATHY_PROOF_API_URL,
   })
 
   const controllersEnabled = process.env.REPORTERS_ENABLED?.split(",")
