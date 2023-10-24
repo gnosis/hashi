@@ -1,4 +1,4 @@
-import { Chain, publicActions } from "viem"
+import { Chain } from "viem"
 import winston from "winston"
 
 import Multiclient from "./MultiClient"

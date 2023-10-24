@@ -1,4 +1,4 @@
-import { gnosis, goerli, mainnet } from "viem/chains"
+import { gnosis, goerli } from "viem/chains"
 import winston from "winston"
 import "dotenv/config"
 
