@@ -17,6 +17,7 @@ class TelepathyReporterController {
   reporterAddress: string
   adapterAddresses: { [chainName: string]: `0x${string}` }
   data: any
+
   constructor(configs: ControllerConfig) {
     this.sourceChain = configs.sourceChain
     this.destinationChains = configs.destinationChains

@@ -16,6 +16,7 @@ class SygmaReporterController {
   reporterAddress: string
   adapterAddresses: { [chainName: string]: `0x${string}` }
   gas: string
+
   constructor(configs: ControllerConfig) {
     this.sourceChain = configs.sourceChain
     this.destinationChains = configs.destinationChains

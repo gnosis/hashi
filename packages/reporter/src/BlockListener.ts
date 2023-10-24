@@ -13,15 +13,16 @@ class BlocksListener {
   _interval: ReturnType<typeof setInterval> | undefined // NodeJs.Timeout
   sourceChain: Chain
   queryBlockLength: number
+  blockBuffer: number
 
-  constructor(props: BlockListenerConfig) {
-    this.controllers = props.controllers
-    this.timeFetchBlocksMs = props.timeFetchBlocksMs
-    this.logger = props.logger
-    this.multiclient = props.multiclient
-    this.sourceChain = props.sourceChain
-    this.lastProcessedBlock = props.lastProcessedBlock
-    this.queryBlockLength = props.queryBlockLength
+  constructor(configs: BlockListenerConfig) {
+    this.controllers = configs.controllers
+    this.timeFetchBlocksMs = configs.timeFetchBlocksMs
+    this.logger = configs.logger
+    this.multiclient = configs.multiclient
+    this.sourceChain = configs.sourceChain
+    this.queryBlockLength = configs.queryBlockLength
+    this.blockBuffer = configs.blockBuffer
   }
 
   start() {
@@ -39,20 +40,17 @@ class BlocksListener {
     try {
       const client = this.multiclient.getClientByChain(this.sourceChain)
 
-      const currentBlockNumber = await client.getBlockNumber()
-      if (!this.lastProcessedBlock) {
-        this.lastProcessedBlock = await client.getBlockNumber()
+      let currentBlockNumber = await client.getBlockNumber()
+
+      if (this.queryBlockLength > 256 - this.blockBuffer) {
+        this.logger.error(`Please choose a block length less than ${256 - this.blockBuffer}!`)
       }
 
-      const blockBuffer = 10 // put 10 blocks before the current block in case the node provider don't sync up at the head
-      if (this.queryBlockLength > 256 - blockBuffer) {
-        this.logger.error(`Please choose a block length less than ${256 - blockBuffer}!`)
-      }
-      const startBlock = this.lastProcessedBlock - BigInt(this.queryBlockLength)
-      const endBlock = this.lastProcessedBlock - BigInt(blockBuffer)
+      const startBlock = currentBlockNumber - BigInt(this.queryBlockLength)
+      const endBlock = currentBlockNumber - BigInt(this.blockBuffer)
       const blocks = await Promise.all(
         Array.from(
-          { length: Number(this.queryBlockLength - blockBuffer + 1) },
+          { length: Number(this.queryBlockLength - this.blockBuffer + 1) },
           (_, index) => startBlock + BigInt(index),
         ),
       )

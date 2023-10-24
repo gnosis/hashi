@@ -72,7 +72,7 @@ function main() {
     multiclient: multiClient,
     sourceChain: goerli,
     queryBlockLength: 100, // modify the query block length here, <256
-    lastProcessedBlock: 0n,
+    blockBuffer: 10,
   })
   blocksListener.start()
 }
