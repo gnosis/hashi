@@ -23,6 +23,10 @@ class BlocksListener {
     this.queryBlockLength = configs.queryBlockLength
     this.blockBuffer = configs.blockBuffer
     this.timeFetchBlocksMs = configs.timeFetchBlocksMs
+
+    if (this.queryBlockLength > 256 - this.blockBuffer) {
+      throw new Error(`Please choose a block length less than ${256 - this.blockBuffer}!`)
+    }
   }
 
   start() {

@@ -1,6 +1,5 @@
 import { gnosis, goerli } from "viem/chains"
 import winston from "winston"
-import "dotenv/config"
 
 import Multiclient from "./MultiClient"
 import AMBReporterController from "./controllers/AMBReporterController"
@@ -37,7 +36,7 @@ function main() {
     multiClient,
     reporterAddress: settings.contractAddresses.goerli.AMBReporter,
     adapterAddresses: { gnosis: settings.contractAddresses.gnosis.AMBAdapter as `0x${string}` },
-    data: { gas: settings.reporterController.ambReporterController.gas },
+    data: { gas: settings.reporterControllers.AMBReporterController.gas },
   })
   const sygmaReporterController = new SygmaReporterController({
     sourceChain: goerli,
@@ -47,8 +46,8 @@ function main() {
     reporterAddress: settings.contractAddresses.goerli.SygmaReporter,
     adapterAddresses: { gnosis: settings.contractAddresses.gnosis.SygmaAdapter as `0x${string}` },
     data: {
-      fee: settings.reporterController.sygmaReporterController.data,
-      destDomainID: settings.reporterController.sygmaReporterController.domainID,
+      fee: settings.reporterControllers.SygmaReporterController.data,
+      destDomainID: settings.reporterControllers.SygmaReporterController.domainID,
     },
   })
   const telepathyReporterController = new TelepathyReporterController({
@@ -58,16 +57,12 @@ function main() {
     multiClient,
     adapterAddresses: { gnosis: settings.contractAddresses.gnosis.SygmaAdapter as `0x${string}` },
     data: {
-      proofURL: settings.reporterController.telepathyReporterController.proofURL,
+      baseProofUrl: settings.reporterControllers.TelepathyReporterController.baseProofUrl,
       lightClientAddresses: { gnosis: settings.contractAddresses.gnosis.TelepathyLightClient },
-      queryBlockLength: settings.reporterController.telepathyReporterController.queryBlockLength,
-      blockBuffer: settings.reporterController.telepathyReporterController.blockBuffer,
+      queryBlockLength: settings.reporterControllers.TelepathyReporterController.queryBlockLength,
+      blockBuffer: settings.reporterControllers.TelepathyReporterController.blockBuffer,
     },
   })
-
-  if (queryBlockLength > 256 - blockBuffer) {
-    throw logger.error(`Please choose a block length less than ${256 - Number(settings.blockListener.blockBuffer)}!`)
-  }
 
   const controllersEnabled = process.env.REPORTERS_ENABLED?.split(",")
   const blocksListener = new BlocksListener({

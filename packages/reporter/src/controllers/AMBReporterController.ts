@@ -1,6 +1,5 @@
 import { Chain } from "viem"
 import winston from "winston"
-import "dotenv/config"
 
 import contractABI from "../ABIs/AMBReporterContractABI.json"
 import Multiclient from "../MultiClient"
@@ -12,7 +11,7 @@ class AMBReporterController {
   name: string = "amb"
   logger: winston.Logger
   multiClient: Multiclient
-  reporterAddress: string
+  reporterAddress: `0x${string}`
   adapterAddresses: { [chainName: string]: `0x${string}` }
   gas: string
 
@@ -21,7 +20,7 @@ class AMBReporterController {
     this.destinationChains = configs.destinationChains
     this.logger = configs.logger
     this.multiClient = configs.multiClient
-    this.reporterAddress = configs.reporterAddress !== undefined ? configs.reporterAddress : ""
+    this.reporterAddress = configs.reporterAddress as `0x${string}`
     this.adapterAddresses = configs.adapterAddresses
     this.gas = configs.data.gas
   }
@@ -42,7 +41,7 @@ class AMBReporterController {
         })
 
         const txhash = await client.writeContract(request)
-        this.logger.info(`AMB: TxHash from AMB Controller:  ${txhash}`)
+        this.logger.info(`AMB: TxHash from AMB Controller:  ${txhash} on ${chain.name}`)
       }
     } catch (error) {
       this.logger.error(`AMB: Error from AMB Controller: ${error}`)

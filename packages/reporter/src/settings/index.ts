@@ -14,19 +14,19 @@ export const settings = {
       TelapathyAdapter: "0x2f1E51a2763FB67fe09971Fd8d849716137A3357",
     },
   },
-  reporterController: {
-    ambReporterController: {
+  reporterControllers: {
+    AMBReporterController: {
       gas: process.env.AMB_GAS,
     },
-    sygmaReporterController: {
+    SygmaReporterController: {
       domainID: {
         gnosis: "101",
         goerli: "1",
       },
       data: process.env.SYGMA_MSG_VALUE,
     },
-    telepathyReporterController: {
-      proofURL: process.env.TELEPATHY_PROOF_API_URL,
+    TelepathyReporterController: {
+      baseProofUrl: process.env.TELEPATHY_PROOF_API_URL,
       queryBlockLength: process.env.TELEPATHY_QUERY_BLOCK_LENGTH,
       blockBuffer: process.env.TELEPATHY_BLOCK_BUFFER,
     },

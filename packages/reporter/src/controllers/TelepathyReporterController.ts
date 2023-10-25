@@ -1,7 +1,6 @@
 import axios from "axios"
 import { hexToNumber, Chain } from "viem"
 import winston from "winston"
-import "dotenv/config"
 
 import lightClientContractABI from "../ABIs/TelepathyContractABI.json"
 import adapterContractABI from "../ABIs/TelepathyAdapterABI.json"
@@ -16,7 +15,7 @@ class TelepathyReporterController {
   multiClient: Multiclient
   adapterAddresses: { [chainName: string]: `0x${string}` }
   lightClientAddresses: { [chainName: string]: `0x${string}` }
-  proofURL: string
+  baseProofUrl: string
   queryBlockLength: string
   blockBuffer: string
 
@@ -27,11 +26,11 @@ class TelepathyReporterController {
     this.multiClient = configs.multiClient
     this.adapterAddresses = configs.adapterAddresses
     this.lightClientAddresses = configs.data.lightClientAddresses
-    this.proofURL = configs.data.proofURL
+    this.baseProofUrl = configs.data.baseProofUrl
     this.queryBlockLength = configs.data.queryBlockLength
     this.blockBuffer = configs.data.blockBuffer
   }
-  async onBlocks(blockNumbers: string[]) {
+  async onBlocks(blockNumbers: bigint[]) {
     try {
       // Telepathy only support light client on Gnosis at the moment
 
@@ -68,10 +67,11 @@ class TelepathyReporterController {
         logs.forEach(async (event: any) => {
           // get slot value from first indexed
           const slotValue = event.topics[1]
-          this.logger.info(`Fetching proof for slot ${slotValue}`)
-          const postUrl = this.proofURL + "5" + "/" + hexToNumber(slotValue!) // 5 is chainID for Goerli
+          this.logger.info(`Fetching proof for slot ${slotValue} on ${chain.name}`)
 
-          const response = await axios.post(postUrl)
+          const url = `${this.baseProofUrl}/${this.sourceChain.id}/${hexToNumber(slotValue!)}`
+          console.log("URL ", url)
+          const response = await axios.post(url)
           const { chainId, slot, blockNumber, blockNumberProof, blockHash, blockHashProof } = response.data.result
           this.logger.info(`Telepathy: Calling storeBlockHeader for block number ${blockNumber}`)
 
@@ -83,7 +83,7 @@ class TelepathyReporterController {
           })
 
           const txHash = await client.writeContract(request)
-          this.logger.info(`Telepathy: TxHash from Telepathy Controller: ${txHash} `)
+          this.logger.info(`Telepathy: TxHash from Telepathy Controller: ${txHash} on ${chain.name} `)
         })
       }
     } catch (error) {
