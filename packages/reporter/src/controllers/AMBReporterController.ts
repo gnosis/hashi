@@ -21,9 +21,9 @@ class AMBReporterController {
     this.destinationChains = configs.destinationChains
     this.logger = configs.logger
     this.multiClient = configs.multiClient
-    this.reporterAddress = configs.reporterAddress
+    this.reporterAddress = configs.reporterAddress !== undefined ? configs.reporterAddress : ""
     this.adapterAddresses = configs.adapterAddresses
-    this.gas = configs.data
+    this.gas = configs.data.gas
   }
 
   async onBlocks(blockNumbers: bigint[]) {

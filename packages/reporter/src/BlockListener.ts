@@ -23,6 +23,7 @@ class BlocksListener {
     this.sourceChain = configs.sourceChain
     this.queryBlockLength = configs.queryBlockLength
     this.blockBuffer = configs.blockBuffer
+    this.timeFetchBlocksMs = configs.timeFetchBlocksMs
   }
 
   start() {

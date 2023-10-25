@@ -13,7 +13,6 @@ function main() {
   const goerliRPC = process.env.GOERLI_RPC_URL as string
   const gnosisRPC = process.env.GNOSIS_RPC_URL as string
   const privKey = process.env.PRIVATE_KEY as `0x${string}`
-  const timeFetchBlocksMs = 5 * 60 * 1000 // modify the frequency here
 
   const logger = winston.createLogger({
     level: "info",
@@ -36,7 +35,7 @@ function main() {
     multiClient,
     reporterAddress: settings.contractAddresses.goerli.AMBReporter,
     adapterAddresses: { gnosis: settings.contractAddresses.gnosis.AMBAdapter as `0x${string}` },
-    data: process.env.GAS, // gas to call amb
+    data: { gas: settings.reporterController.ambReporterController.gas },
   })
   const sygmaReporterController = new SygmaReporterController({
     sourceChain: goerli,
@@ -45,20 +44,22 @@ function main() {
     multiClient,
     reporterAddress: settings.contractAddresses.goerli.SygmaReporter,
     adapterAddresses: { gnosis: settings.contractAddresses.gnosis.SygmaAdapter as `0x${string}` },
-    data: "0.0001", // msg.value in ether
+    data: {
+      fee: settings.reporterController.sygmaReporterController.data,
+      destDomainID: settings.reporterController.sygmaReporterController.domainID,
+    },
   })
   const telepathyReporterController = new TelepathyReporterController({
     sourceChain: goerli,
     destinationChains: [gnosis],
     logger,
     multiClient,
-    reporterAddress: "", // reporter address is not required in telepathy
     adapterAddresses: { gnosis: settings.contractAddresses.gnosis.SygmaAdapter as `0x${string}` },
     data: {
-      proofURL: process.env.TELEPATHY_PROOF_API_URL,
-      lightClientAddress: settings.contractAddresses.gnosis.TelepathyLightClient,
-      queryBlockLength: 1000,
-      blockBuffer: 10,
+      proofURL: settings.reporterController.telepathyReporterController.proofURL,
+      lightClientAddresses: { gnosis: settings.contractAddresses.gnosis.TelepathyLightClient },
+      queryBlockLength: settings.reporterController.telepathyReporterController.queryBlockLength,
+      blockBuffer: settings.reporterController.telepathyReporterController.blockBuffer,
     },
   })
 
@@ -67,12 +68,12 @@ function main() {
     controllers: [ambReporterController, sygmaReporterController, telepathyReporterController].filter(
       (controller) => controllersEnabled?.includes(controller.name),
     ),
-    timeFetchBlocksMs: timeFetchBlocksMs,
+    timeFetchBlocksMs: Number(settings.blockListener.timeFetchBlocksMs),
     logger,
     multiclient: multiClient,
     sourceChain: goerli,
-    queryBlockLength: 100, // modify the query block length here, <256
-    blockBuffer: 10,
+    queryBlockLength: Number(settings.blockListener.queryBlockLength), // modify the query block length here, <256
+    blockBuffer: Number(settings.blockListener.blockBuffer),
   })
   blocksListener.start()
 }

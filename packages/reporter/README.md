@@ -13,14 +13,26 @@ Script to call Header Reporter contracts of different oracle from source chain t
 
 Configure the mode you want to run by editing the variable in `.env`
 
-1. `_CONTROLLER` (true/false): to enable the controller
-2. `SOURCE_CHAIN` (string value of chain): Define the source chain to collect the block header from.
-3. `DEST_CHAIN` (string value of chain): Define the destination chain to report the source chain's block header to.
+1. `REPORTERS_ENABLED` (name of reporter,separated by ',', with no space between): to enable the controller, i.e.
+   amb,sygma
+2. `AMB_GAS` (number): gas used in AMB reporter to pass block header.
+3. `SYGMA_MSG_VALUE` (number): amount of ethers sent when bridging block header from sygma, similar to gas fee, i.e.
+   0.001 (ethers).
+4. `TIME_FETCH_BLOCKS_MS` (number): block reporter restart period (in ms), i.e. 60000 (ms).
+5. `BLOCK_BUFFER` (number): amount of blocks away from the latest block, in case the node provider is not sync up with
+   the latest block, i.e. 10 (blocks).
+6. `QUERY_BLOCK_LENGTH` (number): the amount of block headers from source chain to send to destination chain, should be
+   less than 256 due to the limitation of Solidity
+   [blockhash()](https://docs.soliditylang.org/en/v0.8.21/units-and-global-variables.html#block-and-transaction-properties).
+7. `TELEPATHY_PROOF_API_URL` (string): url of telepathy proof api
+8. `TELEPATHY_QUERY_BLOCK_LENGTH` (number): block range to query on `HeadUpdate` event, i.e. 1000 (blocks)
+9. `TELEPATHY_BLOCK_BUFFER` (number): amount of blocks away from the latest block in destination chain, in case the node
+   provider is not sync up with the latest block, i.e. 10 (blocks).
 
 ## Adding a new controller
 
-1. Add a new file under `/controller`, create the constructor and `onBlocks` function to call block header reporter
+1. Add a new file under `/controllers`, create the constructor and `onBlocks` function to call block header reporter
    contract periodically.
-2. Add the contract addresses under `utils/address.json`.
+2. Configure the settings under `settings/index.ts`.
 3. Add the new controller instant in `index.ts`.
 4. Add the env variable in `.env.example`.

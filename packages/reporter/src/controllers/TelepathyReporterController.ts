@@ -14,18 +14,22 @@ class TelepathyReporterController {
   name: string = "telepathy"
   logger: winston.Logger
   multiClient: Multiclient
-  reporterAddress: string
   adapterAddresses: { [chainName: string]: `0x${string}` }
-  data: any
+  lightClientAddresses: { [chainName: string]: `0x${string}` }
+  proofURL: string
+  queryBlockLength: string
+  blockBuffer: string
 
   constructor(configs: ControllerConfig) {
     this.sourceChain = configs.sourceChain
     this.destinationChains = configs.destinationChains
     this.logger = configs.logger
     this.multiClient = configs.multiClient
-    this.reporterAddress = configs.reporterAddress
     this.adapterAddresses = configs.adapterAddresses
-    this.data = configs.data
+    this.lightClientAddresses = configs.data.lightClientAddresses
+    this.proofURL = configs.data.proofURL
+    this.queryBlockLength = configs.data.queryBlockLength
+    this.blockBuffer = configs.data.blockBuffer
   }
   async onBlocks(blockNumbers: string[]) {
     try {
@@ -35,14 +39,14 @@ class TelepathyReporterController {
         const client = this.multiClient.getClientByChain(chain)
 
         const adapterAddr = this.adapterAddresses[chain.name.toLocaleLowerCase()]
-        const lightClientAddr = this.data.lightClientAddress
+        const lightClientAddr = this.lightClientAddresses[chain.name.toLocaleLowerCase()]
 
         // Getting the latest block number from provider
         const currentBlockNumber = await client.getBlockNumber()
 
         // get contract events from latest block - queryBlockLength : latest block - blockBuffer
-        const queryBlockLength = BigInt(this.data.queryBlockLength) // the number of blocks to query
-        const blockBuffer = BigInt(this.data.blockBuffer) // put ${buffer} blocks before the current block in case the node provider don't sync up at the head
+        const queryBlockLength = BigInt(this.queryBlockLength) // the number of blocks to query
+        const blockBuffer = BigInt(this.blockBuffer) // put ${buffer} blocks before the current block in case the node provider don't sync up at the head
         const startBlock = currentBlockNumber - queryBlockLength
         const endBlock = currentBlockNumber - blockBuffer
 
@@ -65,7 +69,7 @@ class TelepathyReporterController {
           // get slot value from first indexed
           const slotValue = event.topics[1]
           this.logger.info(`Fetching proof for slot ${slotValue}`)
-          const postUrl = this.data.proofURL + "5" + "/" + hexToNumber(slotValue!)
+          const postUrl = this.proofURL + "5" + "/" + hexToNumber(slotValue!) // 5 is chainID for Goerli
 
           const response = await axios.post(postUrl)
           const { chainId, slot, blockNumber, blockNumberProof, blockHash, blockHashProof } = response.data.result

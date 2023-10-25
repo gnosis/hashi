@@ -5,7 +5,6 @@ import "dotenv/config"
 import contractABI from "../ABIs/SygmaReporterContractABI.json"
 import Multiclient from "../MultiClient"
 import { ControllerConfig } from "../types/index"
-import { settings } from "../settings"
 
 class SygmaReporterController {
   sourceChain: Chain
@@ -15,16 +14,18 @@ class SygmaReporterController {
   multiClient: Multiclient
   reporterAddress: string
   adapterAddresses: { [chainName: string]: `0x${string}` }
-  gas: string
+  destinationDomainID: string
+  fee: string
 
   constructor(configs: ControllerConfig) {
     this.sourceChain = configs.sourceChain
     this.destinationChains = configs.destinationChains
     this.logger = configs.logger
     this.multiClient = configs.multiClient
-    this.reporterAddress = configs.reporterAddress
+    this.reporterAddress = configs.reporterAddress !== undefined ? configs.reporterAddress : ""
     this.adapterAddresses = configs.adapterAddresses
-    this.gas = configs.data
+    this.destinationDomainID = configs.data.destDomainID
+    this.fee = configs.data.fee
   }
 
   async onBlocks(blockNumbers: string[]) {
@@ -41,10 +42,10 @@ class SygmaReporterController {
           args: [
             blockNumbers,
             this.adapterAddresses[chainName],
-            settings.sygmaDomainID[chainName as keyof typeof settings.sygmaDomainID],
+            this.destinationDomainID[chainName as keyof typeof this.destinationDomainID],
             "0x",
           ],
-          value: parseEther(this.gas),
+          value: parseEther(this.fee),
         })
         const txhash = await client.writeContract(request)
         this.logger.info(`Sygma: TxHash from Sygma Controller:  ${txhash}`)
