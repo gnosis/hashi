@@ -13,6 +13,8 @@ function main() {
   const goerliRPC = process.env.GOERLI_RPC_URL as string
   const gnosisRPC = process.env.GNOSIS_RPC_URL as string
   const privKey = process.env.PRIVATE_KEY as `0x${string}`
+  const queryBlockLength = Number(settings.blockListener.queryBlockLength)
+  const blockBuffer = Number(settings.blockListener.blockBuffer)
 
   const logger = winston.createLogger({
     level: "info",
@@ -63,6 +65,10 @@ function main() {
     },
   })
 
+  if (queryBlockLength > 256 - blockBuffer) {
+    throw logger.error(`Please choose a block length less than ${256 - Number(settings.blockListener.blockBuffer)}!`)
+  }
+
   const controllersEnabled = process.env.REPORTERS_ENABLED?.split(",")
   const blocksListener = new BlocksListener({
     controllers: [ambReporterController, sygmaReporterController, telepathyReporterController].filter(
@@ -72,8 +78,8 @@ function main() {
     logger,
     multiclient: multiClient,
     sourceChain: goerli,
-    queryBlockLength: Number(settings.blockListener.queryBlockLength), // modify the query block length here, <256
-    blockBuffer: Number(settings.blockListener.blockBuffer),
+    queryBlockLength, // modify the query block length here, <256 - block buffer
+    blockBuffer,
   })
   blocksListener.start()
 }
