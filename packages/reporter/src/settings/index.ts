@@ -37,7 +37,7 @@ export const settings = {
     TelepathyReporterController: {
       baseProofUrl: process.env.TELEPATHY_PROOF_API_URL as string,
       blockBuffer: Number(process.env.TELEPATHY_BLOCK_BUFFER),
-      intervalFetchBlocksMs: Number(process.env.TELEPATHY_TIME_FETCH_BLOCK_MS),
+      intervalFetchHeadUpdates: Number(process.env.TELEPATHY_INTERVAL_FETCH_HEAD_UPDATES),
     },
   },
 }

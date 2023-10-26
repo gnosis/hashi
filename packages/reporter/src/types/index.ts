@@ -16,7 +16,7 @@ interface TelepathyReporterControllerConfigs extends BaseControllerConfigs {
   lightClientAddresses: { [chainName: string]: `0x${string}` }
   baseProofUrl: string
   blockBuffer: number
-  intervalFetchBlocksMs: number
+  intervalFetchHeadUpdates: number
 }
 
 interface AMBReporterControllerConfigs extends BaseControllerConfigs {

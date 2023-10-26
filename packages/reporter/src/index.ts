@@ -57,7 +57,7 @@ const main = () => {
     baseProofUrl: settings.reporterControllers.TelepathyReporterController.baseProofUrl,
     lightClientAddresses: { [gnosis.name]: settings.contractAddresses.Gnosis.TelepathyLightClient },
     blockBuffer: settings.reporterControllers.TelepathyReporterController.blockBuffer,
-    intervalFetchBlocksMs: settings.reporterControllers.TelepathyReporterController.intervalFetchBlocksMs,
+    intervalFetchHeadUpdates: settings.reporterControllers.TelepathyReporterController.intervalFetchHeadUpdates,
   })
 
   const blocksListener = new BlocksListener({

@@ -13,7 +13,7 @@ class TelepathyReporterController extends BaseController {
   lightClientAddresses: { [chainName: string]: `0x${string}` }
 
   private _baseProofUrl: string
-  private _intervalFetchBlocksMs: number
+  private _intervalFetchHeadUpdates: number
   private _intervals: ReturnType<typeof setInterval> | undefined
 
   constructor(_configs: TelepathyReporterControllerConfigs) {
@@ -21,7 +21,7 @@ class TelepathyReporterController extends BaseController {
 
     this.lightClientAddresses = _configs.lightClientAddresses
     this.blockBuffer = _configs.blockBuffer
-    this._intervalFetchBlocksMs = _configs.intervalFetchBlocksMs
+    this._intervalFetchHeadUpdates = _configs.intervalFetchHeadUpdates
     this._baseProofUrl = _configs.baseProofUrl
 
     this.lastProcessedBlock = 0n
@@ -31,7 +31,7 @@ class TelepathyReporterController extends BaseController {
     this.fetchHeadUpdates()
     this._intervals = setInterval(() => {
       this.fetchHeadUpdates()
-    }, this._intervalFetchBlocksMs)
+    }, this._intervalFetchHeadUpdates)
   }
 
   stop() {
