@@ -16,6 +16,7 @@ export const settings = {
   },
   reporterControllers: {
     AMBReporterController: {
+      interval: process.env.AMB_INTERVAL,
       gas: process.env.AMB_GAS,
     },
     SygmaReporterController: {
@@ -23,11 +24,12 @@ export const settings = {
         gnosis: "101",
         goerli: "1",
       },
+      interval: process.env.SYGMA_INTERVAL,
       data: process.env.SYGMA_MSG_VALUE,
     },
     TelepathyReporterController: {
+      internal: process.env.TELEPATHY_INTERVAL,
       baseProofUrl: process.env.TELEPATHY_PROOF_API_URL,
-      queryBlockLength: process.env.TELEPATHY_QUERY_BLOCK_LENGTH,
       blockBuffer: process.env.TELEPATHY_BLOCK_BUFFER,
     },
   },

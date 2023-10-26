@@ -10,6 +10,7 @@ type ControllerConfig = {
   adapterAddresses: { [chainName: string]: `0x${string}` }
   logger: winston.Logger
   multiClient: Multiclient
+  interval: number
   data: any // controller-specific data
 }
 

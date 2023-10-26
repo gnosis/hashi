@@ -9,7 +9,7 @@ class BlocksListener {
   logger: winston.Logger
   timeFetchBlocksMs: number
   multiclient: Multiclient
-  _interval: ReturnType<typeof setInterval> | undefined // NodeJs.Timeout
+  //intervals: ReturnType<typeof setInterval> | undefined // NodeJs.Timeout
   sourceChain: Chain
   queryBlockLength: number
   blockBuffer: number
@@ -31,13 +31,10 @@ class BlocksListener {
 
   start() {
     this._fetchBlocks()
-    this._interval = setInterval(() => {
-      this._fetchBlocks()
-    }, this.timeFetchBlocksMs)
   }
 
   stop() {
-    clearInterval(this._interval)
+    // TODO: clearInterval()
   }
 
   async _fetchBlocks() {
@@ -54,11 +51,14 @@ class BlocksListener {
           (_, index) => startBlock + BigInt(index),
         ),
       )
-      this.logger.info(`Fetching block from ${startBlock} to ${endBlock}`)
+      this.logger.info(`Fetching block from ${startBlock} to ${endBlock} on ${this.sourceChain.name}`)
 
-      await Promise.all(this.controllers.map((_controller: any) => _controller.onBlocks(blocks)))
-
-      this.logger.info(`Waiting for ${this.timeFetchBlocksMs / 1000}s...`)
+      this.controllers.map((_controller: any) => {
+        _controller.onBlocks(blocks)
+        setInterval(() => {
+          _controller.onBlocks(blocks)
+        }, _controller.interval)
+      })
     } catch (_err) {
       this.logger.error(`error from block listener ${_err}`)
     }

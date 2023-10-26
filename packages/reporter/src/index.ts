@@ -14,6 +14,9 @@ function main() {
   const privKey = process.env.PRIVATE_KEY as `0x${string}`
   const queryBlockLength = Number(settings.blockListener.queryBlockLength)
   const blockBuffer = Number(settings.blockListener.blockBuffer)
+  const ambInterval = Number(process.env.AMB_INTERVAL)
+  const sygmaInterval = Number(process.env.SYGMA_INTERVAL)
+  const telepathyInterval = Number(process.env.TELEPATHY_INTERVAL)
 
   const logger = winston.createLogger({
     level: "info",
@@ -34,6 +37,7 @@ function main() {
     destinationChains: [gnosis],
     logger,
     multiClient,
+    interval: ambInterval,
     reporterAddress: settings.contractAddresses.goerli.AMBReporter,
     adapterAddresses: { gnosis: settings.contractAddresses.gnosis.AMBAdapter as `0x${string}` },
     data: { gas: settings.reporterControllers.AMBReporterController.gas },
@@ -43,6 +47,7 @@ function main() {
     destinationChains: [gnosis],
     logger,
     multiClient,
+    interval: sygmaInterval,
     reporterAddress: settings.contractAddresses.goerli.SygmaReporter,
     adapterAddresses: { gnosis: settings.contractAddresses.gnosis.SygmaAdapter as `0x${string}` },
     data: {
@@ -55,11 +60,11 @@ function main() {
     destinationChains: [gnosis],
     logger,
     multiClient,
+    interval: telepathyInterval,
     adapterAddresses: { gnosis: settings.contractAddresses.gnosis.SygmaAdapter as `0x${string}` },
     data: {
       baseProofUrl: settings.reporterControllers.TelepathyReporterController.baseProofUrl,
       lightClientAddresses: { gnosis: settings.contractAddresses.gnosis.TelepathyLightClient },
-      queryBlockLength: settings.reporterControllers.TelepathyReporterController.queryBlockLength,
       blockBuffer: settings.reporterControllers.TelepathyReporterController.blockBuffer,
     },
   })

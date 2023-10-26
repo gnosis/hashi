@@ -13,21 +13,24 @@ class TelepathyReporterController {
   name: string = "telepathy"
   logger: winston.Logger
   multiClient: Multiclient
+  interval: number
   adapterAddresses: { [chainName: string]: `0x${string}` }
   lightClientAddresses: { [chainName: string]: `0x${string}` }
   baseProofUrl: string
-  queryBlockLength: string
+
   blockBuffer: string
+  lastProcessedBlock: bigint = 30000000n
 
   constructor(configs: ControllerConfig) {
     this.sourceChain = configs.sourceChain
     this.destinationChains = configs.destinationChains
     this.logger = configs.logger
     this.multiClient = configs.multiClient
+    this.interval = configs.interval
     this.adapterAddresses = configs.adapterAddresses
     this.lightClientAddresses = configs.data.lightClientAddresses
     this.baseProofUrl = configs.data.baseProofUrl
-    this.queryBlockLength = configs.data.queryBlockLength
+
     this.blockBuffer = configs.data.blockBuffer
   }
   async onBlocks(blockNumbers: bigint[]) {
@@ -44,12 +47,14 @@ class TelepathyReporterController {
         const currentBlockNumber = await client.getBlockNumber()
 
         // get contract events from latest block - queryBlockLength : latest block - blockBuffer
-        const queryBlockLength = BigInt(this.queryBlockLength) // the number of blocks to query
+
         const blockBuffer = BigInt(this.blockBuffer) // put ${buffer} blocks before the current block in case the node provider don't sync up at the head
-        const startBlock = currentBlockNumber - queryBlockLength
+        const startBlock = this.lastProcessedBlock
         const endBlock = currentBlockNumber - blockBuffer
 
-        this.logger.info(`Telepathy: Getting Contract Event from block ${startBlock} to block  ${currentBlockNumber}`)
+        this.logger.info(
+          `Telepathy: Getting Contract Event from block ${startBlock} to block ${endBlock} on ${chain.name}`,
+        )
 
         const logs = await client.getContractEvents({
           address: lightClientAddr as `0x${string}`,
@@ -65,12 +70,11 @@ class TelepathyReporterController {
         }
 
         logs.forEach(async (event: any) => {
-          // get slot value from first indexed
           const slotValue = event.topics[1]
           this.logger.info(`Fetching proof for slot ${slotValue} on ${chain.name}`)
 
-          const url = `${this.baseProofUrl}/${this.sourceChain.id}/${hexToNumber(slotValue!)}`
-          console.log("URL ", url)
+          const url = `${this.baseProofUrl}${this.sourceChain.id}/${hexToNumber(slotValue!)}`
+
           const response = await axios.post(url)
           const { chainId, slot, blockNumber, blockNumberProof, blockHash, blockHashProof } = response.data.result
           this.logger.info(`Telepathy: Calling storeBlockHeader for block number ${blockNumber}`)
@@ -83,8 +87,12 @@ class TelepathyReporterController {
           })
 
           const txHash = await client.writeContract(request)
+          setTimeout(() => {}, 2000)
+
           this.logger.info(`Telepathy: TxHash from Telepathy Controller: ${txHash} on ${chain.name} `)
         })
+        this.lastProcessedBlock = endBlock
+        this.logger.info(`Restarting Telepathy in ${this.interval / 1000} seconds`)
       }
     } catch (error) {
       this.logger.error(`Telepathy: Error from Telepathy Controller: ${error}`)
