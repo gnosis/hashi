@@ -3,26 +3,45 @@ import winston = require("winston")
 
 import Multiclient from "../MultiClient"
 
-type ControllerConfig = {
+type BaseControllerConfigs = {
   sourceChain: Chain
   destinationChains: Chain[]
   reporterAddress?: string
   adapterAddresses: { [chainName: string]: `0x${string}` }
   logger: winston.Logger
   multiClient: Multiclient
-  data: any // controller-specific data
-  isLightClient: boolean
 }
 
-type BlockListenerConfig = {
+interface TelepathyReporterControllerConfigs extends BaseControllerConfigs {
+  lightClientAddresses: { [chainName: string]: `0x${string}` }
+  baseProofUrl: string
+  blockBuffer: number
+  intervalFetchBlocksMs: number
+}
+
+interface AMBReporterControllerConfigs extends BaseControllerConfigs {
+  reportHeadersGas: number
+}
+
+interface SygmaReporterControllerConfigs extends BaseControllerConfigs {
+  reportHeadersToDomainMsgValue: string
+  domainIds: { [chainName: string]: number }
+}
+
+interface BlockListenerConfigs {
   controllers: any[]
   logger: winston.Logger
-  timeFetchBlocksMs: number
-  LCTimeStoreHashesMs: number
+  intervalFetchBlocksMs: number
   multiclient: Multiclient
   sourceChain: Chain
   queryBlockLength: number
   blockBuffer: number
 }
 
-export { ControllerConfig, BlockListenerConfig }
+export {
+  AMBReporterControllerConfigs,
+  BaseControllerConfigs,
+  BlockListenerConfigs,
+  SygmaReporterControllerConfigs,
+  TelepathyReporterControllerConfigs,
+}

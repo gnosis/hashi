@@ -1,58 +1,48 @@
-import { parseEther, Chain } from "viem"
-import winston from "winston"
+import { parseEther } from "viem"
 
-import contractABI from "../ABIs/SygmaReporterContractABI.json"
-import Multiclient from "../MultiClient"
-import { ControllerConfig } from "../types/index"
+import ABI from "../ABIs/SygmaReporterContractABI.json"
+import BaseController from "./BaseController"
 
-class SygmaReporterController {
-  sourceChain: Chain
-  destinationChains: Chain[]
-  name: string = "sygma"
-  logger: winston.Logger
-  multiClient: Multiclient
-  reporterAddress: `0x${string}`
-  adapterAddresses: { [chainName: string]: `0x${string}` }
-  destinationDomainID: string
-  fee: string
-  isLightClient: boolean
+import { SygmaReporterControllerConfigs } from "../types/index"
 
-  constructor(configs: ControllerConfig) {
-    this.sourceChain = configs.sourceChain
-    this.destinationChains = configs.destinationChains
-    this.logger = configs.logger
-    this.multiClient = configs.multiClient
-    this.isLightClient = configs.isLightClient
-    this.reporterAddress = configs.reporterAddress as `0x${string}`
-    this.adapterAddresses = configs.adapterAddresses
-    this.destinationDomainID = configs.data.destDomainID
-    this.fee = configs.data.fee
+class SygmaReporterController extends BaseController {
+  private _domainIds: { [chainName: string]: number }
+  private _reportHeadersToDomainMsgValue: string
+
+  constructor(_configs: SygmaReporterControllerConfigs) {
+    super(_configs, "SygmaReporterController")
+    this._domainIds = _configs.domainIds
+    this._reportHeadersToDomainMsgValue = _configs.reportHeadersToDomainMsgValue
   }
 
-  async onBlocks(blockNumbers: bigint[]) {
+  async onBlocks(_blockNumbers: bigint[]) {
     try {
-      this.logger.info("Sygma: Starting Sygma Reporter")
       const client = this.multiClient.getClientByChain(this.sourceChain)
 
       for (const chain of this.destinationChains) {
-        const chainName = chain.name.toLocaleLowerCase()
+        this.logger.info(
+          `reporting block headers of blocks [${_blockNumbers[0]},${_blockNumbers[_blockNumbers.length - 1]}] on ${
+            chain.name
+          } ...`,
+        )
+
         const { request } = await client.simulateContract({
           address: this.reporterAddress as `0x${string}`,
-          abi: contractABI,
+          abi: ABI,
           functionName: "reportHeadersToDomain",
           args: [
-            blockNumbers,
-            this.adapterAddresses[chainName],
-            this.destinationDomainID[chainName as keyof typeof this.destinationDomainID],
+            _blockNumbers,
+            this.adapterAddresses[chain.name],
+            this._domainIds[chain.name as keyof typeof this._domainIds],
             "0x",
           ],
-          value: parseEther(this.fee),
+          value: parseEther(this._reportHeadersToDomainMsgValue),
         })
         const txhash = await client.writeContract(request)
-        this.logger.info(`Sygma: TxHash from Sygma Controller:  ${txhash} on ${chain.name}`)
+        this.logger.info(`tx sent on ${chain.name}: ${txhash}`)
       }
-    } catch (error) {
-      this.logger.error(`Sygma: Error from Sygma Controller: ${error}`)
+    } catch (_error) {
+      this.logger.error(_error)
     }
   }
 }

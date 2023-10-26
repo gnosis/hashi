@@ -1,100 +1,89 @@
 import axios from "axios"
-import { hexToNumber, Chain } from "viem"
-import winston from "winston"
+import { hexToNumber } from "viem"
 
-import lightClientContractABI from "../ABIs/TelepathyContractABI.json"
-import adapterContractABI from "../ABIs/TelepathyAdapterABI.json"
-import Multiclient from "../MultiClient"
-import { ControllerConfig } from "../types/index"
+import LightClientContractABI from "../ABIs/TelepathyContractABI.json"
+import AdapterContractABI from "../ABIs/TelepathyAdapterABI.json"
+import BaseController from "./BaseController"
 
-class TelepathyReporterController {
-  sourceChain: Chain
-  destinationChains: Chain[]
-  name: string = "telepathy"
-  logger: winston.Logger
-  multiClient: Multiclient
-  isLightClient: boolean
-  adapterAddresses: { [chainName: string]: `0x${string}` }
+import { TelepathyReporterControllerConfigs } from "../types/index"
+
+class TelepathyReporterController extends BaseController {
+  lastProcessedBlock: bigint
+  blockBuffer: number
   lightClientAddresses: { [chainName: string]: `0x${string}` }
-  baseProofUrl: string
-  blockBuffer: string
-  lastProcessedBlock: bigint = 30000000n
 
-  constructor(configs: ControllerConfig) {
-    this.sourceChain = configs.sourceChain
-    this.destinationChains = configs.destinationChains
-    this.logger = configs.logger
-    this.multiClient = configs.multiClient
-    this.isLightClient = configs.isLightClient
-    this.adapterAddresses = configs.adapterAddresses
-    this.lightClientAddresses = configs.data.lightClientAddresses
-    this.baseProofUrl = configs.data.baseProofUrl
+  private _baseProofUrl: string
+  private _intervalFetchBlocksMs: number
+  private _intervals: ReturnType<typeof setInterval> | undefined
 
-    this.blockBuffer = configs.data.blockBuffer
+  constructor(_configs: TelepathyReporterControllerConfigs) {
+    super(_configs, "TelepathyReporterController")
+
+    this.lightClientAddresses = _configs.lightClientAddresses
+    this.blockBuffer = _configs.blockBuffer
+    this._intervalFetchBlocksMs = _configs.intervalFetchBlocksMs
+    this._baseProofUrl = _configs.baseProofUrl
+
+    this.lastProcessedBlock = 0n
   }
-  async onBlocks() {
-    try {
-      // Telepathy only support light client on Gnosis at the moment
-      this.logger.info("Telepathy: Starting Telepathy Reporter")
 
+  start() {
+    this.fetchHeadUpdates()
+    this._intervals = setInterval(() => {
+      this.fetchHeadUpdates()
+    }, this._intervalFetchBlocksMs)
+  }
+
+  stop() {
+    clearInterval(this._intervals)
+  }
+
+  async fetchHeadUpdates() {
+    try {
       for (const chain of this.destinationChains) {
         const client = this.multiClient.getClientByChain(chain)
 
-        const adapterAddr = this.adapterAddresses[chain.name.toLocaleLowerCase()]
-        const lightClientAddr = this.lightClientAddresses[chain.name.toLocaleLowerCase()]
-
-        // Getting the latest block number from provider
         const currentBlockNumber = await client.getBlockNumber()
+        const fromBlock = this.lastProcessedBlock + 1n
+        const toBlock = currentBlockNumber - BigInt(this.blockBuffer)
 
-        // get contract events from latest block - queryBlockLength : latest block - blockBuffer
-
-        const blockBuffer = BigInt(this.blockBuffer) // put ${buffer} blocks before the current block in case the node provider don't sync up at the head
-        const startBlock = this.lastProcessedBlock
-        const endBlock = currentBlockNumber - blockBuffer
-
-        this.logger.info(
-          `Telepathy: Getting Contract Event from block ${startBlock} to block ${endBlock} on ${chain.name}`,
-        )
+        this.logger.info(`getting HeadUpdate events in [${fromBlock},${toBlock}] on ${chain.name} ...`)
 
         const logs = await client.getContractEvents({
-          address: lightClientAddr as `0x${string}`,
-          abi: lightClientContractABI,
+          address: this.lightClientAddresses[chain.name.toLocaleLowerCase()] as `0x${string}`,
+          abi: LightClientContractABI,
           eventName: "HeadUpdate",
-          fromBlock: startBlock,
-          toBlock: endBlock,
+          fromBlock,
+          toBlock,
         })
 
         if (logs.length == 0) {
-          this.logger.error("No event is found!")
-          return
+          continue
         }
 
-        logs.forEach(async (event: any) => {
-          const slotValue = event.topics[1]
-          this.logger.info(`Fetching proof for slot ${slotValue} on ${chain.name}`)
+        this.logger.error(`detected ${logs.length} HeadUpdate events. Processing them ...`)
+        logs.forEach(async (_log: any) => {
+          const slotValue = _log.topics[1]
+          this.logger.info(`fetching proof for slot ${slotValue} on ${chain.name} ...`)
 
-          const url = `${this.baseProofUrl}${this.sourceChain.id}/${hexToNumber(slotValue!)}`
-
-          const response = await axios.post(url)
+          const response = await axios.post(`${this._baseProofUrl}${this.sourceChain.id}/${hexToNumber(slotValue!)}`)
           const { chainId, slot, blockNumber, blockNumberProof, blockHash, blockHashProof } = response.data.result
-          this.logger.info(`Telepathy: Calling storeBlockHeader for block number ${blockNumber}`)
+          this.logger.info(`calling storeBlockHeader for block number ${blockNumber} ...`)
 
           const { request } = await client.simulateContract({
-            address: adapterAddr as `0x${string}`,
-            abi: adapterContractABI,
+            address: this.adapterAddresses[chain.name.toLocaleLowerCase()] as `0x${string}`,
+            abi: AdapterContractABI,
             functionName: "storeBlockHeader",
             args: [chainId, slot, blockNumber, blockNumberProof, blockHash, blockHashProof],
           })
 
           const txHash = await client.writeContract(request)
-          setTimeout(() => {}, 2000)
-
-          this.logger.info(`Telepathy: TxHash from Telepathy Controller: ${txHash} on ${chain.name} `)
+          this.logger.info(`tx sent on ${chain.name}: ${txHash}`)
         })
-        this.lastProcessedBlock = endBlock
+        this.lastProcessedBlock = toBlock
       }
-    } catch (error) {
-      this.logger.error(`Telepathy: Error from Telepathy Controller: ${error}`)
+    } catch (_error) {
+      this.logger.error(_error)
     }
   }
 }
