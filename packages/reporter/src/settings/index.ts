@@ -14,6 +14,11 @@ export const settings = {
       TelapathyAdapter: "0x2f1E51a2763FB67fe09971Fd8d849716137A3357",
     },
   },
+  config: {
+    goerliRPC: process.env.GOERLI_RPC_URL,
+    gnosisRPC: process.env.GNOSIS_RPC_URL,
+    privKey: process.env.PRIVATE_KEY,
+  },
   reporterControllers: {
     AMBReporterController: {
       interval: process.env.AMB_INTERVAL,
@@ -38,5 +43,6 @@ export const settings = {
     queryBlockLength: process.env.QUERY_BLOCK_LENGTH,
     blockBuffer: process.env.BLOCK_BUFFER,
     timeFetchBlocksMs: process.env.TIME_FETCH_BLOCKS_MS,
+    LCTimeStoreHashesMs: process.env.LC_TIME_STORE_HASHES_MS,
   },
 }

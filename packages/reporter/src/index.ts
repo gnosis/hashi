@@ -9,14 +9,13 @@ import BlocksListener from "./BlockListener"
 import { settings } from "./settings/index"
 
 function main() {
-  const goerliRPC = process.env.GOERLI_RPC_URL as string
-  const gnosisRPC = process.env.GNOSIS_RPC_URL as string
-  const privKey = process.env.PRIVATE_KEY as `0x${string}`
+  const goerliRPC = settings.config.goerliRPC as string
+  const gnosisRPC = settings.config.gnosisRPC as string
+  const privKey = settings.config.privKey as `0x${string}`
   const queryBlockLength = Number(settings.blockListener.queryBlockLength)
   const blockBuffer = Number(settings.blockListener.blockBuffer)
-  const ambInterval = Number(process.env.AMB_INTERVAL)
-  const sygmaInterval = Number(process.env.SYGMA_INTERVAL)
-  const telepathyInterval = Number(process.env.TELEPATHY_INTERVAL)
+  const timeFetchBlocksMs = Number(settings.blockListener.timeFetchBlocksMs)
+  const LCTimeStoreHashesMs = Number(settings.blockListener.LCTimeStoreHashesMs)
 
   const logger = winston.createLogger({
     level: "info",
@@ -37,7 +36,7 @@ function main() {
     destinationChains: [gnosis],
     logger,
     multiClient,
-    interval: ambInterval,
+    isLightClient: false,
     reporterAddress: settings.contractAddresses.goerli.AMBReporter,
     adapterAddresses: { gnosis: settings.contractAddresses.gnosis.AMBAdapter as `0x${string}` },
     data: { gas: settings.reporterControllers.AMBReporterController.gas },
@@ -47,7 +46,7 @@ function main() {
     destinationChains: [gnosis],
     logger,
     multiClient,
-    interval: sygmaInterval,
+    isLightClient: false,
     reporterAddress: settings.contractAddresses.goerli.SygmaReporter,
     adapterAddresses: { gnosis: settings.contractAddresses.gnosis.SygmaAdapter as `0x${string}` },
     data: {
@@ -60,7 +59,7 @@ function main() {
     destinationChains: [gnosis],
     logger,
     multiClient,
-    interval: telepathyInterval,
+    isLightClient: true,
     adapterAddresses: { gnosis: settings.contractAddresses.gnosis.SygmaAdapter as `0x${string}` },
     data: {
       baseProofUrl: settings.reporterControllers.TelepathyReporterController.baseProofUrl,
@@ -70,17 +69,20 @@ function main() {
   })
 
   const controllersEnabled = process.env.REPORTERS_ENABLED?.split(",")
+
   const blocksListener = new BlocksListener({
     controllers: [ambReporterController, sygmaReporterController, telepathyReporterController].filter(
       (controller) => controllersEnabled?.includes(controller.name),
     ),
-    timeFetchBlocksMs: Number(settings.blockListener.timeFetchBlocksMs),
+    timeFetchBlocksMs,
+    LCTimeStoreHashesMs,
     logger,
     multiclient: multiClient,
     sourceChain: goerli,
     queryBlockLength, // modify the query block length here, <256 - block buffer
     blockBuffer,
   })
+
   blocksListener.start()
 }
 

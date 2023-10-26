@@ -11,18 +11,18 @@ class SygmaReporterController {
   name: string = "sygma"
   logger: winston.Logger
   multiClient: Multiclient
-  interval: number
   reporterAddress: `0x${string}`
   adapterAddresses: { [chainName: string]: `0x${string}` }
   destinationDomainID: string
   fee: string
+  isLightClient: boolean
 
   constructor(configs: ControllerConfig) {
     this.sourceChain = configs.sourceChain
     this.destinationChains = configs.destinationChains
     this.logger = configs.logger
     this.multiClient = configs.multiClient
-    this.interval = configs.interval
+    this.isLightClient = configs.isLightClient
     this.reporterAddress = configs.reporterAddress as `0x${string}`
     this.adapterAddresses = configs.adapterAddresses
     this.destinationDomainID = configs.data.destDomainID
@@ -50,7 +50,6 @@ class SygmaReporterController {
         })
         const txhash = await client.writeContract(request)
         this.logger.info(`Sygma: TxHash from Sygma Controller:  ${txhash} on ${chain.name}`)
-        this.logger.info(`Restarting Sygma in ${this.interval / 1000} seconds`)
       }
     } catch (error) {
       this.logger.error(`Sygma: Error from Sygma Controller: ${error}`)

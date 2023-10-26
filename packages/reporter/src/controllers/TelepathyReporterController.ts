@@ -13,11 +13,10 @@ class TelepathyReporterController {
   name: string = "telepathy"
   logger: winston.Logger
   multiClient: Multiclient
-  interval: number
+  isLightClient: boolean
   adapterAddresses: { [chainName: string]: `0x${string}` }
   lightClientAddresses: { [chainName: string]: `0x${string}` }
   baseProofUrl: string
-
   blockBuffer: string
   lastProcessedBlock: bigint = 30000000n
 
@@ -26,16 +25,17 @@ class TelepathyReporterController {
     this.destinationChains = configs.destinationChains
     this.logger = configs.logger
     this.multiClient = configs.multiClient
-    this.interval = configs.interval
+    this.isLightClient = configs.isLightClient
     this.adapterAddresses = configs.adapterAddresses
     this.lightClientAddresses = configs.data.lightClientAddresses
     this.baseProofUrl = configs.data.baseProofUrl
 
     this.blockBuffer = configs.data.blockBuffer
   }
-  async onBlocks(blockNumbers: bigint[]) {
+  async onBlocks() {
     try {
       // Telepathy only support light client on Gnosis at the moment
+      this.logger.info("Telepathy: Starting Telepathy Reporter")
 
       for (const chain of this.destinationChains) {
         const client = this.multiClient.getClientByChain(chain)
@@ -92,7 +92,6 @@ class TelepathyReporterController {
           this.logger.info(`Telepathy: TxHash from Telepathy Controller: ${txHash} on ${chain.name} `)
         })
         this.lastProcessedBlock = endBlock
-        this.logger.info(`Restarting Telepathy in ${this.interval / 1000} seconds`)
       }
     } catch (error) {
       this.logger.error(`Telepathy: Error from Telepathy Controller: ${error}`)
