@@ -6,7 +6,11 @@
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "forceConsistentCasingInFileNames": true,
-    "lib": ["es6", "ESNext"],
+    "lib": [
+      "es6",
+      "ESNext",
+      "DOM"
+    ],
     "module": "commonjs",
     "moduleResolution": "node",
     "noImplicitAny": true,
@@ -17,6 +21,10 @@
     "strict": true,
     "target": "ESNext"
   },
-  "exclude": ["node_modules"],
-  "include": ["./src/**/*"]
+  "exclude": [
+    "node_modules"
+  ],
+  "include": [
+    "./src/**/*"
+  ]
 }
