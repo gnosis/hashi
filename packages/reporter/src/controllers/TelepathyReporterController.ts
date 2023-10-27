@@ -5,47 +5,35 @@ import LightClientContractABI from "../ABIs/TelepathyContractABI.json"
 import AdapterContractABI from "../ABIs/TelepathyAdapterABI.json"
 import BaseController from "./BaseController"
 
-import { TelepathyReporterControllerConfigs } from "../types/index"
+import { BaseControllerConfigs } from "./BaseController"
+
+interface TelepathyReporterControllerConfigs extends BaseControllerConfigs {
+  lightClientAddresses: { [chainName: string]: `0x${string}` }
+  baseProofUrl: string
+}
 
 class TelepathyReporterController extends BaseController {
   lastProcessedBlock: bigint
-  blockBuffer: number
   lightClientAddresses: { [chainName: string]: `0x${string}` }
-
   private _baseProofUrl: string
-  private _intervalFetchHeadUpdates: number
-  private _intervals: ReturnType<typeof setInterval> | undefined
 
   constructor(_configs: TelepathyReporterControllerConfigs) {
     super(_configs, "TelepathyReporterController")
 
     this.lightClientAddresses = _configs.lightClientAddresses
-    this.blockBuffer = _configs.blockBuffer
-    this._intervalFetchHeadUpdates = _configs.intervalFetchHeadUpdates
     this._baseProofUrl = _configs.baseProofUrl
 
     this.lastProcessedBlock = 0n
   }
 
-  start() {
-    this.fetchHeadUpdates()
-    this._intervals = setInterval(() => {
-      this.fetchHeadUpdates()
-    }, this._intervalFetchHeadUpdates)
-  }
-
-  stop() {
-    clearInterval(this._intervals)
-  }
-
-  async fetchHeadUpdates() {
+  async update() {
     try {
       for (const chain of this.destinationChains) {
         const client = this.multiClient.getClientByChain(chain)
 
         const currentBlockNumber = await client.getBlockNumber()
-        const fromBlock = this.lastProcessedBlock + 1n
-        const toBlock = currentBlockNumber - BigInt(this.blockBuffer)
+        const fromBlock = this.lastProcessedBlock === 0n ? currentBlockNumber : this.lastProcessedBlock + 1n
+        const toBlock = currentBlockNumber
 
         this.logger.info(`getting HeadUpdate events in [${fromBlock},${toBlock}] on ${chain.name} ...`)
 
@@ -58,6 +46,7 @@ class TelepathyReporterController extends BaseController {
         })
 
         if (logs.length == 0) {
+          this.logger.info("No HeadUpdate events. Skipping ...")
           continue
         }
 

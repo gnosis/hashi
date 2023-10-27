@@ -1,8 +1,12 @@
 import ABI from "../ABIs/AMBReporterContractABI.json"
 
-import { AMBReporterControllerConfigs } from "../types/index"
-
 import BaseController from "./BaseController"
+
+import { BaseControllerConfigs } from "./BaseController"
+
+interface AMBReporterControllerConfigs extends BaseControllerConfigs {
+  reportHeadersGas: number
+}
 
 class AMBReporterController extends BaseController {
   private _reportHeadersGas: number
@@ -30,7 +34,7 @@ class AMBReporterController extends BaseController {
         })
 
         const txHash = await client.writeContract(request)
-        this.logger.info(`tx sent on ${chain.name}: ${txHash}`)
+        this.logger.info(`headers reporter from ${this.sourceChain.name} to ${chain.name}: ${txHash}`)
       }
     } catch (_error) {
       this.logger.error(_error)

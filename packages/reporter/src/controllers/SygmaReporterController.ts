@@ -3,7 +3,12 @@ import { parseEther } from "viem"
 import ABI from "../ABIs/SygmaReporterContractABI.json"
 import BaseController from "./BaseController"
 
-import { SygmaReporterControllerConfigs } from "../types/index"
+import { BaseControllerConfigs } from "./BaseController"
+
+interface SygmaReporterControllerConfigs extends BaseControllerConfigs {
+  reportHeadersToDomainMsgValue: string
+  domainIds: { [chainName: string]: number }
+}
 
 class SygmaReporterController extends BaseController {
   private _domainIds: { [chainName: string]: number }
@@ -38,8 +43,8 @@ class SygmaReporterController extends BaseController {
           ],
           value: parseEther(this._reportHeadersToDomainMsgValue),
         })
-        const txhash = await client.writeContract(request)
-        this.logger.info(`tx sent on ${chain.name}: ${txhash}`)
+        const txHash = await client.writeContract(request)
+        this.logger.info(`headers reporter from ${this.sourceChain.name} to ${chain.name}: ${txHash}`)
       }
     } catch (_error) {
       this.logger.error(_error)

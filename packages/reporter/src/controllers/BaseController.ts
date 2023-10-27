@@ -3,13 +3,24 @@ import winston from "winston"
 
 import Multiclient from "../MultiClient"
 
-import { BaseControllerConfigs } from "../types"
+export type ControllerType = "classic" | "lightClient"
 
-class BaseController {
-  name: string
+export type BaseControllerConfigs = {
+  type: ControllerType
   sourceChain: Chain
   destinationChains: Chain[]
   reporterAddress?: string
+  adapterAddresses: { [chainName: string]: `0x${string}` }
+  logger: winston.Logger
+  multiClient: Multiclient
+}
+
+class BaseController {
+  name: string
+  type: ControllerType
+  sourceChain: Chain
+  destinationChains: Chain[]
+  reporterAddress?: `0x${string}`
   adapterAddresses: { [chainName: string]: `0x${string}` }
   logger: winston.Logger
   multiClient: Multiclient
@@ -20,10 +31,15 @@ class BaseController {
     this.reporterAddress = configs.reporterAddress as `0x${string}`
     this.adapterAddresses = configs.adapterAddresses
     this.multiClient = configs.multiClient
+    this.type = configs.type
     this.name = name
 
     this.logger = configs.logger.child({ service: this.name })
   }
+
+  onBlocks(_blockNumbers: bigint[]) {}
+
+  update() {}
 }
 
 export default BaseController

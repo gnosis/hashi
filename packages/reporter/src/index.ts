@@ -1,12 +1,12 @@
 import * as chains from "viem/chains"
-import { gnosis } from "viem/chains"
+import { gnosis, goerli } from "viem/chains"
 import { Chain } from "viem"
 
 import Multiclient from "./MultiClient"
 import AMBReporterController from "./controllers/AMBReporterController"
 import SygmaReporterController from "./controllers/SygmaReporterController"
 import TelepathyReporterController from "./controllers/TelepathyReporterController"
-import BlocksListener from "./BlockListener"
+import Coordinator from "./Coordinator"
 import { settings } from "./settings/index"
 import logger from "./utils/logger"
 
@@ -22,12 +22,13 @@ const main = () => {
     chains: [sourceChain, ...destinationChains],
     privateKey: process.env.PRIVATE_KEY as `0x${string}`,
     rpcUrls: {
-      goerli: settings.rpcUrls.Gnosis,
-      gnosis: settings.rpcUrls.Goerli,
+      [goerli.name]: settings.rpcUrls.Goerli,
+      [gnosis.name]: settings.rpcUrls.Gnosis,
     },
   })
 
   const ambReporterController = new AMBReporterController({
+    type: "classic",
     sourceChain,
     destinationChains,
     logger,
@@ -38,6 +39,7 @@ const main = () => {
   })
 
   const sygmaReporterController = new SygmaReporterController({
+    type: "classic",
     sourceChain,
     destinationChains,
     logger,
@@ -49,6 +51,7 @@ const main = () => {
   })
 
   const telepathyReporterController = new TelepathyReporterController({
+    type: "lightClient",
     sourceChain,
     destinationChains,
     logger,
@@ -56,27 +59,22 @@ const main = () => {
     adapterAddresses: { [gnosis.name]: settings.contractAddresses.Gnosis.SygmaAdapter },
     baseProofUrl: settings.reporterControllers.TelepathyReporterController.baseProofUrl,
     lightClientAddresses: { [gnosis.name]: settings.contractAddresses.Gnosis.TelepathyLightClient },
-    blockBuffer: settings.reporterControllers.TelepathyReporterController.blockBuffer,
-    intervalFetchHeadUpdates: settings.reporterControllers.TelepathyReporterController.intervalFetchHeadUpdates,
   })
 
-  const blocksListener = new BlocksListener({
-    controllers: [ambReporterController, sygmaReporterController].filter(
+  const coordinator = new Coordinator({
+    controllers: [ambReporterController, sygmaReporterController, telepathyReporterController].filter(
       (_controller) => controllersEnabled?.includes(_controller.name),
     ),
-    intervalFetchBlocksMs: settings.BlockListener.intervalFetchBlocksMs,
+    intervalFetchBlocksMs: settings.Coordinator.intervalFetchBlocksMs,
     logger,
     multiclient: multiClient,
     sourceChain,
-    queryBlockLength: settings.BlockListener.queryBlockLength,
-    blockBuffer: settings.BlockListener.blockBuffer,
+    queryBlockLength: settings.Coordinator.queryBlockLength,
+    blockBuffer: settings.Coordinator.blockBuffer,
+    intervalsUpdateLightClients: settings.Coordinator.intervalsUpdateLightClients,
   })
 
-  blocksListener.start()
-
-  if (controllersEnabled?.includes(telepathyReporterController.name)) {
-    telepathyReporterController.start()
-  }
+  coordinator.start()
 }
 
 main()

@@ -2,10 +2,13 @@ import "dotenv/config"
 import { gnosis, mainnet, goerli } from "viem/chains"
 
 export const settings = {
-  BlockListener: {
+  Coordinator: {
     blockBuffer: Number(process.env.BLOCK_BUFFER),
     queryBlockLength: Number(process.env.QUERY_BLOCK_LENGTH),
     intervalFetchBlocksMs: Number(process.env.TIME_FETCH_BLOCKS_MS),
+    intervalsUpdateLightClients: {
+      TelepathyReporterController: Number(process.env.TELEPATHY_INTERVAL_FETCH_HEAD_UPDATES),
+    },
   },
   rpcUrls: {
     [gnosis.name]: process.env.GNOSIS_RPC_URL as string,
@@ -36,8 +39,6 @@ export const settings = {
     },
     TelepathyReporterController: {
       baseProofUrl: process.env.TELEPATHY_PROOF_API_URL as string,
-      blockBuffer: Number(process.env.TELEPATHY_BLOCK_BUFFER),
-      intervalFetchHeadUpdates: Number(process.env.TELEPATHY_INTERVAL_FETCH_HEAD_UPDATES),
     },
   },
 }
