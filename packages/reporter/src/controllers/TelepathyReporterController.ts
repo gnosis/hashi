@@ -34,7 +34,6 @@ class TelepathyReporterController extends BaseController {
         const currentBlockNumber = await client.getBlockNumber()
         const fromBlock = this.lastProcessedBlock === 0n ? currentBlockNumber : this.lastProcessedBlock + 1n
         const toBlock = currentBlockNumber
-
         this.logger.info(`getting HeadUpdate events in [${fromBlock},${toBlock}] on ${chain.name} ...`)
 
         const logs = await client.getContractEvents({
@@ -47,10 +46,11 @@ class TelepathyReporterController extends BaseController {
 
         if (logs.length == 0) {
           this.logger.info("No HeadUpdate events. Skipping ...")
+          this.lastProcessedBlock = toBlock
           continue
         }
 
-        this.logger.error(`detected ${logs.length} HeadUpdate events. Processing them ...`)
+        this.logger.info(`detected ${logs.length} HeadUpdate events. Processing them ...`)
         logs.forEach(async (_log: any) => {
           const slotValue = _log.topics[1]
           this.logger.info(`fetching proof for slot ${slotValue} on ${chain.name} ...`)
