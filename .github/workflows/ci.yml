@@ -1,8 +1,5 @@
 name: "CI"
 
-env:
-  DOTENV_CONFIG_PATH: "./.env.example"
-
 on:
   workflow_dispatch:
   pull_request:
@@ -26,6 +23,10 @@ jobs:
 
       - name: "Install the dependencies"
         run: "yarn install --immutable"
+
+      - name: 'Create env file'
+        run: |
+          echo "${{ secrets.CI_ENV_FILE }}" > ./packages/evm/.env
 
       - name: "Lint the code"
         run: "yarn lint"

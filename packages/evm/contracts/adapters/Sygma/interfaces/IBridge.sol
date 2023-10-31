@@ -20,5 +20,5 @@ interface IBridge {
         bytes32 resourceID,
         bytes calldata depositData,
         bytes calldata feeData
-    ) external payable;
+    ) external payable returns (uint64 depositNonce, bytes memory handlerResponse);
 }
