@@ -6,7 +6,7 @@ contract PingPong {
 
     uint256 public count;
 
-    function ping() public returns (string memory pong) {
+    function ping() public returns (string memory pong, bytes32, uint256, address) {
         count++;
         pong = "pong";
         emit Pong(pong);

@@ -23,7 +23,7 @@ contract ConnextHeaderReporter {
     /// @param transferId Uint64 value used to retrive transfer from the Connext network.
     function reportHeader(uint256 blockNumber) public returns (bytes32 transferId) {
         bytes32 blockHeader = headerStorage.storeBlockHeader(blockNumber);
-        bytes memory callData = abi.encode(blockNumber, blockHeader);
+        bytes memory callData = abi.encode(bytes32(blockNumber), blockHeader);
         transferId = connext.xcall{ value: 0 }(
             destinationDomain, // _destination: Domain ID of the destination chain
             target, // _to: address of the target contract

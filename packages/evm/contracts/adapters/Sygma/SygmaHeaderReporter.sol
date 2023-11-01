@@ -51,9 +51,19 @@ contract SygmaHeaderReporter is SygmaReporter {
         bytes memory feeData
     ) internal {
         bytes32[] memory blockHeaders = _headerStorage.storeBlockHeaders(blockNumbers);
-        _reportData(blockNumbers, blockHeaders, sygmaAdapter, destinationDomainID, feeData);
-        for (uint i = 0; i < blockNumbers.length; i++) {
+        bytes32[] memory bBlockNumbers = new bytes32[](blockNumbers.length);
+        for (uint256 i = 0; i < blockNumbers.length; ) {
+            bBlockNumbers[i] = bytes32(blockNumbers[i]);
+            unchecked {
+                ++i;
+            }
+        }
+        _reportData(bBlockNumbers, blockHeaders, sygmaAdapter, destinationDomainID, feeData);
+        for (uint i = 0; i < blockNumbers.length; ) {
             emit HeaderReported(address(this), blockNumbers[i], blockHeaders[i]);
+            unchecked {
+                ++i;
+            }
         }
     }
 }

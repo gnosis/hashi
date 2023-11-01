@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: LGPL-3.0-only
-pragma solidity ^0.8.17;
+/*pragma solidity ^0.8.17;
 
 import { Yaru } from "../Yaru.sol";
 import { Module, Enum } from "@gnosis.pm/zodiac/contracts/core/Module.sol";
@@ -56,7 +56,7 @@ contract HashiModule is Module {
     /// @dev Check that the yaru, chainId, and owner are valid
     modifier onlyValid() {
         if (msg.sender != address(yaru)) revert UnauthorizedYaru(address(this), msg.sender);
-        if (yaru.chainId() != chainId) revert UnauthorizedChainId(address(this), yaru.chainId());
+        // TODO: if (yaru.chainId() != chainId) revert UnauthorizedChainId(address(this), yaru.chainId());
         if (yaru.sender() != controller) revert UnauthorizedController(address(this), yaru.sender());
         _;
     }
@@ -102,3 +102,4 @@ contract HashiModule is Module {
         if (!exec(to, value, data, operation)) revert ModuleTransactionFailed(address(this));
     }
 }
+*/

@@ -28,12 +28,12 @@ abstract contract BlockHashOracleAdapter is OracleAdapter {
             uint256 blockNumber = uint256(blockHeaderContent[8].toUint());
 
             bytes32 reportedBlockHash = keccak256(blockHeaders[i]);
-            bytes32 storedBlockHash = hashes[chainId][blockNumber];
+            bytes32 storedBlockHash = hashes[chainId][bytes32(blockNumber)];
 
             if (reportedBlockHash != storedBlockHash)
                 revert ConflictingBlockHeader(blockNumber, reportedBlockHash, storedBlockHash);
 
-            _storeHash(chainId, blockNumber - 1, blockParent);
+            _storeHash(chainId, bytes32(blockNumber - 1), blockParent);
         }
     }
 }

@@ -58,7 +58,7 @@ contract DendrETHAdapter is BlockHashOracleAdapter {
             revert InvalidBlockHashProof();
         }
 
-        _storeHash(uint256(_chainId), _blockNumber, _blockHash);
+        _storeHash(uint256(_chainId), bytes32(_blockNumber), _blockHash);
     }
 
     /// @notice Updates DendrETH Light client and stores the given block
@@ -90,6 +90,6 @@ contract DendrETHAdapter is BlockHashOracleAdapter {
             revert InvalidBlockHashProof();
         }
 
-        _storeHash(uint256(_chainId), _blockNumber, _blockHash);
+        _storeHash(uint256(_chainId), bytes32(_blockNumber), _blockHash);
     }
 }

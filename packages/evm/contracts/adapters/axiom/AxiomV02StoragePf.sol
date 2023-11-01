@@ -98,7 +98,7 @@ contract AxiomV02StoragePf is Ownable, IAxiomV0StoragePf {
         bytes32 blockHash,
         IOracleAdapter[] memory oracleAdapters
     ) external {
-        bytes32 hashFromHashi = IHashi(hashiAddress).getHash(domain, blockNumber, oracleAdapters);
+        bytes32 hashFromHashi = IHashi(hashiAddress).getHash(domain, bytes32(uint256(blockNumber)), oracleAdapters);
         require(hashFromHashi == blockHash, "block hash mismatch with hash block hash");
 
         // Extract instances from proof
@@ -135,7 +135,7 @@ contract AxiomV02StoragePf is Ownable, IAxiomV0StoragePf {
         bytes32 blockHash,
         IOracleAdapter[] memory oracleAdapters
     ) external returns (address) {
-        bytes32 hashFromHashi = IHashi(hashiAddress).getHash(domain, blockNumber, oracleAdapters);
+        bytes32 hashFromHashi = IHashi(hashiAddress).getHash(domain, bytes32(uint256(blockNumber)), oracleAdapters);
         require(hashFromHashi == blockHash, "block hash mismatch with hash block hash");
 
         // Extract instances from proof

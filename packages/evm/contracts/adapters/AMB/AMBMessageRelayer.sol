@@ -10,18 +10,17 @@ contract AMBMessageRelay is IMessageRelay {
     IAMB public immutable amb;
     Yaho public immutable yaho;
 
-    event MessageRelayed(address indexed emitter, uint256 indexed messageId);
+    event MessageRelayed(address indexed emitter, bytes32 indexed messageId);
 
     constructor(IAMB _amb, Yaho _yaho) {
         amb = _amb;
         yaho = _yaho;
     }
 
-    function relayMessages(uint256[] memory messageIds, address ambAdapter) public payable returns (bytes32 receipt) {
+    function relayMessages(bytes32[] memory messageIds, address ambAdapter) public payable returns (bytes32 receipt) {
         bytes32[] memory hashes = new bytes32[](messageIds.length);
         for (uint256 i = 0; i < messageIds.length; i++) {
-            uint256 id = messageIds[i];
-            hashes[i] = yaho.hashes(id);
+            hashes[i] = yaho.hashes(messageIds[i]);
             emit MessageRelayed(address(this), messageIds[i]);
         }
         bytes memory data = abi.encodeCall(AMBAdapter.storeHashes, (messageIds, hashes));

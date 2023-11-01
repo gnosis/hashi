@@ -18,7 +18,7 @@ contract SygmaReporter {
     }
 
     function _reportData(
-        uint256[] memory messageIds,
+        bytes32[] memory messageIds,
         bytes32[] memory hashes,
         address sygmaAdapter,
         uint8 destinationDomainID,
@@ -50,7 +50,7 @@ contract SygmaReporter {
     }
 
     function prepareDepositData(
-        uint256[] memory messageIds,
+        bytes32[] memory messageIds,
         bytes32[] memory hashes
     ) public view returns (bytes memory) {
         bytes memory encoded = abi.encode(address(0), messageIds, hashes);

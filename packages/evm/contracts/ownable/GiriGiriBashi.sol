@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: LGPL-3.0-only
-pragma solidity ^0.8.17;
+/*pragma solidity ^0.8.17;
 
 import { IOracleAdapter, ShuSo, Hashi } from "./ShuSo.sol";
 
@@ -20,20 +20,20 @@ struct Challenge {
 contract GiriGiriBashi is ShuSo {
     address payable public bondRecipient; // address that bonds from unsuccessful challenges should be sent to.
 
-    mapping(uint256 => uint256) public heads; // highest Id reported.
+    mapping(uint256 => bytes32) public heads; // highest Id reported.
     mapping(uint256 => uint256) public challengeRanges; // how far beyond the current highestId can a challenged.
     mapping(IOracleAdapter => Settings) public settings;
     mapping(bytes32 => Challenge) public challenges; // current challenges.
 
     event BondRecipientSet(address emitter, address payable bondRecipient);
-    event NewHead(address emitter, uint256 domain, uint256 head);
+    event NewHead(address emitter, uint256 domain, bytes32 head);
     event ChallegenRangeUpdated(address emitter, uint256 domain, uint256 range);
     event SettingsInitialized(address emitter, uint256 domain, IOracleAdapter adapter, Settings settings);
     event ChallengeCreated(
         address emitter,
         bytes32 challengeId,
         uint256 indexed domain,
-        uint256 id,
+        bytes32 id,
         IOracleAdapter indexed adapter,
         address indexed challenger,
         uint256 timestamp,
@@ -43,7 +43,7 @@ contract GiriGiriBashi is ShuSo {
         address emitter,
         bytes32 challengeId,
         uint256 indexed domain,
-        uint256 id,
+        bytes32 id,
         IOracleAdapter indexed adapter,
         address indexed challenger,
         uint256 bond,
@@ -51,15 +51,15 @@ contract GiriGiriBashi is ShuSo {
     );
     event NoConfidenceDeclareed(address emitter, uint256 domain);
 
-    error DuplicateChallenge(address emitter, bytes32 challengeId, uint256 domain, uint256 id, IOracleAdapter adapter);
-    error OutOfRange(address emitter, IOracleAdapter adapter, uint256 id);
+    error DuplicateChallenge(address emitter, bytes32 challengeId, uint256 domain, bytes32 id, IOracleAdapter adapter);
+    error OutOfRange(address emitter, IOracleAdapter adapter, bytes32 id);
     error AlreadyQuarantined(address emitter, IOracleAdapter adapter);
     error NotEnoughtValue(address emitter, IOracleAdapter adapter, uint256 value);
-    error ChallengeNotFound(address emitter, bytes32 challengeId, uint256 domain, uint256 id, IOracleAdapter adapter);
+    error ChallengeNotFound(address emitter, bytes32 challengeId, uint256 domain, bytes32 id, IOracleAdapter adapter);
     error AdapterHasNotYetTimedOut(address emitter, IOracleAdapter adapter);
     error UnequalArrayLengths(address emitter);
     error AdapterNotQuarantined(address emitter, IOracleAdapter adapter);
-    error CannotProveNoConfidence(address emitter, uint256 domain, uint256 id, IOracleAdapter[] adapters);
+    error CannotProveNoConfidence(address emitter, uint256 domain, bytes32 id, IOracleAdapter[] adapters);
     error AdaptersAgreed(address emitter, IOracleAdapter, IOracleAdapter);
     error NoConfidenceRequired(address emitter);
     error CountMustBeZero(address emitter, uint256 domain);
@@ -101,11 +101,11 @@ contract GiriGiriBashi is ShuSo {
     /// @dev Challenges the oracle adapter to provide a response.
     /// If the oracle adapter fails, it can be quarantined.
     /// @param domain Uint256 identifier for the domain for which to set the threshold.
-    /// @param id Uint256 threshold to set for the given domain.
+    /// @param id Bytes32 threshold to set for the given domain.
     /// @param adapter Address of the oracle adapter to challenge.
     /// @notice Caller must pay a minimum bond to issue the challenge.
     /// This bond should be high enough to cover the gas costs for successfully completing the challenge.
-    function challengeOracleAdapter(uint256 domain, uint256 id, IOracleAdapter adapter) public payable {
+    function challengeOracleAdapter(uint256 domain, bytes32 id, IOracleAdapter adapter) public payable {
         // check if oracle is enabled, revert if false
         if (adapters[domain][adapter].previous == IOracleAdapter(address(0)))
             revert AdapterNotEnabled(address(this), adapter);
@@ -126,11 +126,12 @@ contract GiriGiriBashi is ShuSo {
         // check if id is lower than highestId - idDepth, revert if true
         uint256 challengeRange = challengeRanges[domain];
         uint256 idDepth = settings[adapter].idDepth;
-        uint256 head = heads[domain];
+        uint256 head = uint256(heads[domain]);
+        uint256 uintId = uint256(id);
         if (
-            id < settings[adapter].startId || // before start id
-            (challengeRange != 0 && id >= head && id - head > challengeRange) || // over domain challenge range
-            (idDepth != 0 && head > idDepth && id <= head - idDepth) // outside of adapter idDepth
+            uintId < settings[adapter].startId || // before start id
+            (challengeRange != 0 && uintId >= head && uintId - head > challengeRange) || // over domain challenge range
+            (idDepth != 0 && head > idDepth && uintId <= head - idDepth) // outside of adapter idDepth
         ) revert OutOfRange(address(this), adapter, id);
 
         // create challenge
@@ -145,7 +146,7 @@ contract GiriGiriBashi is ShuSo {
 
     function resolveChallenge(
         uint256 domain,
-        uint256 id,
+        bytes32 id,
         IOracleAdapter adapter,
         IOracleAdapter[] memory _adapters
     ) public returns (bool success) {
@@ -213,7 +214,7 @@ contract GiriGiriBashi is ShuSo {
     }
 
     // show that enough oracles disagree that they could not make a threshold if the remainder all agree with one.
-    function declareNoConfidence(uint256 domain, uint256 id, IOracleAdapter[] memory _adapters) public {
+    function declareNoConfidence(uint256 domain, bytes32 id, IOracleAdapter[] memory _adapters) public {
         checkAdapterOrderAndValidity(domain, _adapters);
         (uint256 threshold, uint256 count) = getThresholdAndCount(domain);
 
@@ -283,14 +284,14 @@ contract GiriGiriBashi is ShuSo {
         initSettings(domain, _adapters, _settings);
     }
 
-    function updateHead(uint256 domain, uint256 id) private {
+    function updateHead(uint256 domain, bytes32 id) private {
         if (id > heads[domain]) heads[domain] = id;
         emit NewHead(address(this), domain, id);
     }
 
     function getChallengeId(
         uint256 domain,
-        uint256 id,
+        bytes32 id,
         IOracleAdapter adapter
     ) public pure returns (bytes32 challengeId) {
         challengeId = keccak256(abi.encodePacked(domain, id, adapter));
@@ -298,23 +299,23 @@ contract GiriGiriBashi is ShuSo {
 
     /// @dev Returns the hash unanimously agreed upon by ALL of the enabled oraclesAdapters.
     /// @param domain Uint256 identifier for the domain to query.
-    /// @param id Uint256 identifier to query.
+    /// @param id Bytes32 identifier to query.
     /// @return hash Bytes32 hash agreed upon by the oracles for the given domain.
     /// @notice Reverts if oracles disagree.
     /// @notice Reverts if oracles have not yet reported the hash for the given ID.
     /// @notice Reverts if no oracles are set for the given domain.
-    function getUnanimousHash(uint256 domain, uint256 id) public returns (bytes32 hash) {
+    function getUnanimousHash(uint256 domain, bytes32 id) public returns (bytes32 hash) {
         hash = _getUnanimousHash(domain, id);
         updateHead(domain, id);
     }
 
     /// @dev Returns the hash agreed upon by a threshold of the enabled oraclesAdapters.
     /// @param domain Uint256 identifier for the domain to query.
-    /// @param id Uint256 identifier to query.
+    /// @param id Bytes32 identifier to query.
     /// @return hash Bytes32 hash agreed upon by a threshold of the oracles for the given domain.
     /// @notice Reverts if no threshold is not reached.
     /// @notice Reverts if no oracles are set for the given domain.
-    function getThresholdHash(uint256 domain, uint256 id) public returns (bytes32 hash) {
+    function getThresholdHash(uint256 domain, bytes32 id) public returns (bytes32 hash) {
         hash = _getThresholdHash(domain, id);
         updateHead(domain, id);
     }
@@ -322,15 +323,16 @@ contract GiriGiriBashi is ShuSo {
     /// @dev Returns the hash unanimously agreed upon by all of the given oraclesAdapters..
     /// @param domain Uint256 identifier for the domain to query.
     /// @param _adapters Array of oracle adapter addresses to query.
-    /// @param id Uint256 identifier to query.
+    /// @param id Bytes32 identifier to query.
     /// @return hash Bytes32 hash agreed upon by the oracles for the given domain.
     /// @notice _adapters must be in numberical order from smallest to largest and contain no duplicates.
     /// @notice Reverts if _adapters are out of order or contain duplicates.
     /// @notice Reverts if oracles disagree.
     /// @notice Reverts if oracles have not yet reported the hash for the given ID.
     /// @notice Reverts if no oracles are set for the given domain.
-    function getHash(uint256 domain, uint256 id, IOracleAdapter[] memory _adapters) public returns (bytes32 hash) {
+    function getHash(uint256 domain, bytes32 id, IOracleAdapter[] memory _adapters) public returns (bytes32 hash) {
         hash = _getHash(domain, id, _adapters);
         updateHead(domain, id);
     }
 }
+*/

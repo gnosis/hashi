@@ -12,5 +12,11 @@ interface IMessageDispatcher {
         bytes data
     );
 
-    function dispatchMessages(Message[] memory messages) external payable returns (bytes32[] memory messageIds);
+    function dispatchMessage(uint256 toChainId, address to, bytes calldata data) external payable returns (bytes32);
+
+    function dispatchMessages(
+        uint256[] calldata toChainIds,
+        address[] calldata tos,
+        bytes[] calldata data
+    ) external payable returns (bytes32[] memory);
 }

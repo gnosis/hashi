@@ -69,7 +69,7 @@ contract ConnextAdapter is OracleAdapter, BlockHashOracleAdapter, IXReceiver {
         bytes memory _callData
     ) external onlySource(_originSender, _origin) returns (bytes memory) {
         // Unpack the _callData
-        (uint256 blockNumber, bytes32 newBlockHeader) = abi.decode(_callData, (uint256, bytes32));
+        (bytes32 blockNumber, bytes32 newBlockHeader) = abi.decode(_callData, (bytes32, bytes32));
         _storeHash(uint256(domainToChainId[_origin]), blockNumber, newBlockHeader);
     }
 }

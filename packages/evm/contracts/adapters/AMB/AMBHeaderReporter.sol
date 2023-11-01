@@ -26,7 +26,15 @@ contract AMBHeaderReporter {
         uint256 gas
     ) public returns (bytes32 receipt) {
         bytes32[] memory blockHeaders = headerStorage.storeBlockHeaders(blockNumbers);
-        bytes memory data = abi.encodeCall(AMBAdapter.storeHashes, (blockNumbers, blockHeaders));
+        bytes32[] memory bBlockNumbers = new bytes32[](blockNumbers.length);
+        for (uint256 i = 0; i < blockNumbers.length; ) {
+            bBlockNumbers[i] = bytes32(blockNumbers[i]);
+            unchecked {
+                ++i;
+            }
+        }
+
+        bytes memory data = abi.encodeCall(AMBAdapter.storeHashes, (bBlockNumbers, blockHeaders));
         receipt = amb.requireToPassMessage(ambAdapter, data, gas);
         for (uint256 i = 0; i < blockNumbers.length; i++) {
             emit HeaderReported(address(this), blockNumbers[i], blockHeaders[i]);

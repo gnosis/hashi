@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: LGPL-3.0-only
-pragma solidity ^0.8.17;
+/*pragma solidity ^0.8.17;
 
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import { ERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import { SafeERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import { AddressUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import { LocalToken } from "./LocalToken.sol";
-import { Yaho, Message } from "../Yaho.sol";
+import { Yaho } from "../Yaho.sol";
 import { Yaru } from "../Yaru.sol";
 
 contract NaiveTokenBridge is OwnableUpgradeable {
@@ -65,13 +65,7 @@ contract NaiveTokenBridge is OwnableUpgradeable {
                 (token, receiver, amount, ERC20Upgradeable(token).name(), ERC20Upgradeable(token).symbol())
             );
         }
-
-        Message[] memory messages = new Message[](1);
-        messages[0] = Message({ to: twin, toChainId: destinationChain, data: data });
-        bytes32[] memory messageIds = new bytes32[](1);
-        messageIds = yaho.dispatchMessages(messages);
-        messageId = messageIds[0];
-
+        messageId = yaho.dispatchMessage(destinationChain, receiver, data);
         emit TokensBridged(address(this), token, receiver, amount);
     }
 
@@ -127,3 +121,4 @@ contract NaiveTokenBridge is OwnableUpgradeable {
         );
     }
 }
+*/

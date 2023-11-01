@@ -2,7 +2,7 @@
 pragma solidity ^0.8.17;
 
 interface IOracleAdapter {
-    event HashStored(uint256 indexed id, bytes32 indexed hashes);
+    event HashStored(bytes32 indexed id, bytes32 indexed hashes);
 
     error InvalidBlockHeaderLength(uint256 length);
     error InvalidBlockHeaderRLP();
@@ -13,5 +13,5 @@ interface IOracleAdapter {
     /// @param id Identifier for the ID to query.
     /// @return hash Bytes32 hash reported by the oracle for the given ID on the given domain.
     /// @notice MUST return bytes32(0) if the oracle has not yet reported a hash for the given ID.
-    function getHashFromOracle(uint256 domain, uint256 id) external view returns (bytes32 hash);
+    function getHashFromOracle(uint256 domain, bytes32 id) external view returns (bytes32 hash);
 }

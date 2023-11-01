@@ -48,7 +48,7 @@ contract Hashi {
     function getHashFromOracle(
         IOracleAdapter oracleAdapter,
         uint256 domain,
-        uint256 id
+        bytes32 id
     ) public view returns (bytes32 hash) {
         hash = oracleAdapter.getHashFromOracle(domain, id);
     }
@@ -61,7 +61,7 @@ contract Hashi {
     function getHashesFromOracles(
         IOracleAdapter[] memory oracleAdapters,
         uint256 domain,
-        uint256 id
+        bytes32 id
     ) public view returns (bytes32[] memory) {
         if (oracleAdapters.length == 0) revert NoOracleAdaptersGiven(address(this));
         bytes32[] memory hashes = new bytes32[](oracleAdapters.length);
@@ -79,7 +79,7 @@ contract Hashi {
     /// @notice MUST revert if oracles disagree on the hash or if an oracle does not report.
     function getHash(
         uint256 domain,
-        uint256 id,
+        bytes32 id,
         IOracleAdapter[] memory oracleAdapters
     ) public view returns (bytes32 hash) {
         if (oracleAdapters.length == 0) revert NoOracleAdaptersGiven(address(this));

@@ -43,36 +43,36 @@ contract ShoyuBashi is ShuSo {
 
     /// @dev Returns the hash unanimously agreed upon by ALL of the enabled oraclesAdapters.
     /// @param domain Uint256 identifier for the domain to query.
-    /// @param id Uint256 identifier to query.
+    /// @param id Bytes32 identifier to query.
     /// @return hash Bytes32 hash agreed upon by the oracles for the given domain.
     /// @notice Reverts if oracles disagree.
     /// @notice Reverts if oracles have not yet reported the hash for the given ID.
     /// @notice Reverts if no oracles are set for the given domain.
-    function getUnanimousHash(uint256 domain, uint256 id) public view returns (bytes32 hash) {
+    function getUnanimousHash(uint256 domain, bytes32 id) public view returns (bytes32 hash) {
         hash = _getUnanimousHash(domain, id);
     }
 
     /// @dev Returns the hash agreed upon by a threshold of the enabled oraclesAdapters.
     /// @param domain Uint256 identifier for the domain to query.
-    /// @param id Uint256 identifier to query.
+    /// @param id Bytes32 identifier to query.
     /// @return hash Bytes32 hash agreed upon by a threshold of the oracles for the given domain.
     /// @notice Reverts if no threshold is not reached.
     /// @notice Reverts if no oracles are set for the given domain.
-    function getThresholdHash(uint256 domain, uint256 id) public view returns (bytes32 hash) {
+    function getThresholdHash(uint256 domain, bytes32 id) public view returns (bytes32 hash) {
         hash = _getThresholdHash(domain, id);
     }
 
     /// @dev Returns the hash unanimously agreed upon by all of the given oraclesAdapters..
     /// @param domain Uint256 identifier for the domain to query.
     /// @param _adapters Array of oracle adapter addresses to query.
-    /// @param id Uint256 identifier to query.
+    /// @param id Bytes32 identifier to query.
     /// @return hash Bytes32 hash agreed upon by the oracles for the given domain.
     /// @notice _adapters must be in numberical order from smallest to largest and contain no duplicates.
     /// @notice Reverts if _adapters are out of order or contain duplicates.
     /// @notice Reverts if oracles disagree.
     /// @notice Reverts if oracles have not yet reported the hash for the given ID.
     /// @notice Reverts if no oracles are set for the given domain.
-    function getHash(uint256 domain, uint256 id, IOracleAdapter[] memory _adapters) public view returns (bytes32 hash) {
+    function getHash(uint256 domain, bytes32 id, IOracleAdapter[] memory _adapters) public view returns (bytes32 hash) {
         hash = _getHash(domain, id, _adapters);
     }
 }

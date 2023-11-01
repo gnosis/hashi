@@ -156,12 +156,12 @@ abstract contract ShuSo is OwnableUpgradeable {
 
     /// @dev Returns the hash unanimously agreed upon by ALL of the enabled oraclesAdapters.
     /// @param domain Uint256 identifier for the domain to query.
-    /// @param id Uint256 identifier to query.
+    /// @param id Bytes32 identifier to query.
     /// @return hash Bytes32 hash agreed upon by the oracles for the given domain.
     /// @notice Reverts if oracles disagree.
     /// @notice Reverts if oracles have not yet reported the hash for the given ID.
     /// @notice Reverts if no oracles are set for the given domain.
-    function _getUnanimousHash(uint256 domain, uint256 id) internal view returns (bytes32 hash) {
+    function _getUnanimousHash(uint256 domain, bytes32 id) internal view returns (bytes32 hash) {
         IOracleAdapter[] memory _adapters = getOracleAdapters(domain);
         (uint256 threshold, uint256 count) = getThresholdAndCount(domain);
         if (count == 0) revert NoAdaptersEnabled(address(this), domain);
@@ -171,11 +171,11 @@ abstract contract ShuSo is OwnableUpgradeable {
 
     /// @dev Returns the hash agreed upon by a threshold of the enabled oraclesAdapters.
     /// @param domain Uint256 identifier for the domain to query.
-    /// @param id Uint256 identifier to query.
+    /// @param id Bytes32 identifier to query.
     /// @return hash Bytes32 hash agreed upon by a threshold of the oracles for the given domain.
     /// @notice Reverts if no threshold is not reached.
     /// @notice Reverts if no oracles are set for the given domain.
-    function _getThresholdHash(uint256 domain, uint256 id) internal view returns (bytes32 hash) {
+    function _getThresholdHash(uint256 domain, bytes32 id) internal view returns (bytes32 hash) {
         IOracleAdapter[] memory _adapters = getOracleAdapters(domain);
         (uint256 threshold, uint256 count) = getThresholdAndCount(domain);
         if (count == 0) revert NoAdaptersEnabled(address(this), domain);
@@ -219,7 +219,7 @@ abstract contract ShuSo is OwnableUpgradeable {
     /// @notice Reverts if no oracles are set for the given domain.
     function _getHash(
         uint256 domain,
-        uint256 id,
+        bytes32 id,
         IOracleAdapter[] memory _adapters
     ) internal view returns (bytes32 hash) {
         (uint256 threshold, uint256 count) = getThresholdAndCount(domain);

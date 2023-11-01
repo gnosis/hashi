@@ -29,6 +29,6 @@ contract WormholeAdapter is OracleAdapter, BlockHashOracleAdapter {
         if (_vm.emitterChainId != chainId) revert InvalidChainId(address(this), _vm.emitterChainId);
         if (_vm.emitterAddress != headerReporter) revert InvalidReporter(address(this), _vm.emitterAddress);
         bytes32 newHash = abi.decode(_vm.payload, (bytes32));
-        _storeHash(uint256(chainId), blockNumber, newHash);
+        _storeHash(uint256(chainId), bytes32(blockNumber), newHash);
     }
 }

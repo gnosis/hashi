@@ -8,7 +8,7 @@ import { Yaho } from "../../Yaho.sol";
 contract SygmaMessageRelayer is SygmaReporter, IMessageRelay {
     Yaho public immutable _yaho;
 
-    event MessageRelayed(address indexed emitter, uint256 indexed messageId);
+    event MessageRelayed(address indexed emitter, bytes32 indexed messageId);
 
     constructor(
         address bridge,
@@ -25,11 +25,10 @@ contract SygmaMessageRelayer is SygmaReporter, IMessageRelay {
         @param messageIds IDs of the messages to pass over the Sygma bridge.
         @param sygmaAdapter Address of the Sygma adapter on the target chain.
     */
-    function relayMessages(uint256[] memory messageIds, address sygmaAdapter) public payable returns (bytes32) {
+    function relayMessages(bytes32[] memory messageIds, address sygmaAdapter) public payable returns (bytes32) {
         bytes32[] memory hashes = new bytes32[](messageIds.length);
         for (uint256 i = 0; i < messageIds.length; i++) {
-            uint256 id = messageIds[i];
-            hashes[i] = _yaho.hashes(id);
+            hashes[i] = _yaho.hashes(messageIds[i]);
             emit MessageRelayed(address(this), messageIds[i]);
         }
         (uint64 depositNonce, ) = _reportData(messageIds, hashes, sygmaAdapter, _defaultDestinationDomainID, "");
