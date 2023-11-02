@@ -25,16 +25,7 @@ contract Yaho is IMessageDispatcher, MessageHashCalculator, MessageIdCalculator 
         bytes calldata data
     ) external payable returns (bytes32 messageId) {
         unchecked {
-            Message memory message = Message({
-                from: msg.sender,
-                to: to,
-                fromChainId: block.chainid,
-                toChainId: toChainId,
-                data: data
-            });
-            messageId = calculateMessageId(block.chainid, address(this), messageNonce);
-            hashes[messageId] = calculateMessageHash(messageId, message);
-            emit MessageDispatched(messageId, msg.sender, toChainId, to, data);
+            messageId = _dispatchMessage(toChainId, to, data, messageNonce);
             ++messageNonce;
         }
     }
@@ -53,28 +44,17 @@ contract Yaho is IMessageDispatcher, MessageHashCalculator, MessageIdCalculator 
             revert UnequalArrayLengths(address(this));
 
         bytes32[] memory messageIds = new bytes32[](toChainIds.length);
+        uint256 nonce = messageNonce;
 
-        uint256 currentMessageNonce = messageNonce;
         for (uint256 i = 0; i < toChainIds.length; ) {
             unchecked {
-                Message memory message = Message({
-                    from: msg.sender,
-                    to: tos[i],
-                    fromChainId: block.chainid,
-                    toChainId: toChainIds[i],
-                    data: data[i]
-                });
-
-                bytes32 messageId = calculateMessageId(block.chainid, address(this), currentMessageNonce);
-                hashes[messageId] = calculateMessageHash(messageId, message);
-                messageIds[i] = messageId;
-                emit MessageDispatched(messageId, msg.sender, message.toChainId, message.to, message.data);
-                ++currentMessageNonce;
+                messageIds[i] = _dispatchMessage(toChainIds[i], tos[i], data[i], nonce);
+                ++nonce;
                 ++i;
             }
         }
 
-        messageNonce = currentMessageNonce;
+        messageNonce = nonce;
         return messageIds;
     }
 
@@ -120,5 +100,23 @@ contract Yaho is IMessageDispatcher, MessageHashCalculator, MessageIdCalculator 
             adapterReciepts[i] = IMessageRelay(adapters[i]).relayMessages(messageIds, destinationAdapters[i]);
         }
         return (messageIds, adapterReciepts);
+    }
+
+    function _dispatchMessage(
+        uint256 toChainId,
+        address to,
+        bytes calldata data,
+        uint256 nonce
+    ) internal returns (bytes32 messageId) {
+        Message memory message = Message({
+            from: msg.sender,
+            to: to,
+            fromChainId: block.chainid,
+            toChainId: toChainId,
+            data: data
+        });
+        messageId = calculateMessageId(block.chainid, address(this), nonce);
+        hashes[messageId] = calculateMessageHash(messageId, message);
+        emit MessageDispatched(messageId, msg.sender, toChainId, to, data);
     }
 }
