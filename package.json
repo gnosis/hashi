@@ -1,7 +1,6 @@
 {
   "private": true,
-  "name": "@gnosis/hashi",
-  "version": "1.0.0",
+  "name": "hashi",
   "description": "",
   "author": {
     "name": "gnosis",
