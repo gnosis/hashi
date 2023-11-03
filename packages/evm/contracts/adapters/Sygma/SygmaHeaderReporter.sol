@@ -13,19 +13,9 @@ contract SygmaHeaderReporter is SygmaReporter {
         address bridge,
         HeaderStorage headerStorage,
         bytes32 resourceID,
-        uint8 defaultDestinationDomainID,
         address defaultSygmaAdapter
-    ) SygmaReporter(bridge, resourceID, defaultDestinationDomainID, defaultSygmaAdapter) {
+    ) SygmaReporter(bridge, resourceID, defaultSygmaAdapter) {
         _headerStorage = headerStorage;
-    }
-
-    /**
-        @dev Reports the given block headers to the oracleAdapter via the Sygma bridge to default domain.
-        @param blockNumbers Uint256 array of block numbers to pass over the Sygma bridge.
-        @param feeData Additional data to be passed to the fee handler.
-    */
-    function reportHeaders(uint256[] memory blockNumbers, bytes calldata feeData) public payable {
-        _reportHeaders(blockNumbers, _defaultSygmaAdapter, _defaultDestinationDomainID, feeData);
     }
 
     /**

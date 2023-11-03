@@ -8,11 +8,12 @@ import { MessageIdCalculator } from "./utils/MessageIdCalculator.sol";
 
 contract Yaho is IMessageDispatcher, MessageHashCalculator, MessageIdCalculator {
     mapping(bytes32 => bytes32) public hashes;
-    uint256 private messageNonce;
+    uint256 private _messageNonce;
 
     error NoMessageIdsGiven(address emitter);
     error NoAdaptersGiven(address emitter);
     error UnequalArrayLengths(address emitter);
+    error MessageHashMismatch(bytes32 messageHash, bytes32 expectedMessageHash);
 
     /// @dev Dispatches a message using the EIP-5164 standard, putting their into storage and emitting their contents as an event.
     /// @param toChainId The destination chain id.
@@ -25,8 +26,8 @@ contract Yaho is IMessageDispatcher, MessageHashCalculator, MessageIdCalculator 
         bytes calldata data
     ) external payable returns (bytes32 messageId) {
         unchecked {
-            messageId = _dispatchMessage(toChainId, to, data, messageNonce);
-            ++messageNonce;
+            messageId = _dispatchMessage(toChainId, to, data, _messageNonce);
+            ++_messageNonce;
         }
     }
 
@@ -44,7 +45,7 @@ contract Yaho is IMessageDispatcher, MessageHashCalculator, MessageIdCalculator 
             revert UnequalArrayLengths(address(this));
 
         bytes32[] memory messageIds = new bytes32[](toChainIds.length);
-        uint256 nonce = messageNonce;
+        uint256 nonce = _messageNonce;
 
         for (uint256 i = 0; i < toChainIds.length; ) {
             unchecked {
@@ -54,27 +55,47 @@ contract Yaho is IMessageDispatcher, MessageHashCalculator, MessageIdCalculator 
             }
         }
 
-        messageNonce = nonce;
+        _messageNonce = nonce;
         return messageIds;
     }
 
-    /// @dev Relays hashes of the given messageIds to the given adapters.
+    /// @dev Relays hashes of the given message ids to the given adapters.
+    /// @param messages Array of messages to relay to the given adapters.
     /// @param messageIds Array of IDs of the message hashes to relay to the given adapters.
     /// @param adapters Array of relay adapter addresses to which hashes should be relayed.
     /// @param destinationAdapters Array of oracle adapter addresses to receive hashes.
     /// @return adapterReciepts Reciepts from each of the relay adapters.
     function relayMessagesToAdapters(
-        bytes32[] memory messageIds,
-        address[] memory adapters,
-        address[] memory destinationAdapters
+        Message[] calldata messages,
+        bytes32[] calldata messageIds,
+        address[] calldata adapters,
+        address[] calldata destinationAdapters
     ) external payable returns (bytes32[] memory) {
         if (messageIds.length == 0) revert NoMessageIdsGiven(address(this));
         if (adapters.length == 0) revert NoAdaptersGiven(address(this));
+        if (messages.length != messageIds.length) revert UnequalArrayLengths(address(this));
         if (adapters.length != destinationAdapters.length) revert UnequalArrayLengths(address(this));
+
         bytes32[] memory adapterReciepts = new bytes32[](adapters.length);
-        for (uint256 i = 0; i < adapters.length; i++) {
-            adapterReciepts[i] = IMessageRelay(adapters[i]).relayMessages(messageIds, destinationAdapters[i]);
+        uint256[] memory toChainIds = new uint256[](messageIds.length);
+        for (uint256 i = 0; i < messageIds.length; i++) {
+            bytes32 expectedMessageHash = hashes[messageIds[i]];
+            bytes32 messageHash = calculateMessageHash(messageIds[i], messages[i]);
+            if (messageHash != expectedMessageHash) revert MessageHashMismatch(messageHash, expectedMessageHash);
+            toChainIds[i] = messages[i].toChainId;
         }
+
+        for (uint256 i = 0; i < adapters.length; ) {
+            adapterReciepts[i] = IMessageRelay(adapters[i]).relayMessages(
+                messageIds,
+                toChainIds,
+                destinationAdapters[i]
+            );
+            unchecked {
+                ++i;
+            }
+        }
+
         return adapterReciepts;
     }
 
@@ -90,15 +111,23 @@ contract Yaho is IMessageDispatcher, MessageHashCalculator, MessageIdCalculator 
         uint256[] calldata toChainIds,
         address[] calldata tos,
         bytes[] calldata data,
-        address[] memory adapters,
-        address[] memory destinationAdapters
+        address[] calldata adapters,
+        address[] calldata destinationAdapters
     ) external payable returns (bytes32[] memory messageIds, bytes32[] memory) {
         if (adapters.length == 0) revert NoAdaptersGiven(address(this));
         messageIds = dispatchMessages(toChainIds, tos, data);
         bytes32[] memory adapterReciepts = new bytes32[](adapters.length);
-        for (uint256 i = 0; i < adapters.length; i++) {
-            adapterReciepts[i] = IMessageRelay(adapters[i]).relayMessages(messageIds, destinationAdapters[i]);
+        for (uint256 i = 0; i < adapters.length; ) {
+            adapterReciepts[i] = IMessageRelay(adapters[i]).relayMessages(
+                messageIds,
+                toChainIds,
+                destinationAdapters[i]
+            );
+            unchecked {
+                ++i;
+            }
         }
+
         return (messageIds, adapterReciepts);
     }
 
@@ -108,14 +137,8 @@ contract Yaho is IMessageDispatcher, MessageHashCalculator, MessageIdCalculator 
         bytes calldata data,
         uint256 nonce
     ) internal returns (bytes32 messageId) {
-        Message memory message = Message({
-            from: msg.sender,
-            to: to,
-            fromChainId: block.chainid,
-            toChainId: toChainId,
-            data: data
-        });
         messageId = calculateMessageId(block.chainid, address(this), nonce);
+        Message memory message = Message(block.chainid, toChainId, msg.sender, to, data);
         hashes[messageId] = calculateMessageHash(messageId, message);
         emit MessageDispatched(messageId, msg.sender, toChainId, to, data);
     }

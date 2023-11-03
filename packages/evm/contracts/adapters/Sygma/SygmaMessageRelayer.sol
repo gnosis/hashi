@@ -14,9 +14,8 @@ contract SygmaMessageRelayer is SygmaReporter, IMessageRelay {
         address bridge,
         Yaho yaho,
         bytes32 resourceID,
-        uint8 defaultDestinationDomainID,
         address defaultSygmaAdapter
-    ) SygmaReporter(bridge, resourceID, defaultDestinationDomainID, defaultSygmaAdapter) {
+    ) SygmaReporter(bridge, resourceID, defaultSygmaAdapter) {
         _yaho = yaho;
     }
 
@@ -25,13 +24,19 @@ contract SygmaMessageRelayer is SygmaReporter, IMessageRelay {
         @param messageIds IDs of the messages to pass over the Sygma bridge.
         @param sygmaAdapter Address of the Sygma adapter on the target chain.
     */
-    function relayMessages(bytes32[] memory messageIds, address sygmaAdapter) public payable returns (bytes32) {
-        bytes32[] memory hashes = new bytes32[](messageIds.length);
+    function relayMessages(
+        bytes32[] calldata messageIds,
+        uint256[] calldata toChainIds,
+        address sygmaAdapter
+    ) public payable returns (bytes32) {
+        // TODO: group messages by toChainId
+        uint256[] memory depositNonces = new uint256[](messageIds.length);
         for (uint256 i = 0; i < messageIds.length; i++) {
-            hashes[i] = _yaho.hashes(messageIds[i]);
+            bytes32 messageHash = _yaho.hashes(messageIds[i]);
+            (depositNonces[i], ) = _reportData(messageIds[i], messageHash, sygmaAdapter, uint8(toChainIds[i]), "");
             emit MessageRelayed(address(this), messageIds[i]);
         }
-        (uint64 depositNonce, ) = _reportData(messageIds, hashes, sygmaAdapter, _defaultDestinationDomainID, "");
-        return bytes32(uint256(depositNonce));
+
+        return bytes32(keccak256(abi.encode(depositNonces)));
     }
 }

@@ -17,7 +17,11 @@ contract AMBMessageRelay is IMessageRelay {
         yaho = _yaho;
     }
 
-    function relayMessages(bytes32[] memory messageIds, address ambAdapter) public payable returns (bytes32 receipt) {
+    function relayMessages(
+        bytes32[] memory messageIds,
+        uint256[] memory,
+        address ambAdapter
+    ) public payable returns (bytes32 receipt) {
         bytes32[] memory hashes = new bytes32[](messageIds.length);
         for (uint256 i = 0; i < messageIds.length; i++) {
             hashes[i] = yaho.hashes(messageIds[i]);

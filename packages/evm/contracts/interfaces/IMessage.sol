@@ -2,9 +2,9 @@
 pragma solidity ^0.8.17;
 
 struct Message {
-    address from;
-    address to;
     uint256 fromChainId;
     uint256 toChainId;
+    address from;
+    address to;
     bytes data;
 }
