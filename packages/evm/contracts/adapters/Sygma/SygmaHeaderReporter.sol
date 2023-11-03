@@ -1,31 +1,22 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity ^0.8.17;
 
-import "./interfaces/IBridge.sol";
-import "./interfaces/ISygmaAdapter.sol";
-import "../../utils/HeaderStorage.sol";
+import { SygmaReporter } from "./SygmaReporter.sol";
+import { HeaderStorage } from "../../utils/HeaderStorage.sol";
 
-contract SygmaHeaderReporter {
-    IBridge public immutable _bridge;
+contract SygmaHeaderReporter is SygmaReporter {
     HeaderStorage public immutable _headerStorage;
-    bytes32 public immutable _resourceID;
-    uint8 public immutable _defaultDestinationDomainID;
-    address public immutable _defaultSygmaAdapter;
 
     event HeaderReported(address indexed emitter, uint256 indexed blockNumber, bytes32 indexed blockHeader);
 
     constructor(
-        IBridge bridge,
+        address bridge,
         HeaderStorage headerStorage,
         bytes32 resourceID,
         uint8 defaultDestinationDomainID,
         address defaultSygmaAdapter
-    ) {
-        _bridge = bridge;
+    ) SygmaReporter(bridge, resourceID, defaultDestinationDomainID, defaultSygmaAdapter) {
         _headerStorage = headerStorage;
-        _resourceID = resourceID;
-        _defaultDestinationDomainID = defaultDestinationDomainID;
-        _defaultSygmaAdapter = defaultSygmaAdapter;
     }
 
     /**
@@ -48,7 +39,7 @@ contract SygmaHeaderReporter {
         uint256[] memory blockNumbers,
         address sygmaAdapter,
         uint8 destinationDomainID,
-        bytes calldata feeData
+        bytes memory feeData
     ) public payable {
         _reportHeaders(blockNumbers, sygmaAdapter, destinationDomainID, feeData);
     }
@@ -57,42 +48,12 @@ contract SygmaHeaderReporter {
         uint256[] memory blockNumbers,
         address sygmaAdapter,
         uint8 destinationDomainID,
-        bytes calldata feeData
+        bytes memory feeData
     ) internal {
         bytes32[] memory blockHeaders = _headerStorage.storeBlockHeaders(blockNumbers);
-        bytes memory depositData = abi.encodePacked(
-            // uint256 maxFee
-            uint256(0),
-            // uint16 len(executeFuncSignature)
-            uint16(4),
-            // bytes executeFuncSignature
-            ISygmaAdapter(address(0)).storeHashes.selector,
-            // uint8 len(executeContractAddress)
-            uint8(20),
-            // bytes executeContractAddress
-            sygmaAdapter,
-            // uint8 len(executionDataDepositor)
-            uint8(20),
-            // bytes executionDataDepositor
-            address(this),
-            // bytes executionDataDepositor + executionData
-            prepareDepositData(blockNumbers, blockHeaders)
-        );
-        IBridge(_bridge).deposit{ value: msg.value }(destinationDomainID, _resourceID, depositData, feeData);
+        _reportData(blockNumbers, blockHeaders, sygmaAdapter, destinationDomainID, feeData);
         for (uint i = 0; i < blockNumbers.length; i++) {
             emit HeaderReported(address(this), blockNumbers[i], blockHeaders[i]);
         }
-    }
-
-    function slice(bytes calldata input, uint256 position) public pure returns (bytes memory) {
-        return input[position:];
-    }
-
-    function prepareDepositData(
-        uint256[] memory blockNumbers,
-        bytes32[] memory blockHeaders
-    ) public view returns (bytes memory) {
-        bytes memory encoded = abi.encode(address(0), blockNumbers, blockHeaders);
-        return this.slice(encoded, 32);
     }
 }
