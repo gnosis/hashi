@@ -33,8 +33,26 @@ contract Yaho is IYaho, MessageHashCalculator, MessageIdCalculator {
         uint256 toChainId,
         address to,
         bytes calldata data
-    ) external payable returns (bytes32 messageId) {
+    ) public payable returns (bytes32 messageId) {
         messageId = _dispatchMessage(toChainId, to, data);
+    }
+
+    /// @dev Dispatches a message using the EIP-5164 standard on more chains, putting their into storage and emitting their contents as an event.
+    /// @param toChainIds  The destination chain id array.
+    /// @param tos The target contracts.
+    /// @param data The message data.
+    /// @return messageIds An array of message IDs corresponding to the dispatched message.
+    function dispatchMessage(
+        uint256[] calldata toChainIds,
+        address[] calldata tos,
+        bytes calldata data
+    ) public payable returns (bytes32[] memory messageIds) {
+        for (uint256 i = 0; i < toChainIds.length; ) {
+            messageIds[i] = dispatchMessage(toChainIds[i], tos[i], data);
+            unchecked {
+                ++i;
+            }
+        }
     }
 
     /// @dev Dispatches a batch of messages, putting their into storage and emitting their contents as an event.
@@ -72,13 +90,12 @@ contract Yaho is IYaho, MessageHashCalculator, MessageIdCalculator {
         bytes32[] calldata messageIds,
         address[] calldata adapters,
         address[] calldata destinationAdapters
-    ) external payable returns (bytes32[] memory) {
+    ) external payable returns (bytes32[] memory adapterReciepts) {
         if (messageIds.length == 0) revert NoMessageIdsGiven(address(this));
         if (adapters.length == 0) revert NoAdaptersGiven(address(this));
         if (messages.length != messageIds.length) revert UnequalArrayLengths(address(this));
         if (adapters.length != destinationAdapters.length) revert UnequalArrayLengths(address(this));
 
-        bytes32[] memory adapterReciepts = new bytes32[](adapters.length);
         uint256[] memory toChainIds = new uint256[](messageIds.length);
         for (uint256 i = 0; i < messageIds.length; i++) {
             bytes32 expectedMessageHash = hashes[messageIds[i]];
@@ -87,18 +104,29 @@ contract Yaho is IYaho, MessageHashCalculator, MessageIdCalculator {
             toChainIds[i] = messages[i].toChainId;
         }
 
-        for (uint256 i = 0; i < adapters.length; ) {
-            adapterReciepts[i] = IMessageRelay(adapters[i]).relayMessages(
-                messageIds,
-                toChainIds,
-                destinationAdapters[i]
-            );
-            unchecked {
-                ++i;
-            }
-        }
-
+        adapterReciepts = _relayMessages(messageIds, toChainIds, adapters, destinationAdapters);
         return adapterReciepts;
+    }
+
+    /// @dev Dispatches an array of messages and relays their hashes to an array of relay adapters.
+    /// @param toChainIds The destination chain ids.
+    /// @param tos The target contracts.
+    /// @param data The message data.
+    /// @param adapters Array of relay adapter addresses to which hashes should be relayed.
+    /// @param destinationAdapters Array of oracle adapter addresses to receive hashes.
+    /// @return messageIds An array of message IDs corresponding to the dispatched messages.
+    /// @return adapterReciepts Reciepts from each of the relay adapters.
+    function dispatchMessageToAdapters(
+        uint256[] calldata toChainIds,
+        address[] calldata tos,
+        bytes calldata data,
+        address[] calldata adapters,
+        address[] calldata destinationAdapters
+    ) external payable returns (bytes32[] memory messageIds, bytes32[] memory adapterReciepts) {
+        if (adapters.length == 0) revert NoAdaptersGiven(address(this));
+        messageIds = dispatchMessage(toChainIds, tos, data);
+        adapterReciepts = _relayMessages(messageIds, toChainIds, adapters, destinationAdapters);
+        return (messageIds, adapterReciepts);
     }
 
     /// @dev Dispatches an array of messages and relays their hashes to an array of relay adapters.
@@ -115,21 +143,10 @@ contract Yaho is IYaho, MessageHashCalculator, MessageIdCalculator {
         bytes[] calldata data,
         address[] calldata adapters,
         address[] calldata destinationAdapters
-    ) external payable returns (bytes32[] memory messageIds, bytes32[] memory) {
+    ) external payable returns (bytes32[] memory messageIds, bytes32[] memory adapterReciepts) {
         if (adapters.length == 0) revert NoAdaptersGiven(address(this));
         messageIds = dispatchMessages(toChainIds, tos, data);
-        bytes32[] memory adapterReciepts = new bytes32[](adapters.length);
-        for (uint256 i = 0; i < adapters.length; ) {
-            adapterReciepts[i] = IMessageRelay(adapters[i]).relayMessages(
-                messageIds,
-                toChainIds,
-                destinationAdapters[i]
-            );
-            unchecked {
-                ++i;
-            }
-        }
-
+        adapterReciepts = _relayMessages(messageIds, toChainIds, adapters, destinationAdapters);
         return (messageIds, adapterReciepts);
     }
 
@@ -144,5 +161,25 @@ contract Yaho is IYaho, MessageHashCalculator, MessageIdCalculator {
         messageId = calculateMessageId(block.chainid, address(this), messageType, salt, messageHash);
         hashes[messageId] = messageHash;
         emit MessageDispatched(messageId, msg.sender, toChainId, to, data);
+    }
+
+    function _relayMessages(
+        bytes32[] memory messageIds,
+        uint256[] memory toChainIds,
+        address[] calldata adapters,
+        address[] calldata destinationAdapters
+    ) internal returns (bytes32[] memory) {
+        bytes32[] memory adapterReciepts = new bytes32[](adapters.length);
+        for (uint256 i = 0; i < adapters.length; ) {
+            adapterReciepts[i] = IMessageRelay(adapters[i]).relayMessages(
+                messageIds,
+                toChainIds,
+                destinationAdapters[i]
+            );
+            unchecked {
+                ++i;
+            }
+        }
+        return adapterReciepts;
     }
 }
