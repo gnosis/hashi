@@ -5,16 +5,24 @@ import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { IHeaderVault } from "../interfaces/IHeaderVault.sol";
 
 contract HeaderVault is IHeaderVault, Ownable {
-    error InvalidHeaderReporter(uint256 fromChainId, address headerReporter, address expectedHeaderReporter);
-    error UnequalArrayLengths();
+    address public immutable yaru;
 
     mapping(uint256 => mapping(uint256 => bytes32)) private _blockHeaders;
     mapping(uint256 => address) _headerReporters;
 
-    modifier onlyHeaderReporter(uint256 fromChainId, address from) {
+    error NotYaru(address currentYaru, address expectedYaru);
+    error InvalidHeaderReporter(uint256 fromChainId, address headerReporter, address expectedHeaderReporter);
+    error UnequalArrayLengths();
+
+    modifier onlyYaruAndOnlyHeaderReporter(uint256 fromChainId, address from) {
+        if (msg.sender != yaru) revert NotYaru(msg.sender, yaru);
         address expectedHeaderReporter = _headerReporters[fromChainId];
         if (expectedHeaderReporter != from) revert InvalidHeaderReporter(fromChainId, from, expectedHeaderReporter);
         _;
+    }
+
+    constructor(address yaru_) {
+        yaru = yaru_;
     }
 
     function disableBlockHeaderReporter(uint256 fromChainId) external onlyOwner {
@@ -37,7 +45,7 @@ contract HeaderVault is IHeaderVault, Ownable {
         bytes32,
         uint256 fromChainId,
         address from
-    ) external onlyHeaderReporter(fromChainId, from) returns (bytes memory) {
+    ) external onlyYaruAndOnlyHeaderReporter(fromChainId, from) returns (bytes memory) {
         (uint256[] memory blockNumbers, bytes32[] memory blockHeaders) = abi.decode(data, (uint256[], bytes32[]));
         if (blockNumbers.length != blockHeaders.length) revert UnequalArrayLengths();
 
