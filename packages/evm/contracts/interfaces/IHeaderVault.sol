@@ -4,7 +4,7 @@ pragma solidity ^0.8.17;
 import { IJushinki } from "./IJushinki.sol";
 
 interface IHeaderVault is IJushinki {
-    event NewBlock(uint256 fromChainId, uint256 blockNumber, bytes32 blockHeader);
+    event NewBlock(uint256 indexed fromChainId, uint256 indexed blockNumber, bytes32 blockHeader);
     event HeaderReporterEnabled(uint256 fromChainId, address headerReporter);
     event HeaderReporterDisabled(uint256 fromChainId, address headerReporter);
 
