@@ -5,9 +5,8 @@ import { Message } from "../interfaces/IMessage.sol";
 
 contract MessageHashCalculator {
     /// @dev Calculates the hash of a given message.
-    /// @param messageId ID of the message that was/will be dispatched.
     /// @param message Message that was/will be dispatched.
-    function calculateMessageHash(bytes32 messageId, Message memory message) public pure returns (bytes32) {
-        return keccak256(abi.encode(messageId, message));
+    function calculateMessageHash(Message memory message) public pure returns (bytes32) {
+        return keccak256(abi.encode(message));
     }
 }

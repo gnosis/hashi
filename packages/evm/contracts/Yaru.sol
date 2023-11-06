@@ -6,7 +6,7 @@ import { IHashi, IOracleAdapter } from "./interfaces/IHashi.sol";
 import { Message } from "./interfaces/IMessage.sol";
 import { IMessageExecutor } from "./interfaces/IMessageExecutor.sol";
 import { MessageHashCalculator } from "./utils/MessageHashCalculator.sol";
-import { IHashiReceiver } from "./interfaces/IHashiReceiver.sol";
+import { IJushinki } from "./interfaces/IJushinki.sol";
 
 contract Yaru is IMessageExecutor, MessageHashCalculator, ReentrancyGuard {
     IHashi public immutable hashi;
@@ -41,13 +41,13 @@ contract Yaru is IMessageExecutor, MessageHashCalculator, ReentrancyGuard {
 
             Message memory message = messages[i];
             bytes32 reportedHash = hashi.getHash(message.fromChainId, messageId, oracleAdapters);
-            bytes32 calculatedHash = calculateMessageHash(messageId, message);
+            bytes32 calculatedHash = calculateMessageHash(message);
             if (reportedHash != calculatedHash)
                 revert MessageFailure(messageId, abi.encode(reportedHash, calculatedHash));
 
-            try
-                IHashiReceiver(message.to).onMessage(message.data, messageId, message.fromChainId, message.from)
-            returns (bytes memory returnData) {
+            try IJushinki(message.to).onMessage(message.data, messageId, message.fromChainId, message.from) returns (
+                bytes memory returnData
+            ) {
                 returnDatas[i] = returnData;
             } catch {
                 revert MessageFailure(messageId, abi.encode(0));

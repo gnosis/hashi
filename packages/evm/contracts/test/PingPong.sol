@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity ^0.8.17;
 
-import { IHashiReceiver } from "../interfaces/IHashiReceiver.sol";
+import { IJushinki } from "../interfaces/IJushinki.sol";
 
-contract PingPong is IHashiReceiver {
+contract PingPong is IJushinki {
     event Pong(string pong);
 
     uint256 public count;

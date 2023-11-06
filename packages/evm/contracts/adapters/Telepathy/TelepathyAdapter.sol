@@ -6,14 +6,14 @@ import { SSZ } from "./libraries/SimpleSerialize.sol";
 import { BlockHashOracleAdapter } from "../BlockHashOracleAdapter.sol";
 
 contract TelepathyAdapter is BlockHashOracleAdapter {
+    /// @dev The Telepathy Router contains a mapping of chainIds to Light Clients.
+    address public immutable telepathyRouter;
+
     error NoLightClientOnChain(uint32 chainId);
     error InconsistentLightClient(address lightClient);
     error BlockHeaderNotAvailable(uint256 slot);
     error InvalidBlockNumberProof();
     error InvalidBlockHashProof();
-
-    /// @dev The Telepathy Router contains a mapping of chainIds to Light Clients.
-    address public immutable telepathyRouter;
 
     constructor(address _telepathyRouter) {
         telepathyRouter = _telepathyRouter;
@@ -27,7 +27,8 @@ contract TelepathyAdapter is BlockHashOracleAdapter {
         uint256 _blockNumber,
         bytes32[] calldata _blockNumberProof,
         bytes32 _blockHash,
-        bytes32[] calldata _blockHashProof
+        bytes32[] calldata _blockHashProof,
+        address _yaho
     ) external {
         ILightClient lightClient = TelepathyStorage(telepathyRouter).lightClients(_chainId);
         if (address(lightClient) == address(0)) {
@@ -50,6 +51,14 @@ contract TelepathyAdapter is BlockHashOracleAdapter {
             revert InvalidBlockHashProof();
         }
 
-        _storeHash(uint256(_chainId), bytes32(_blockNumber), _blockHash);
+        uint256[] memory blockNumbers = new uint256[](1);
+        bytes32[] memory blockHeaders = new bytes32[](1);
+        blockNumbers[0] = _blockNumber;
+        blockHeaders[0] = _blockHash;
+
+        bytes32 messageHash = keccak256(abi.encode(blockNumbers, blockHeaders));
+        bytes32 messageId = calculateMessageId(_chainId, _yaho, MESSAGE_BHR, bytes32(0), messageHash);
+
+        _storeHash(uint256(_chainId), messageId, messageHash);
     }
 }

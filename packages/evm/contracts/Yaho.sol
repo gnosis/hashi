@@ -7,13 +7,21 @@ import { MessageHashCalculator } from "./utils/MessageHashCalculator.sol";
 import { MessageIdCalculator } from "./utils/MessageIdCalculator.sol";
 
 contract Yaho is IMessageDispatcher, MessageHashCalculator, MessageIdCalculator {
+    bytes32 public constant MESSAGE_BHR = keccak256("MESSAGE_BHR");
+    bytes32 public constant MESSAGE_MPI = keccak256("MESSAGE_MPI");
+
+    address public immutable headerReporter;
+
     mapping(bytes32 => bytes32) public hashes;
-    uint256 private _messageNonce;
 
     error NoMessageIdsGiven(address emitter);
     error NoAdaptersGiven(address emitter);
     error UnequalArrayLengths(address emitter);
     error MessageHashMismatch(bytes32 messageHash, bytes32 expectedMessageHash);
+
+    constructor(address headerReporter_) {
+        headerReporter = headerReporter_;
+    }
 
     /// @dev Dispatches a message using the EIP-5164 standard, putting their into storage and emitting their contents as an event.
     /// @param toChainId The destination chain id.
@@ -25,10 +33,7 @@ contract Yaho is IMessageDispatcher, MessageHashCalculator, MessageIdCalculator 
         address to,
         bytes calldata data
     ) external payable returns (bytes32 messageId) {
-        unchecked {
-            messageId = _dispatchMessage(toChainId, to, data, _messageNonce);
-            ++_messageNonce;
-        }
+        messageId = _dispatchMessage(toChainId, to, data);
     }
 
     /// @dev Dispatches a batch of messages, putting their into storage and emitting their contents as an event.
@@ -45,17 +50,13 @@ contract Yaho is IMessageDispatcher, MessageHashCalculator, MessageIdCalculator 
             revert UnequalArrayLengths(address(this));
 
         bytes32[] memory messageIds = new bytes32[](toChainIds.length);
-        uint256 nonce = _messageNonce;
-
         for (uint256 i = 0; i < toChainIds.length; ) {
+            messageIds[i] = _dispatchMessage(toChainIds[i], tos[i], data[i]);
+
             unchecked {
-                messageIds[i] = _dispatchMessage(toChainIds[i], tos[i], data[i], nonce);
-                ++nonce;
                 ++i;
             }
         }
-
-        _messageNonce = nonce;
         return messageIds;
     }
 
@@ -80,7 +81,7 @@ contract Yaho is IMessageDispatcher, MessageHashCalculator, MessageIdCalculator 
         uint256[] memory toChainIds = new uint256[](messageIds.length);
         for (uint256 i = 0; i < messageIds.length; i++) {
             bytes32 expectedMessageHash = hashes[messageIds[i]];
-            bytes32 messageHash = calculateMessageHash(messageIds[i], messages[i]);
+            bytes32 messageHash = calculateMessageHash(messages[i]);
             if (messageHash != expectedMessageHash) revert MessageHashMismatch(messageHash, expectedMessageHash);
             toChainIds[i] = messages[i].toChainId;
         }
@@ -131,15 +132,16 @@ contract Yaho is IMessageDispatcher, MessageHashCalculator, MessageIdCalculator 
         return (messageIds, adapterReciepts);
     }
 
-    function _dispatchMessage(
-        uint256 toChainId,
-        address to,
-        bytes calldata data,
-        uint256 nonce
-    ) internal returns (bytes32 messageId) {
-        messageId = calculateMessageId(block.chainid, address(this), nonce);
+    function _dispatchMessage(uint256 toChainId, address to, bytes calldata data) internal returns (bytes32 messageId) {
         Message memory message = Message(block.chainid, toChainId, msg.sender, to, data);
-        hashes[messageId] = calculateMessageHash(messageId, message);
+
+        bytes32 messageHash = calculateMessageHash(message);
+        bool isHeaderReporter = msg.sender == headerReporter;
+        bytes32 messageType = isHeaderReporter ? MESSAGE_BHR : MESSAGE_MPI;
+        bytes32 salt = isHeaderReporter ? bytes32(0) : keccak256(abi.encode(blockhash(block.number), gasleft()));
+
+        messageId = calculateMessageId(block.chainid, address(this), messageType, salt, messageHash);
+        hashes[messageId] = messageHash;
         emit MessageDispatched(messageId, msg.sender, toChainId, to, data);
     }
 }

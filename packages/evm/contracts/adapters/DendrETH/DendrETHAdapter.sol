@@ -25,7 +25,8 @@ contract DendrETHAdapter is BlockHashOracleAdapter {
         uint256 _blockNumber,
         bytes32[] calldata _blockNumberProof,
         bytes32 _blockHash,
-        bytes32[] calldata _blockHashProof
+        bytes32[] calldata _blockHashProof,
+        address _yaho
     ) external {
         ILightClient lightClient = ILightClient(dendrETHAddress);
 
@@ -58,7 +59,7 @@ contract DendrETHAdapter is BlockHashOracleAdapter {
             revert InvalidBlockHashProof();
         }
 
-        _storeHash(uint256(_chainId), bytes32(_blockNumber), _blockHash);
+        _storeBlockNumbersAndBlockHeaders(_chainId, _blockNumber, _blockHash, _yaho);
     }
 
     /// @notice Updates DendrETH Light client and stores the given block
@@ -70,7 +71,8 @@ contract DendrETHAdapter is BlockHashOracleAdapter {
         bytes32[] calldata _blockNumberProof,
         bytes32 _blockHash,
         bytes32[] calldata _blockHashProof,
-        LightClientUpdate calldata update
+        LightClientUpdate calldata update,
+        address _yaho
     ) external {
         ILightClient lightClient = ILightClient(dendrETHAddress);
 
@@ -90,6 +92,23 @@ contract DendrETHAdapter is BlockHashOracleAdapter {
             revert InvalidBlockHashProof();
         }
 
-        _storeHash(uint256(_chainId), bytes32(_blockNumber), _blockHash);
+        _storeBlockNumbersAndBlockHeaders(_chainId, _blockNumber, _blockHash, _yaho);
+    }
+
+    function _storeBlockNumbersAndBlockHeaders(
+        uint256 chainId,
+        uint256 blockNumber,
+        bytes32 blockHeader,
+        address yaho
+    ) internal {
+        uint256[] memory blockNumbers = new uint256[](1);
+        bytes32[] memory blockHeaders = new bytes32[](1);
+        blockNumbers[0] = blockNumber;
+        blockHeaders[0] = blockHeader;
+
+        bytes32 messageHash = keccak256(abi.encode(blockNumbers, blockHeaders));
+        bytes32 messageId = calculateMessageId(chainId, yaho, MESSAGE_BHR, bytes32(0), messageHash);
+
+        _storeHash(chainId, messageId, messageHash);
     }
 }
