@@ -14,7 +14,7 @@ contract HeaderReporter {
     }
 
     /// @dev Reports the given block headers.
-    /// @param blockNumbers Uint256 array of block number to pass over the AMB.
+    /// @param blockNumbers Uint256 array of block number.
     /// @param yaho Address of the Yaho contract to call.
     /// @param toChainIds The destination chain ids.
     /// @param tos The target contracts.
