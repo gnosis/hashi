@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity ^0.8.17;
 
+import { IYaho } from "./interfaces/IYaho.sol";
 import { IMessageRelay } from "./interfaces/IMessageRelay.sol";
-import { IMessageDispatcher, Message } from "./interfaces/IMessageDispatcher.sol";
+import { Message } from "./interfaces/IMessageDispatcher.sol";
 import { MessageHashCalculator } from "./utils/MessageHashCalculator.sol";
 import { MessageIdCalculator } from "./utils/MessageIdCalculator.sol";
 
-contract Yaho is IMessageDispatcher, MessageHashCalculator, MessageIdCalculator {
+contract Yaho is IYaho, MessageHashCalculator, MessageIdCalculator {
     bytes32 public constant MESSAGE_BHR = keccak256("MESSAGE_BHR");
     bytes32 public constant MESSAGE_MPI = keccak256("MESSAGE_MPI");
 
