@@ -59,7 +59,7 @@ contract DendrETHAdapter is BlockHashOracleAdapter {
             revert InvalidBlockHashProof();
         }
 
-        _storeBlockNumbersAndBlockHeaders(_chainId, _blockNumber, _blockHash, _yaho);
+        _storeBlockNumberAndBlockHeader(_chainId, _blockNumber, _blockHash, _yaho);
     }
 
     /// @notice Updates DendrETH Light client and stores the given block
@@ -92,10 +92,10 @@ contract DendrETHAdapter is BlockHashOracleAdapter {
             revert InvalidBlockHashProof();
         }
 
-        _storeBlockNumbersAndBlockHeaders(_chainId, _blockNumber, _blockHash, _yaho);
+        _storeBlockNumberAndBlockHeader(_chainId, _blockNumber, _blockHash, _yaho);
     }
 
-    function _storeBlockNumbersAndBlockHeaders(
+    function _storeBlockNumberAndBlockHeader(
         uint256 chainId,
         uint256 blockNumber,
         bytes32 blockHeader,
