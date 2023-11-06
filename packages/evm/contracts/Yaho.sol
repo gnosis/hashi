@@ -29,11 +29,7 @@ contract Yaho is IYaho, MessageHashCalculator, MessageIdCalculator {
     /// @param to The target contract.
     /// @param data The message data.
     /// @return messageId A message ID corresponding to the dispatched message.
-    function dispatchMessage(
-        uint256 toChainId,
-        address to,
-        bytes calldata data
-    ) public payable returns (bytes32 messageId) {
+    function dispatchMessage(uint256 toChainId, address to, bytes calldata data) external returns (bytes32 messageId) {
         messageId = _dispatchMessage(toChainId, to, data);
     }
 
@@ -46,9 +42,9 @@ contract Yaho is IYaho, MessageHashCalculator, MessageIdCalculator {
         uint256[] calldata toChainIds,
         address[] calldata tos,
         bytes calldata data
-    ) public payable returns (bytes32[] memory messageIds) {
+    ) public returns (bytes32[] memory messageIds) {
         for (uint256 i = 0; i < toChainIds.length; ) {
-            messageIds[i] = dispatchMessage(toChainIds[i], tos[i], data);
+            messageIds[i] = _dispatchMessage(toChainIds[i], tos[i], data);
             unchecked {
                 ++i;
             }
@@ -64,7 +60,7 @@ contract Yaho is IYaho, MessageHashCalculator, MessageIdCalculator {
         uint256[] calldata toChainIds,
         address[] calldata tos,
         bytes[] calldata data
-    ) public payable returns (bytes32[] memory) {
+    ) public returns (bytes32[] memory) {
         if (toChainIds.length != tos.length || toChainIds.length != data.length)
             revert UnequalArrayLengths(address(this));
 
