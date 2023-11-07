@@ -40,6 +40,8 @@ contract Yaru is IYaru, MessageHashCalculator, MessageIdCalculator, ReentrancyGu
             bytes32 messageHash = calculateMessageHash(message, _yahos[message.fromChainId]);
             bytes32 messageId = messageIds[i];
 
+            if (message.toChainId != block.chainid)
+                revert MessageFailure(messageId, abi.encode(keccak256("InvalidToChainId")));
             if (executed[messageId]) revert MessageIdAlreadyExecuted(messageId);
             executed[messageId] = true;
 

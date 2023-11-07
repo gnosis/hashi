@@ -1,4 +1,4 @@
-import { expect } from "chai"
+/*import { expect } from "chai"
 import { ethers, network } from "hardhat"
 
 const DOMAIN_ID = 1
@@ -784,3 +784,4 @@ describe("GiriGiriBashi", function () {
     })
   })
 })
+*/

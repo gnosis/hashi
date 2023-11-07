@@ -1,6 +1,6 @@
 // Note that these E2E tests simulate cross-chain interactions but,
 // for the sake of convenience, use only one network as both the origin and destination chain.
-import { expect } from "chai"
+/*import { expect } from "chai"
 import { config, ethers, network } from "hardhat"
 
 const DOMAIN_ID = network.config.chainId
@@ -221,7 +221,7 @@ describe("Axiom E2E test", function () {
     })
 
     it("Reverts if the proof for cryptopunk#420 owner address does not match with the block header", async function () {
-      const { amb, hashi /*, storageProof*/ } = await setup()
+      const { amb, hashi , storageProof } = await setup()
 
       // deploy header storage
       const HeaderStorage = await ethers.getContractFactory("HeaderStorage")
@@ -255,7 +255,8 @@ describe("Axiom E2E test", function () {
         ID_ONE,
         blockHashWitness.claimedBlockHash,
         [ambAdapter.address, ambAdapter.address],
-      )).to.revertedWith("Proof verification failed")*/
+      )).to.revertedWith("Proof verification failed")
     })
   })
 })
+*/

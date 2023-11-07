@@ -1,6 +1,8 @@
 import { expect } from "chai"
 import { ethers } from "hardhat"
 
+import { toBytes32 } from "./utils"
+
 const DOMAIN_ID = 1
 const HASH_ZERO = "0x0000000000000000000000000000000000000000000000000000000000000000"
 const HASH_GOOD = "0x0000000000000000000000000000000000000000000000000000000000000001"
@@ -9,6 +11,9 @@ const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000"
 const LIST_END = "0x0000000000000000000000000000000000000001"
 const ADDRESS_TWO = "0x0000000000000000000000000000000000000002"
 const ADDRESS_THREE = "0x0000000000000000000000000000000000000003"
+const ID0 = toBytes32(0)
+const ID1 = toBytes32(1)
+const ID2 = toBytes32(2)
 
 const setup = async () => {
   const [wallet] = await ethers.getSigners()
@@ -20,8 +25,8 @@ const setup = async () => {
   const mockOracleAdapter = await MockOracleAdapter.deploy()
   const anotherOracleAdapter = await MockOracleAdapter.deploy()
 
-  await mockOracleAdapter.setHashes(DOMAIN_ID, [0, 1, 2], [HASH_ZERO, HASH_GOOD, HASH_GOOD])
-  await anotherOracleAdapter.setHashes(DOMAIN_ID, [0, 1, 2], [HASH_ZERO, HASH_GOOD, HASH_BAD])
+  await mockOracleAdapter.setHashes(DOMAIN_ID, [ID0, ID1, ID2], [HASH_ZERO, HASH_GOOD, HASH_GOOD])
+  await anotherOracleAdapter.setHashes(DOMAIN_ID, [ID0, ID1, ID2], [HASH_ZERO, HASH_GOOD, HASH_BAD])
   await shoyuBashi.setThreshold(DOMAIN_ID, 2)
 
   return {
@@ -258,7 +263,7 @@ describe("ShoyuBashi", function () {
   describe("getUnanimousHash()", function () {
     it("Reverts if no adapters are enabled", async function () {
       const { shoyuBashi } = await setup()
-      await expect(shoyuBashi.getUnanimousHash(DOMAIN_ID, 1)).to.be.revertedWithCustomError(
+      await expect(shoyuBashi.getUnanimousHash(DOMAIN_ID, ID1)).to.be.revertedWithCustomError(
         shoyuBashi,
         "NoAdaptersEnabled",
       )
@@ -266,7 +271,7 @@ describe("ShoyuBashi", function () {
     it("Reverts if threshold is not met", async function () {
       const { shoyuBashi, mockOracleAdapter } = await setup()
       await shoyuBashi.enableOracleAdapters(DOMAIN_ID, [mockOracleAdapter.address])
-      await expect(shoyuBashi.getUnanimousHash(DOMAIN_ID, 1)).to.be.revertedWithCustomError(
+      await expect(shoyuBashi.getUnanimousHash(DOMAIN_ID, ID1)).to.be.revertedWithCustomError(
         shoyuBashi,
         "ThresholdNotMet",
       )
@@ -274,14 +279,14 @@ describe("ShoyuBashi", function () {
     it("Returns unanimous agreed on hash", async function () {
       const { shoyuBashi, mockOracleAdapter, anotherOracleAdapter } = await setup()
       await shoyuBashi.enableOracleAdapters(DOMAIN_ID, [mockOracleAdapter.address, anotherOracleAdapter.address])
-      expect(await shoyuBashi.getUnanimousHash(DOMAIN_ID, 1)).to.equal(HASH_GOOD)
+      expect(await shoyuBashi.getUnanimousHash(DOMAIN_ID, ID1)).to.equal(HASH_GOOD)
     })
   })
 
   describe("getThresholdHash()", function () {
     it("Reverts if no adapters are enabled", async function () {
       const { shoyuBashi } = await setup()
-      await expect(shoyuBashi.getThresholdHash(DOMAIN_ID, 1)).to.be.revertedWithCustomError(
+      await expect(shoyuBashi.getThresholdHash(DOMAIN_ID, ID1)).to.be.revertedWithCustomError(
         shoyuBashi,
         "NoAdaptersEnabled",
       )
@@ -289,7 +294,7 @@ describe("ShoyuBashi", function () {
     it("Reverts if threshold is not met", async function () {
       const { shoyuBashi, mockOracleAdapter, anotherOracleAdapter } = await setup()
       await shoyuBashi.enableOracleAdapters(DOMAIN_ID, [mockOracleAdapter.address, anotherOracleAdapter.address])
-      await expect(shoyuBashi.getThresholdHash(DOMAIN_ID, 2)).to.be.revertedWithCustomError(
+      await expect(shoyuBashi.getThresholdHash(DOMAIN_ID, ID2)).to.be.revertedWithCustomError(
         shoyuBashi,
         "ThresholdNotMet",
       )
@@ -297,7 +302,7 @@ describe("ShoyuBashi", function () {
     it("Reverts if threshold returns bytes(0)", async function () {
       const { shoyuBashi, mockOracleAdapter, anotherOracleAdapter } = await setup()
       await shoyuBashi.enableOracleAdapters(DOMAIN_ID, [mockOracleAdapter.address, anotherOracleAdapter.address])
-      await expect(shoyuBashi.getThresholdHash(DOMAIN_ID, 0)).to.be.revertedWithCustomError(
+      await expect(shoyuBashi.getThresholdHash(DOMAIN_ID, ID0)).to.be.revertedWithCustomError(
         shoyuBashi,
         "ThresholdNotMet",
       )
@@ -305,7 +310,7 @@ describe("ShoyuBashi", function () {
     it("Returns unanimous agreed on hash", async function () {
       const { shoyuBashi, mockOracleAdapter, anotherOracleAdapter } = await setup()
       await shoyuBashi.enableOracleAdapters(DOMAIN_ID, [mockOracleAdapter.address, anotherOracleAdapter.address])
-      expect(await shoyuBashi.getThresholdHash(DOMAIN_ID, 1)).to.equal(HASH_GOOD)
+      expect(await shoyuBashi.getThresholdHash(DOMAIN_ID, ID1)).to.equal(HASH_GOOD)
     })
   })
 
@@ -313,7 +318,7 @@ describe("ShoyuBashi", function () {
     it("Reverts if threshold is not met", async function () {
       const { shoyuBashi, mockOracleAdapter } = await setup()
       await shoyuBashi.enableOracleAdapters(DOMAIN_ID, [mockOracleAdapter.address])
-      await expect(shoyuBashi.getHash(DOMAIN_ID, 1, [mockOracleAdapter.address])).to.be.revertedWithCustomError(
+      await expect(shoyuBashi.getHash(DOMAIN_ID, ID1, [mockOracleAdapter.address])).to.be.revertedWithCustomError(
         shoyuBashi,
         "ThresholdNotMet",
       )
@@ -321,7 +326,7 @@ describe("ShoyuBashi", function () {
     it("Reverts if given oracle adapters are duplicate", async function () {
       const { shoyuBashi } = await setup()
       await shoyuBashi.enableOracleAdapters(DOMAIN_ID, [ADDRESS_TWO, ADDRESS_THREE])
-      await expect(shoyuBashi.getHash(DOMAIN_ID, 1, [ADDRESS_TWO, ADDRESS_TWO])).to.be.revertedWithCustomError(
+      await expect(shoyuBashi.getHash(DOMAIN_ID, ID1, [ADDRESS_TWO, ADDRESS_TWO])).to.be.revertedWithCustomError(
         shoyuBashi,
         "DuplicateOrOutOfOrderAdapters",
       )
@@ -329,7 +334,7 @@ describe("ShoyuBashi", function () {
     it("Reverts if given oracle adapters are out of order", async function () {
       const { shoyuBashi } = await setup()
       await shoyuBashi.enableOracleAdapters(DOMAIN_ID, [ADDRESS_TWO, ADDRESS_THREE])
-      await expect(shoyuBashi.getHash(DOMAIN_ID, 1, [ADDRESS_THREE, ADDRESS_TWO])).to.be.revertedWithCustomError(
+      await expect(shoyuBashi.getHash(DOMAIN_ID, ID1, [ADDRESS_THREE, ADDRESS_TWO])).to.be.revertedWithCustomError(
         shoyuBashi,
         "DuplicateOrOutOfOrderAdapters",
       )
@@ -337,14 +342,14 @@ describe("ShoyuBashi", function () {
     it("Reverts if given oracle adapter is not enabled", async function () {
       const { shoyuBashi } = await setup()
       await shoyuBashi.enableOracleAdapters(DOMAIN_ID, [ADDRESS_TWO])
-      await expect(shoyuBashi.getHash(DOMAIN_ID, 1, [ADDRESS_TWO, ADDRESS_THREE])).to.be.revertedWithCustomError(
+      await expect(shoyuBashi.getHash(DOMAIN_ID, ID1, [ADDRESS_TWO, ADDRESS_THREE])).to.be.revertedWithCustomError(
         shoyuBashi,
         "InvalidAdapter",
       )
     })
     it("Reverts if no oracle adapters are enabled", async function () {
       const { shoyuBashi } = await setup()
-      await expect(shoyuBashi.getHash(DOMAIN_ID, 1, [ADDRESS_TWO, ADDRESS_THREE])).to.be.revertedWithCustomError(
+      await expect(shoyuBashi.getHash(DOMAIN_ID, ID1, [ADDRESS_TWO, ADDRESS_THREE])).to.be.revertedWithCustomError(
         shoyuBashi,
         "NoAdaptersEnabled",
       )
@@ -352,7 +357,7 @@ describe("ShoyuBashi", function () {
     it("Reverts if no oracle adapters are given", async function () {
       const { shoyuBashi } = await setup()
       await shoyuBashi.enableOracleAdapters(DOMAIN_ID, [ADDRESS_TWO])
-      await expect(shoyuBashi.getHash(DOMAIN_ID, 1, [])).to.be.revertedWithCustomError(shoyuBashi, "NoAdaptersGiven")
+      await expect(shoyuBashi.getHash(DOMAIN_ID, ID1, [])).to.be.revertedWithCustomError(shoyuBashi, "NoAdaptersGiven")
     })
     it("Returns unanimous agreed on hash", async function () {
       const { shoyuBashi, mockOracleAdapter, anotherOracleAdapter } = await setup()
@@ -363,7 +368,7 @@ describe("ShoyuBashi", function () {
       } else {
         adapters = [anotherOracleAdapter.address, mockOracleAdapter.address]
       }
-      expect(await shoyuBashi.getHash(DOMAIN_ID, 1, adapters)).to.equal(HASH_GOOD)
+      expect(await shoyuBashi.getHash(DOMAIN_ID, ID1, adapters)).to.equal(HASH_GOOD)
     })
   })
 })

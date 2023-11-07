@@ -42,7 +42,7 @@ describe("Yaru", function () {
     yaru = await Yaru.deploy(hashi.address, headerVault.address)
     oracleAdapter = await OracleAdapter.deploy()
     pingPong = await PingPong.deploy()
-    messageRelay = await MessageRelay.deploy()
+    messageRelay = await MessageRelay.deploy(yaho.address)
 
     await headerVault.initializeYaru(yaru.address)
     await yaru.initializeForChainId(Chains.Hardhat, yaho.address)
@@ -65,7 +65,7 @@ describe("Yaru", function () {
   describe("executeMessages()", function () {
     it("reverts if messages and messageIds are unequal lengths", async function () {
       const tx = await yaho["dispatchMessagesToAdapters(uint256[],address[],bytes[],address[],address[])"](
-        [Chains.Gnosis, Chains.Mainnet],
+        [Chains.Hardhat, Chains.Hardhat],
         [fakeTo1.address, fakeTo2.address],
         ["0x01", "0x02"],
         [messageRelay.address],
@@ -79,7 +79,7 @@ describe("Yaru", function () {
 
     it("reverts if reported hash does not match calculated hash", async function () {
       const tx = await yaho["dispatchMessagesToAdapters(uint256[],address[],bytes[],address[],address[])"](
-        [Chains.Gnosis, Chains.Mainnet],
+        [Chains.Hardhat, Chains.Hardhat],
         [fakeTo1.address, fakeTo2.address],
         ["0x01", "0x02"],
         [messageRelay.address],
@@ -103,7 +103,7 @@ describe("Yaru", function () {
 
     it("reverts if call fails", async function () {
       const tx = await yaho["dispatchMessagesToAdapters(uint256[],address[],bytes[],address[],address[])"](
-        [Chains.Gnosis],
+        [Chains.Hardhat],
         [pingPong.address],
         ["0x00"],
         [messageRelay.address],
@@ -118,7 +118,7 @@ describe("Yaru", function () {
 
     it("executes a message", async function () {
       const tx = await yaho["dispatchMessagesToAdapters(uint256[],address[],bytes[],address[],address[])"](
-        [Chains.Gnosis],
+        [Chains.Hardhat],
         [pingPong.address],
         ["0x01"],
         [messageRelay.address],
@@ -135,7 +135,7 @@ describe("Yaru", function () {
 
     it("executes multiple messages", async function () {
       const tx = await yaho["dispatchMessagesToAdapters(uint256[],address[],bytes[],address[],address[])"](
-        [Chains.Gnosis, Chains.Gnosis],
+        [Chains.Hardhat, Chains.Hardhat],
         [pingPong.address, pingPong.address],
         ["0x01", "0x01"],
         [messageRelay.address],
@@ -160,7 +160,7 @@ describe("Yaru", function () {
 
     it("reverts if message was already executed", async function () {
       const tx = await yaho["dispatchMessagesToAdapters(uint256[],address[],bytes[],address[],address[])"](
-        [Chains.Gnosis],
+        [Chains.Hardhat],
         [pingPong.address],
         ["0x01"],
         [messageRelay.address],
@@ -179,7 +179,7 @@ describe("Yaru", function () {
       const block = await ethers.provider.getBlock(blockNumber - 1)
       const tx = await headerReporter.reportHeaders(
         [blockNumber - 1],
-        [Chains.Gnosis],
+        [Chains.Hardhat],
         [messageRelay.address],
         [oracleAdapter.address],
         yaho.address,

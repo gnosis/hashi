@@ -3,8 +3,9 @@ pragma solidity ^0.8.17;
 
 interface IMessageRelay {
     function relayMessages(
-        uint256[] memory toChainIds,
-        bytes32[] memory messageIds,
+        uint256[] calldata toChainIds,
+        bytes32[] calldata messageIds,
+        bytes32[] calldata messageHashes,
         address adapter
     ) external payable returns (bytes32 receipts);
 }

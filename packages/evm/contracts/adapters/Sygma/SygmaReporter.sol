@@ -16,34 +16,6 @@ contract SygmaReporter {
     }
 
     function _reportData(
-        bytes32 messageId,
-        bytes32 messageHash,
-        address sygmaAdapter,
-        uint8 destinationDomainID,
-        bytes memory feeData
-    ) internal returns (uint64 depositNonce, bytes memory handlerResponse) {
-        bytes memory depositData = abi.encodePacked(
-            // uint256 maxFee
-            uint256(0),
-            // uint16 len(executeFuncSignature)
-            uint16(4),
-            // bytes executeFuncSignature
-            ISygmaAdapter(address(0)).storeHashes.selector,
-            // uint8 len(executeContractAddress)
-            uint8(20),
-            // bytes executeContractAddress
-            sygmaAdapter,
-            // uint8 len(executionDataDepositor)
-            uint8(20),
-            // bytes executionDataDepositor
-            address(this),
-            // bytes executionDataDepositor + executionData
-            prepareDepositData(messageId, messageHash)
-        );
-        return IBridge(_bridge).deposit{ value: msg.value }(destinationDomainID, _resourceID, depositData, feeData);
-    }
-
-    function _reportData(
         bytes32[] memory messageIds,
         bytes32[] memory messageHashes,
         address sygmaAdapter,

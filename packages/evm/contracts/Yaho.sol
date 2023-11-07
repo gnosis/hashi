@@ -25,7 +25,7 @@ contract Yaho is IYaho, MessageHashCalculator, MessageIdCalculator {
     /// @param data The message data.
     /// @return messageId A message ID corresponding to the dispatched message.
     function dispatchMessage(uint256 toChainId, address to, bytes calldata data) external returns (bytes32 messageId) {
-        messageId = _dispatchMessage(toChainId, to, data);
+        (messageId, ) = _dispatchMessage(toChainId, to, data);
     }
 
     /// @dev Dispatches a message using the EIP-5164 standard on more chains, putting their into storage and emitting their contents as an event.
@@ -37,16 +37,17 @@ contract Yaho is IYaho, MessageHashCalculator, MessageIdCalculator {
         uint256[] calldata toChainIds,
         address[] calldata tos,
         bytes calldata data
-    ) public returns (bytes32[] memory) {
+    ) public returns (bytes32[] memory, bytes32[] memory) {
         if (toChainIds.length != tos.length) revert UnequalArrayLengths(address(this));
         bytes32[] memory messageIds = new bytes32[](toChainIds.length);
+        bytes32[] memory messageHashes = new bytes32[](toChainIds.length);
         for (uint256 i = 0; i < toChainIds.length; ) {
-            messageIds[i] = _dispatchMessage(toChainIds[i], tos[i], data);
+            (messageIds[i], messageHashes[i]) = _dispatchMessage(toChainIds[i], tos[i], data);
             unchecked {
                 ++i;
             }
         }
-        return messageIds;
+        return (messageIds, messageHashes);
     }
 
     /// @dev Dispatches a batch of messages, putting their into storage and emitting their contents as an event.
@@ -58,19 +59,20 @@ contract Yaho is IYaho, MessageHashCalculator, MessageIdCalculator {
         uint256[] calldata toChainIds,
         address[] calldata tos,
         bytes[] calldata data
-    ) public returns (bytes32[] memory) {
+    ) public returns (bytes32[] memory, bytes32[] memory) {
         if (toChainIds.length != tos.length || toChainIds.length != data.length)
             revert UnequalArrayLengths(address(this));
 
         bytes32[] memory messageIds = new bytes32[](toChainIds.length);
+        bytes32[] memory messageHashes = new bytes32[](toChainIds.length);
         for (uint256 i = 0; i < toChainIds.length; ) {
-            messageIds[i] = _dispatchMessage(toChainIds[i], tos[i], data[i]);
+            (messageIds[i], messageHashes[i]) = _dispatchMessage(toChainIds[i], tos[i], data[i]);
 
             unchecked {
                 ++i;
             }
         }
-        return messageIds;
+        return (messageIds, messageHashes);
     }
 
     /// @dev Relays hashes of the given message ids to the given messageRelays.
@@ -89,14 +91,16 @@ contract Yaho is IYaho, MessageHashCalculator, MessageIdCalculator {
         if (messages.length != messageIds.length) revert UnequalArrayLengths(address(this));
 
         uint256[] memory toChainIds = new uint256[](messageIds.length);
+        bytes32[] memory messageHashes = new bytes32[](messageIds.length);
         for (uint256 i = 0; i < messageIds.length; i++) {
             bytes32 expectedMessageHash = hashes[messageIds[i]];
-            bytes32 messageHash = calculateMessageHash(messages[i], address(this));
-            if (messageHash != expectedMessageHash) revert MessageHashMismatch(messageHash, expectedMessageHash);
+            messageHashes[i] = calculateMessageHash(messages[i], address(this));
+            if (messageHashes[i] != expectedMessageHash)
+                revert MessageHashMismatch(messageHashes[i], expectedMessageHash);
             toChainIds[i] = messages[i].toChainId;
         }
 
-        adapterReciepts = _relayMessages(toChainIds, messageIds, messageRelays, adapters);
+        adapterReciepts = _relayMessages(toChainIds, messageIds, messageHashes, messageRelays, adapters);
         return adapterReciepts;
     }
 
@@ -115,8 +119,9 @@ contract Yaho is IYaho, MessageHashCalculator, MessageIdCalculator {
         address[] calldata messageRelays,
         address[] calldata adapters
     ) external payable returns (bytes32[] memory messageIds, bytes32[] memory adapterReciepts) {
-        messageIds = dispatchMessages(toChainIds, tos, data);
-        adapterReciepts = _relayMessages(toChainIds, messageIds, messageRelays, adapters);
+        bytes32[] memory messageHashes = new bytes32[](messageIds.length);
+        (messageIds, messageHashes) = dispatchMessages(toChainIds, tos, data);
+        adapterReciepts = _relayMessages(toChainIds, messageIds, messageHashes, messageRelays, adapters);
         return (messageIds, adapterReciepts);
     }
 
@@ -135,17 +140,22 @@ contract Yaho is IYaho, MessageHashCalculator, MessageIdCalculator {
         address[] calldata messageRelays,
         address[] calldata adapters
     ) external payable returns (bytes32[] memory messageIds, bytes32[] memory adapterReciepts) {
-        messageIds = dispatchMessages(toChainIds, tos, data);
-        adapterReciepts = _relayMessages(toChainIds, messageIds, messageRelays, adapters);
+        bytes32[] memory messageHashes = new bytes32[](messageIds.length);
+        (messageIds, messageHashes) = dispatchMessages(toChainIds, tos, data);
+        adapterReciepts = _relayMessages(toChainIds, messageIds, messageHashes, messageRelays, adapters);
         return (messageIds, adapterReciepts);
     }
 
-    function _dispatchMessage(uint256 toChainId, address to, bytes calldata data) internal returns (bytes32 messageId) {
+    function _dispatchMessage(
+        uint256 toChainId,
+        address to,
+        bytes calldata data
+    ) internal returns (bytes32 messageId, bytes32 messageHash) {
         bool isHeaderReporter = msg.sender == headerReporter;
         address from = isHeaderReporter ? address(0) : msg.sender;
         // NOTE: in case of isHeaderReporter = true -> to = address(0)
         Message memory message = Message(block.chainid, toChainId, from, to, data);
-        bytes32 messageHash = calculateMessageHash(message, address(this));
+        messageHash = calculateMessageHash(message, address(this));
         bytes32 salt = keccak256(
             abi.encode(
                 isHeaderReporter ? MESSAGE_BHR : MESSAGE_MPI,
@@ -160,6 +170,7 @@ contract Yaho is IYaho, MessageHashCalculator, MessageIdCalculator {
     function _relayMessages(
         uint256[] memory toChainIds,
         bytes32[] memory messageIds,
+        bytes32[] memory messageHashes,
         address[] calldata messageRelays,
         address[] calldata adapters
     ) internal returns (bytes32[] memory) {
@@ -169,7 +180,12 @@ contract Yaho is IYaho, MessageHashCalculator, MessageIdCalculator {
 
         bytes32[] memory adapterReciepts = new bytes32[](messageRelays.length);
         for (uint256 i = 0; i < messageRelays.length; ) {
-            adapterReciepts[i] = IMessageRelay(messageRelays[i]).relayMessages(toChainIds, messageIds, adapters[i]);
+            adapterReciepts[i] = IMessageRelay(messageRelays[i]).relayMessages(
+                toChainIds,
+                messageIds,
+                messageHashes,
+                adapters[i]
+            );
             unchecked {
                 ++i;
             }

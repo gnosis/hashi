@@ -29,7 +29,7 @@ describe("Yaho", function () {
     fakeHeaderReporter = await signers[4]
 
     yaho = await Yaho.deploy(fakeHeaderReporter.address)
-    messageRelay = await MessageRelay.deploy()
+    messageRelay = await MessageRelay.deploy(yaho.address)
   })
 
   describe("Deploy", function () {
@@ -285,7 +285,6 @@ describe("Yaho", function () {
       await expect(tx)
         .to.emit(yaho, "MessageDispatched")
         .withArgs(anyValue, owner.address, Chains.Mainnet, fakeTo1.address, "0x01")
-
       expect(await yaho.hashes(message1.id)).to.not.be.eq(toBytes32(0))
     })
 
