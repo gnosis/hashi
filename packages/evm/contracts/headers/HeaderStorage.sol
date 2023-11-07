@@ -6,8 +6,6 @@ import { IHeaderStorage } from "../interfaces/IHeaderStorage.sol";
 contract HeaderStorage is IHeaderStorage {
     mapping(uint256 => bytes32) public headers;
 
-    error HeaderOutOfRange(address emitter, uint256 blockNumber);
-
     /// @dev Stores and returns the header for the given block.
     /// @param blockNumber Block number.
     /// @return blockHeader Block header stored.

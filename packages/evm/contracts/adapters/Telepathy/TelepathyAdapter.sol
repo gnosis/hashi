@@ -3,10 +3,10 @@ pragma solidity ^0.8.17;
 
 import { ILightClient, TelepathyStorage } from "./interfaces/ITelepathy.sol";
 import { SSZ } from "./libraries/SimpleSerialize.sol";
-import { BlockHashOracleAdapter } from "../BlockHashOracleAdapter.sol";
+import { OracleAdapter } from "../OracleAdapter.sol";
 import { Message } from "../../interfaces/IMessageDispatcher.sol";
 
-contract TelepathyAdapter is BlockHashOracleAdapter {
+contract TelepathyAdapter is OracleAdapter {
     /// @dev The Telepathy Router contains a mapping of chainIds to Light Clients.
     address public immutable telepathyRouter;
 

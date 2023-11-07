@@ -15,12 +15,6 @@ contract Yaho is IYaho, MessageHashCalculator, MessageIdCalculator {
 
     mapping(bytes32 => bytes32) public hashes;
 
-    error NoMessageIdsGiven(address emitter);
-    error NoMessageRelaysGiven(address emitter);
-    error NoAdaptersGiven(address emitter);
-    error UnequalArrayLengths(address emitter);
-    error MessageHashMismatch(bytes32 messageHash, bytes32 expectedMessageHash);
-
     constructor(address headerReporter_) {
         headerReporter = headerReporter_;
     }

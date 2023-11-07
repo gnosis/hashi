@@ -3,9 +3,8 @@ pragma solidity ^0.8.17;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "../OracleAdapter.sol";
-import "../BlockHashOracleAdapter.sol";
 
-contract SygmaAdapter is AccessControl, OracleAdapter, BlockHashOracleAdapter {
+contract SygmaAdapter is AccessControl, OracleAdapter {
     struct Reporter {
         uint128 chainID;
         bool enabled;

@@ -3,9 +3,8 @@ pragma solidity ^0.8.17;
 
 import { IAMB } from "./IAMB.sol";
 import { OracleAdapter } from "../OracleAdapter.sol";
-import { BlockHashOracleAdapter } from "../BlockHashOracleAdapter.sol";
 
-contract AMBAdapter is OracleAdapter, BlockHashOracleAdapter {
+contract AMBAdapter is OracleAdapter {
     IAMB public amb;
     address public reporter;
     bytes32 public chainId;

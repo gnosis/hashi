@@ -2,8 +2,13 @@
 pragma solidity ^0.8.17;
 
 import { IOracleAdapter } from "../interfaces/IOracleAdapter.sol";
+import { MessageHashCalculator } from "../utils/MessageHashCalculator.sol";
+import { MessageIdCalculator } from "../utils/MessageIdCalculator.sol";
+import { OracleAdapter } from "./OracleAdapter.sol";
 
-abstract contract OracleAdapter is IOracleAdapter {
+abstract contract OracleAdapter is IOracleAdapter, MessageHashCalculator, MessageIdCalculator {
+    bytes32 public immutable MESSAGE_BHR = keccak256("MESSAGE_BHR");
+
     mapping(uint256 => mapping(bytes32 => bytes32)) public hashes;
 
     /// @dev Returns the hash for a given domain and ID, as reported by the oracle.

@@ -3,10 +3,10 @@ pragma solidity ^0.8.17;
 
 import { ILightClient, LightClientUpdate } from "./interfaces/IDendrETH.sol";
 import { SSZ } from "../Telepathy/libraries/SimpleSerialize.sol";
-import { BlockHashOracleAdapter } from "../BlockHashOracleAdapter.sol";
+import { OracleAdapter } from "../OracleAdapter.sol";
 import { Message } from "../../interfaces/IMessageDispatcher.sol";
 
-contract DendrETHAdapter is BlockHashOracleAdapter {
+contract DendrETHAdapter is OracleAdapter {
     error InvalidUpdate();
     error BlockHeaderNotAvailable(uint256 slot);
     error InvalidBlockNumberProof();

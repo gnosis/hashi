@@ -33,13 +33,10 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity ^0.8.17;
 
+import { IHashi } from "./interfaces/IHashi.sol";
 import { IOracleAdapter } from "./interfaces/IOracleAdapter.sol";
 
-contract Hashi {
-    error NoOracleAdaptersGiven(address emitter);
-    error OracleDidNotReport(address emitter, IOracleAdapter oracleAdapter);
-    error OraclesDisagree(address emitter, IOracleAdapter oracleOne, IOracleAdapter oracleTwo);
-
+contract Hashi is IHashi {
     /// @dev Returns the hash reported by a given oracle for a given ID.
     /// @param oracleAdapter Address of the oracle adapter to query.
     /// @param domain Id of the domain to query.

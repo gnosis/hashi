@@ -3,9 +3,8 @@ pragma solidity ^0.8.17;
 
 import { IWormhole, VM } from "./IWormhole.sol";
 import { OracleAdapter } from "../OracleAdapter.sol";
-import { BlockHashOracleAdapter } from "../BlockHashOracleAdapter.sol";
 
-contract WormholeAdapter is OracleAdapter, BlockHashOracleAdapter {
+contract WormholeAdapter is OracleAdapter {
     IWormhole public wormhole;
     bytes32 public headerReporter;
 

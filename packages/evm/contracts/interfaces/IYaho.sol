@@ -6,6 +6,12 @@ import { IMessageDispatcher, Message } from "./IMessageDispatcher.sol";
 interface IYaho is IMessageDispatcher {
     function dispatchMessage(uint256 toChainId, address to, bytes calldata data) external returns (bytes32 messageId);
 
+    error NoMessageIdsGiven(address emitter);
+    error NoMessageRelaysGiven(address emitter);
+    error NoAdaptersGiven(address emitter);
+    error UnequalArrayLengths(address emitter);
+    error MessageHashMismatch(bytes32 messageHash, bytes32 expectedMessageHash);
+
     function dispatchMessages(
         uint256[] calldata toChainIds,
         address[] calldata tos,

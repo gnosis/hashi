@@ -17,11 +17,6 @@ contract Yaru is IYaru, MessageHashCalculator, MessageIdCalculator, ReentrancyGu
     mapping(uint256 => address) private _yahos;
     mapping(bytes32 => bool) public executed;
 
-    error UnequalArrayLengths(address emitter);
-    error MessageIdAlreadyExecuted(bytes32 messageId);
-    error MessageFailure(bytes32 messageId, bytes errorData);
-    error AlreadyInitialized(uint256 chainId);
-
     /// @param hashi_ Address of the Hashi contract.
     /// @param headerVault_ Address of the HeaderVault contract.
     constructor(address hashi_, address headerVault_) {

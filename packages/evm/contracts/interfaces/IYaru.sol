@@ -8,6 +8,11 @@ import { IOracleAdapter } from "./IHashi.sol";
 interface IYaru is IMessageExecutor {
     event Initialized(uint256 indexed chainId, address yaho);
 
+    error UnequalArrayLengths(address emitter);
+    error MessageIdAlreadyExecuted(bytes32 messageId);
+    error MessageFailure(bytes32 messageId, bytes errorData);
+    error AlreadyInitialized(uint256 chainId);
+
     function executeMessages(
         Message[] calldata messages,
         bytes32[] calldata messageIds,

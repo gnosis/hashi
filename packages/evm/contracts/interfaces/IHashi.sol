@@ -4,6 +4,10 @@ pragma solidity ^0.8.17;
 import { IOracleAdapter } from "./IOracleAdapter.sol";
 
 interface IHashi {
+    error NoOracleAdaptersGiven(address emitter);
+    error OracleDidNotReport(address emitter, IOracleAdapter oracleAdapter);
+    error OraclesDisagree(address emitter, IOracleAdapter oracleOne, IOracleAdapter oracleTwo);
+
     function getHashFromOracle(
         IOracleAdapter oracleAdapter,
         uint256 domain,
