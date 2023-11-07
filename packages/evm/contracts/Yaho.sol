@@ -16,6 +16,7 @@ contract Yaho is IYaho, MessageHashCalculator, MessageIdCalculator {
     mapping(bytes32 => bytes32) public hashes;
 
     error NoMessageIdsGiven(address emitter);
+    error NoMessageRelaysGiven(address emitter);
     error NoAdaptersGiven(address emitter);
     error UnequalArrayLengths(address emitter);
     error MessageHashMismatch(bytes32 messageHash, bytes32 expectedMessageHash);
@@ -38,17 +39,20 @@ contract Yaho is IYaho, MessageHashCalculator, MessageIdCalculator {
     /// @param tos The target contracts.
     /// @param data The message data.
     /// @return messageIds An array of message IDs corresponding to the dispatched message.
-    function dispatchMessage(
+    function dispatchMessages(
         uint256[] calldata toChainIds,
         address[] calldata tos,
         bytes calldata data
-    ) public returns (bytes32[] memory messageIds) {
+    ) public returns (bytes32[] memory) {
+        if (toChainIds.length != tos.length) revert UnequalArrayLengths(address(this));
+        bytes32[] memory messageIds = new bytes32[](toChainIds.length);
         for (uint256 i = 0; i < toChainIds.length; ) {
             messageIds[i] = _dispatchMessage(toChainIds[i], tos[i], data);
             unchecked {
                 ++i;
             }
         }
+        return messageIds;
     }
 
     /// @dev Dispatches a batch of messages, putting their into storage and emitting their contents as an event.
@@ -75,103 +79,102 @@ contract Yaho is IYaho, MessageHashCalculator, MessageIdCalculator {
         return messageIds;
     }
 
-    /// @dev Relays hashes of the given message ids to the given adapters.
-    /// @param messages Array of messages to relay to the given adapters.
-    /// @param messageIds Array of IDs of the message hashes to relay to the given adapters.
-    /// @param adapters Array of relay adapter addresses to which hashes should be relayed.
-    /// @param destinationAdapters Array of oracle adapter addresses to receive hashes.
-    /// @return adapterReciepts Reciepts from each of the relay adapters.
+    /// @dev Relays hashes of the given message ids to the given messageRelays.
+    /// @param messages Array of messages to relay to the given messageRelays.
+    /// @param messageIds Array of IDs of the message hashes to relay to the given messageRelays.
+    /// @param messageRelays Array of relay adapter addresses to which hashes should be relayed.
+    /// @param adapters Array of oracle adapter addresses to receive hashes.
+    /// @return adapterReciepts Reciepts from each of the relay messageRelays.
     function relayMessagesToAdapters(
         Message[] calldata messages,
         bytes32[] calldata messageIds,
-        address[] calldata adapters,
-        address[] calldata destinationAdapters
+        address[] calldata messageRelays,
+        address[] calldata adapters
     ) external payable returns (bytes32[] memory adapterReciepts) {
         if (messageIds.length == 0) revert NoMessageIdsGiven(address(this));
-        if (adapters.length == 0) revert NoAdaptersGiven(address(this));
         if (messages.length != messageIds.length) revert UnequalArrayLengths(address(this));
-        if (adapters.length != destinationAdapters.length) revert UnequalArrayLengths(address(this));
 
         uint256[] memory toChainIds = new uint256[](messageIds.length);
         for (uint256 i = 0; i < messageIds.length; i++) {
             bytes32 expectedMessageHash = hashes[messageIds[i]];
-            bytes32 messageHash = calculateMessageHash(messages[i]);
+            bytes32 messageHash = calculateMessageHash(messages[i], address(this));
             if (messageHash != expectedMessageHash) revert MessageHashMismatch(messageHash, expectedMessageHash);
             toChainIds[i] = messages[i].toChainId;
         }
 
-        adapterReciepts = _relayMessages(messageIds, toChainIds, adapters, destinationAdapters);
+        adapterReciepts = _relayMessages(messageIds, toChainIds, messageRelays, adapters);
         return adapterReciepts;
     }
 
-    /// @dev Dispatches an array of messages and relays their hashes to an array of relay adapters.
+    /// @dev Dispatches an array of messages and relays their hashes to an array of relay messageRelays.
     /// @param toChainIds The destination chain ids.
     /// @param tos The target contracts.
     /// @param data The message data.
-    /// @param adapters Array of relay adapter addresses to which hashes should be relayed.
-    /// @param destinationAdapters Array of oracle adapter addresses to receive hashes.
+    /// @param messageRelays Array of relay adapter addresses to which hashes should be relayed.
+    /// @param adapters Array of oracle adapter addresses to receive hashes.
     /// @return messageIds An array of message IDs corresponding to the dispatched messages.
-    /// @return adapterReciepts Reciepts from each of the relay adapters.
-    function dispatchMessageToAdapters(
+    /// @return adapterReciepts Reciepts from each of the relay messageRelays.
+    function dispatchMessagesToAdapters(
         uint256[] calldata toChainIds,
         address[] calldata tos,
         bytes calldata data,
-        address[] calldata adapters,
-        address[] calldata destinationAdapters
+        address[] calldata messageRelays,
+        address[] calldata adapters
     ) external payable returns (bytes32[] memory messageIds, bytes32[] memory adapterReciepts) {
-        if (adapters.length == 0) revert NoAdaptersGiven(address(this));
-        messageIds = dispatchMessage(toChainIds, tos, data);
-        adapterReciepts = _relayMessages(messageIds, toChainIds, adapters, destinationAdapters);
+        messageIds = dispatchMessages(toChainIds, tos, data);
+        adapterReciepts = _relayMessages(messageIds, toChainIds, messageRelays, adapters);
         return (messageIds, adapterReciepts);
     }
 
-    /// @dev Dispatches an array of messages and relays their hashes to an array of relay adapters.
+    /// @dev Dispatches an array of messages and relays their hashes to an array of relay messageRelays.
     /// @param toChainIds The destination chain ids.
     /// @param tos The target contracts.
     /// @param data The message data for each message.
-    /// @param adapters Array of relay adapter addresses to which hashes should be relayed.
-    /// @param destinationAdapters Array of oracle adapter addresses to receive hashes.
+    /// @param messageRelays Array of relay adapter addresses to which hashes should be relayed.
+    /// @param adapters Array of oracle adapter addresses to receive hashes.
     /// @return messageIds An array of message IDs corresponding to the dispatched messages.
-    /// @return adapterReciepts Reciepts from each of the relay adapters.
+    /// @return adapterReciepts Reciepts from each of the relay messageRelays.
     function dispatchMessagesToAdapters(
         uint256[] calldata toChainIds,
         address[] calldata tos,
         bytes[] calldata data,
-        address[] calldata adapters,
-        address[] calldata destinationAdapters
+        address[] calldata messageRelays,
+        address[] calldata adapters
     ) external payable returns (bytes32[] memory messageIds, bytes32[] memory adapterReciepts) {
-        if (adapters.length == 0) revert NoAdaptersGiven(address(this));
         messageIds = dispatchMessages(toChainIds, tos, data);
-        adapterReciepts = _relayMessages(messageIds, toChainIds, adapters, destinationAdapters);
+        adapterReciepts = _relayMessages(messageIds, toChainIds, messageRelays, adapters);
         return (messageIds, adapterReciepts);
     }
 
     function _dispatchMessage(uint256 toChainId, address to, bytes calldata data) internal returns (bytes32 messageId) {
-        Message memory message = Message(block.chainid, toChainId, msg.sender, to, data);
-
-        bytes32 messageHash = calculateMessageHash(message);
         bool isHeaderReporter = msg.sender == headerReporter;
-        bytes32 messageType = isHeaderReporter ? MESSAGE_BHR : MESSAGE_MPI;
-        bytes32 salt = isHeaderReporter ? bytes32(0) : keccak256(abi.encode(blockhash(block.number), gasleft()));
-
-        messageId = calculateMessageId(block.chainid, address(this), messageType, salt, messageHash);
+        address from = isHeaderReporter ? address(0) : msg.sender;
+        Message memory message = Message(block.chainid, toChainId, from, to, data);
+        bytes32 messageHash = calculateMessageHash(message, address(this));
+        bytes32 salt = keccak256(
+            abi.encode(
+                isHeaderReporter ? MESSAGE_BHR : MESSAGE_MPI,
+                isHeaderReporter ? bytes32(0) : keccak256(abi.encode(blockhash(block.number), gasleft()))
+            )
+        );
+        messageId = calculateMessageId(salt, messageHash);
         hashes[messageId] = messageHash;
-        emit MessageDispatched(messageId, msg.sender, toChainId, to, data);
+        emit MessageDispatched(messageId, from, toChainId, to, data);
     }
 
     function _relayMessages(
         bytes32[] memory messageIds,
         uint256[] memory toChainIds,
-        address[] calldata adapters,
-        address[] calldata destinationAdapters
+        address[] calldata messageRelays,
+        address[] calldata adapters
     ) internal returns (bytes32[] memory) {
-        bytes32[] memory adapterReciepts = new bytes32[](adapters.length);
-        for (uint256 i = 0; i < adapters.length; ) {
-            adapterReciepts[i] = IMessageRelay(adapters[i]).relayMessages(
-                messageIds,
-                toChainIds,
-                destinationAdapters[i]
-            );
+        if (messageRelays.length == 0) revert NoMessageRelaysGiven(address(this));
+        if (adapters.length == 0) revert NoAdaptersGiven(address(this));
+        if (messageRelays.length != adapters.length) revert UnequalArrayLengths(address(this));
+
+        bytes32[] memory adapterReciepts = new bytes32[](messageRelays.length);
+        for (uint256 i = 0; i < messageRelays.length; ) {
+            adapterReciepts[i] = IMessageRelay(messageRelays[i]).relayMessages(messageIds, toChainIds, adapters[i]);
             unchecked {
                 ++i;
             }

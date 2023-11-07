@@ -4,6 +4,7 @@ pragma solidity ^0.8.17;
 import { ILightClient, TelepathyStorage } from "./interfaces/ITelepathy.sol";
 import { SSZ } from "./libraries/SimpleSerialize.sol";
 import { BlockHashOracleAdapter } from "../BlockHashOracleAdapter.sol";
+import { Message } from "../../interfaces/IMessageDispatcher.sol";
 
 contract TelepathyAdapter is BlockHashOracleAdapter {
     /// @dev The Telepathy Router contains a mapping of chainIds to Light Clients.
@@ -56,8 +57,15 @@ contract TelepathyAdapter is BlockHashOracleAdapter {
         blockNumbers[0] = _blockNumber;
         blockHeaders[0] = _blockHash;
 
-        bytes32 messageHash = keccak256(abi.encode(blockNumbers, blockHeaders));
-        bytes32 messageId = calculateMessageId(_chainId, _yaho, MESSAGE_BHR, bytes32(0), messageHash);
+        Message memory message = Message(
+            _chainId,
+            block.chainid,
+            address(0),
+            address(0),
+            abi.encode(blockNumbers, blockHeaders)
+        );
+        bytes32 messageHash = calculateMessageHash(message, _yaho);
+        bytes32 messageId = calculateMessageId(keccak256(abi.encode(MESSAGE_BHR, bytes32(0))), messageHash);
 
         _storeHash(uint256(_chainId), messageId, messageHash);
     }

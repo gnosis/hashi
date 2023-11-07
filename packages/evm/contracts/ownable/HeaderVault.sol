@@ -5,24 +5,20 @@ import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { IHeaderVault } from "../interfaces/IHeaderVault.sol";
 
 contract HeaderVault is IHeaderVault, Ownable {
-    address public immutable yaru;
-
     mapping(uint256 => mapping(uint256 => bytes32)) private _blockHeaders;
     mapping(uint256 => address) _headerReporters;
+    address public yaru;
 
     error NotYaru(address currentYaru, address expectedYaru);
     error InvalidHeaderReporter(uint256 fromChainId, address headerReporter, address expectedHeaderReporter);
     error UnequalArrayLengths();
+    error YaruAlreadyInitialized(address yaru);
 
     modifier onlyYaruAndOnlyHeaderReporter(uint256 fromChainId, address from) {
         if (msg.sender != yaru) revert NotYaru(msg.sender, yaru);
         address expectedHeaderReporter = _headerReporters[fromChainId];
         if (expectedHeaderReporter != from) revert InvalidHeaderReporter(fromChainId, from, expectedHeaderReporter);
         _;
-    }
-
-    constructor(address yaru_) {
-        yaru = yaru_;
     }
 
     function disableBlockHeaderReporter(uint256 fromChainId) external onlyOwner {
@@ -38,6 +34,11 @@ contract HeaderVault is IHeaderVault, Ownable {
 
     function getBlockHeader(uint256 chainId, uint256 blockNumber) external view returns (bytes32) {
         return _blockHeaders[chainId][blockNumber];
+    }
+
+    function initializeYaru(address yaru_) external onlyOwner {
+        if (yaru == address(0)) revert YaruAlreadyInitialized(yaru);
+        yaru = yaru_;
     }
 
     function onMessage(

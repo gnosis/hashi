@@ -2,20 +2,22 @@
 pragma solidity ^0.8.17;
 
 import { RLPReader } from "solidity-rlp/contracts/RLPReader.sol";
+import { Message } from "../interfaces/IMessageDispatcher.sol";
+import { MessageHashCalculator } from "../utils/MessageHashCalculator.sol";
 import { MessageIdCalculator } from "../utils/MessageIdCalculator.sol";
 import { OracleAdapter } from "./OracleAdapter.sol";
 
-abstract contract BlockHashOracleAdapter is OracleAdapter, MessageIdCalculator {
+abstract contract BlockHashOracleAdapter is OracleAdapter, MessageHashCalculator, MessageIdCalculator {
     using RLPReader for RLPReader.RLPItem;
 
     bytes32 public immutable MESSAGE_BHR = keccak256("MESSAGE_BHR");
 
     /// @dev Proves and stores valid ancestral block hashes for a given chain ID.
-    /// @param chainId The ID of the chain to prove block hashes for.
+    /// @param fromChainId The ID of the chain to prove block hashes for.
     /// @param blockHeaders The RLP encoded block headers to prove the hashes for.
-    /// @param yaho The address of Yaho.
+    /// @param yaho The address of Yaho contract.
     /// @notice Block headers should be ordered by descending block number and should start with a known block header.
-    function proveAncestralBlockHashes(uint256 chainId, bytes[] memory blockHeaders, address yaho) external {
+    function proveAncestralBlockHashes(uint256 fromChainId, bytes[] memory blockHeaders, address yaho) external {
         uint256[] memory blockNumbers = new uint256[](blockHeaders.length);
         bytes32[] memory blockParents = new bytes32[](blockHeaders.length);
 
@@ -34,16 +36,22 @@ abstract contract BlockHashOracleAdapter is OracleAdapter, MessageIdCalculator {
             uint256 blockNumber = uint256(blockHeaderContent[8].toUint());
 
             bytes32 reportedBlockHash = keccak256(blockHeaders[i]);
-            bytes32 storedBlockHash = hashes[chainId][bytes32(blockNumber)];
+            bytes32 storedBlockHash = hashes[fromChainId][bytes32(blockNumber)];
 
             if (reportedBlockHash != storedBlockHash)
                 revert ConflictingBlockHeader(blockNumber, reportedBlockHash, storedBlockHash);
 
             blockNumbers[i] = blockNumber - 1;
         }
-
-        bytes32 messageHash = keccak256(abi.encode(blockNumbers, blockParents));
-        bytes32 messageId = calculateMessageId(chainId, yaho, MESSAGE_BHR, bytes32(0), messageHash);
-        _storeHash(chainId, messageId, messageHash);
+        Message memory message = Message(
+            fromChainId,
+            block.chainid,
+            address(0),
+            address(0),
+            abi.encode(blockNumbers, blockParents)
+        );
+        bytes32 messageHash = calculateMessageHash(message, yaho);
+        bytes32 messageId = calculateMessageId(keccak256(abi.encode(MESSAGE_BHR, bytes32(0))), messageHash);
+        _storeHash(fromChainId, messageId, messageHash);
     }
 }

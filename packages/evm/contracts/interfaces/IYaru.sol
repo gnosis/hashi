@@ -9,10 +9,9 @@ interface IYaru is IMessageExecutor {
     event Initialized(uint256 indexed chainId, address yaho);
 
     function executeMessages(
-        Message[] memory messages,
-        bytes32[] memory messageTypes,
-        bytes32[] memory salts,
-        IOracleAdapter[] memory oracleAdapters
+        Message[] calldata messages,
+        bytes32[] calldata messageIds,
+        IOracleAdapter[] calldata oracleAdapters
     ) external returns (bytes[] memory);
 
     function initializeForChainId(uint256 chainId, address yaho) external;

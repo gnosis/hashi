@@ -4,6 +4,7 @@ pragma solidity ^0.8.17;
 import { ILightClient, LightClientUpdate } from "./interfaces/IDendrETH.sol";
 import { SSZ } from "../Telepathy/libraries/SimpleSerialize.sol";
 import { BlockHashOracleAdapter } from "../BlockHashOracleAdapter.sol";
+import { Message } from "../../interfaces/IMessageDispatcher.sol";
 
 contract DendrETHAdapter is BlockHashOracleAdapter {
     error InvalidUpdate();
@@ -96,7 +97,7 @@ contract DendrETHAdapter is BlockHashOracleAdapter {
     }
 
     function _storeBlockNumberAndBlockHeader(
-        uint256 chainId,
+        uint256 fromChainId,
         uint256 blockNumber,
         bytes32 blockHeader,
         address yaho
@@ -106,9 +107,16 @@ contract DendrETHAdapter is BlockHashOracleAdapter {
         blockNumbers[0] = blockNumber;
         blockHeaders[0] = blockHeader;
 
-        bytes32 messageHash = keccak256(abi.encode(blockNumbers, blockHeaders));
-        bytes32 messageId = calculateMessageId(chainId, yaho, MESSAGE_BHR, bytes32(0), messageHash);
+        Message memory message = Message(
+            fromChainId,
+            block.chainid,
+            address(0),
+            address(0),
+            abi.encode(blockNumbers, blockHeaders)
+        );
+        bytes32 messageHash = calculateMessageHash(message, yaho);
+        bytes32 messageId = calculateMessageId(keccak256(abi.encode(MESSAGE_BHR, bytes32(0))), messageHash);
 
-        _storeHash(chainId, messageId, messageHash);
+        _storeHash(fromChainId, messageId, messageHash);
     }
 }

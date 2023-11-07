@@ -16,20 +16,27 @@ contract HeaderReporter is IHeaderReporter {
     /// @param blockNumbers Uint256 array of block number.
     /// @param yaho Address of the Yaho contract to call.
     /// @param toChainIds The destination chain ids.
-    /// @param tos The target contracts.
     /// @param adapters Array of relay adapter addresses to which hashes should be relayed.
     /// @param destinationAdapters Array of oracle adapter addresses to receive hashes.
     function reportHeaders(
         uint256[] calldata blockNumbers,
         uint256[] calldata toChainIds,
-        address[] calldata tos,
         address[] calldata adapters,
         address[] calldata destinationAdapters,
         address yaho
     ) external {
         bytes32[] memory blockHeaders = IHeaderStorage(headerStorage).storeBlockHeaders(blockNumbers);
         bytes memory data = abi.encode(blockNumbers, blockHeaders);
-        IYaho(yaho).dispatchMessageToAdapters(toChainIds, tos, data, adapters, destinationAdapters);
+
+        address[] memory tos = new address[](toChainIds.length);
+        for (uint256 i = 0; i < toChainIds.length; ) {
+            tos[i] = address(0);
+            unchecked {
+                ++i;
+            }
+        }
+
+        IYaho(yaho).dispatchMessagesToAdapters(toChainIds, tos, data, adapters, destinationAdapters);
 
         for (uint256 i = 0; i < blockNumbers.length; ) {
             emit HeaderReported(toChainIds[i], blockNumbers[i], blockHeaders[i]);

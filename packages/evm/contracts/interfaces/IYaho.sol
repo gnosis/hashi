@@ -6,7 +6,7 @@ import { IMessageDispatcher, Message } from "./IMessageDispatcher.sol";
 interface IYaho is IMessageDispatcher {
     function dispatchMessage(uint256 toChainId, address to, bytes calldata data) external returns (bytes32 messageId);
 
-    function dispatchMessage(
+    function dispatchMessages(
         uint256[] calldata toChainIds,
         address[] calldata tos,
         bytes calldata data
@@ -25,7 +25,7 @@ interface IYaho is IMessageDispatcher {
         address[] calldata destinationAdapters
     ) external payable returns (bytes32[] memory);
 
-    function dispatchMessageToAdapters(
+    function dispatchMessagesToAdapters(
         uint256[] calldata toChainIds,
         address[] calldata tos,
         bytes calldata data,

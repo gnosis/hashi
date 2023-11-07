@@ -7,7 +7,6 @@ interface IHeaderReporter {
     function reportHeaders(
         uint256[] calldata blockNumbers,
         uint256[] calldata toChainIds,
-        address[] calldata tos,
         address[] calldata adapters,
         address[] calldata destinationAdapters,
         address yaho

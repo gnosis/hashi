@@ -12,6 +12,7 @@ import { IJushinki } from "./interfaces/IJushinki.sol";
 
 contract Yaru is IYaru, MessageHashCalculator, MessageIdCalculator, ReentrancyGuard, Ownable {
     address public immutable hashi;
+    address public immutable headerVault;
 
     mapping(uint256 => address) private _yahos;
     mapping(bytes32 => bool) public executed;
@@ -22,34 +23,26 @@ contract Yaru is IYaru, MessageHashCalculator, MessageIdCalculator, ReentrancyGu
     error AlreadyInitialized(uint256 chainId);
 
     /// @param hashi_ Address of the Hashi contract.
-    constructor(address hashi_) {
+    constructor(address hashi_, address headerVault_) {
         hashi = hashi_;
+        headerVault = headerVault_;
     }
 
     /// @dev Executes messages validated by a given set of oracle adapters
     /// @param messages Array of messages to execute.
-    /// @param messageTypes Array of bytes32 corresponding to message types used to calculate the message ids.
-    /// @param salts Array of bytes32 corresponding to the salts used to calculate the message ids.
+    /// @param messageIds Array of bytes32 corresponding to the message ids.
     /// @return returnDatas Array of data returned from each executed message.
     function executeMessages(
-        Message[] memory messages,
-        bytes32[] memory messageTypes,
-        bytes32[] memory salts,
-        IOracleAdapter[] memory oracleAdapters
+        Message[] calldata messages,
+        bytes32[] calldata messageIds,
+        IOracleAdapter[] calldata oracleAdapters
     ) external nonReentrant returns (bytes[] memory) {
-        if (messages.length != messageTypes.length || messages.length != salts.length)
-            revert UnequalArrayLengths(address(this));
+        if (messages.length != messageIds.length) revert UnequalArrayLengths(address(this));
         bytes[] memory returnDatas = new bytes[](messages.length);
         for (uint256 i = 0; i < messages.length; i++) {
             Message memory message = messages[i];
-            bytes32 messageHash = calculateMessageHash(message);
-            bytes32 messageId = calculateMessageId(
-                message.fromChainId,
-                _yahos[message.fromChainId],
-                messageTypes[i],
-                salts[i],
-                messageHash
-            );
+            bytes32 messageHash = calculateMessageHash(message, _yahos[message.fromChainId]);
+            bytes32 messageId = messageIds[i];
 
             if (executed[messageId]) revert MessageIdAlreadyExecuted(messageId);
             executed[messageId] = true;
@@ -57,7 +50,8 @@ contract Yaru is IYaru, MessageHashCalculator, MessageIdCalculator, ReentrancyGu
             bytes32 reportedHash = IHashi(hashi).getHash(message.fromChainId, messageId, oracleAdapters);
             if (reportedHash != messageHash) revert MessageFailure(messageId, abi.encode(reportedHash, messageHash));
 
-            try IJushinki(message.to).onMessage(message.data, messageId, message.fromChainId, message.from) returns (
+            address to = message.from == address(0) && message.to == address(0) ? headerVault : message.to;
+            try IJushinki(to).onMessage(message.data, messageId, message.fromChainId, message.from) returns (
                 bytes memory returnData
             ) {
                 returnDatas[i] = returnData;

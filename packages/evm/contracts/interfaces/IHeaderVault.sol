@@ -12,5 +12,7 @@ interface IHeaderVault is IJushinki {
 
     function enableBlockHeaderReporter(uint256 fromChainId, address headerReporter) external;
 
+    function initializeYaru(address yaru_) external;
+
     function getBlockHeader(uint256 chainId, uint256 blockNumber) external view returns (bytes32);
 }

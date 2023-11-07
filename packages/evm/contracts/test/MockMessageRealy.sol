@@ -6,8 +6,17 @@ import { IMessageRelay } from "../interfaces/IMessageRelay.sol";
 contract MockMessageRelay is IMessageRelay {
     uint256 public count;
 
-    function relayMessages(bytes32[] memory, uint256[] memory, address) external payable returns (bytes32 receipts) {
+    event MessageRelayed(bytes32 messageId);
+
+    function relayMessages(
+        bytes32[] memory messageIds,
+        uint256[] memory,
+        address
+    ) external payable returns (bytes32 receipts) {
+        for (uint256 i = 0; i < messageIds.length; i++) {
+            count++;
+            emit MessageRelayed(messageIds[i]);
+        }
         receipts = bytes32(count);
-        count++;
     }
 }
