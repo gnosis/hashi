@@ -6,7 +6,6 @@ import { IHeaderVault } from "../interfaces/IHeaderVault.sol";
 
 contract HeaderVault is IHeaderVault, Ownable {
     mapping(uint256 => mapping(uint256 => bytes32)) private _blockHeaders;
-    mapping(uint256 => address) _headerReporters;
     address public yaru;
 
     error NotYaru(address currentYaru, address expectedYaru);
@@ -16,20 +15,8 @@ contract HeaderVault is IHeaderVault, Ownable {
 
     modifier onlyYaruAndOnlyHeaderReporter(uint256 fromChainId, address from) {
         if (msg.sender != yaru) revert NotYaru(msg.sender, yaru);
-        address expectedHeaderReporter = _headerReporters[fromChainId];
-        if (expectedHeaderReporter != from) revert InvalidHeaderReporter(fromChainId, from, expectedHeaderReporter);
+        if (from != address(0)) revert InvalidHeaderReporter(fromChainId, from, address(0));
         _;
-    }
-
-    function disableBlockHeaderReporter(uint256 fromChainId) external onlyOwner {
-        address headerReporter = _headerReporters[fromChainId];
-        delete _headerReporters[fromChainId];
-        emit HeaderReporterDisabled(fromChainId, headerReporter);
-    }
-
-    function enableBlockHeaderReporter(uint256 fromChainId, address headerReporter) external onlyOwner {
-        _headerReporters[fromChainId] = headerReporter;
-        emit HeaderReporterEnabled(fromChainId, headerReporter);
     }
 
     function getBlockHeader(uint256 chainId, uint256 blockNumber) external view returns (bytes32) {
@@ -37,7 +24,7 @@ contract HeaderVault is IHeaderVault, Ownable {
     }
 
     function initializeYaru(address yaru_) external onlyOwner {
-        if (yaru == address(0)) revert YaruAlreadyInitialized(yaru);
+        if (yaru != address(0)) revert YaruAlreadyInitialized(yaru);
         yaru = yaru_;
     }
 
@@ -55,6 +42,9 @@ contract HeaderVault is IHeaderVault, Ownable {
             bytes32 blockHeader = blockHeaders[i];
             _blockHeaders[fromChainId][blockNumber] = blockHeader;
             emit NewBlock(fromChainId, blockNumber, blockHeader);
+            unchecked {
+                ++i;
+            }
         }
 
         // TODO: what to return?

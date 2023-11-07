@@ -1,4 +1,4 @@
-import { ContractReceipt } from "ethers"
+import { ContractReceipt, ethers } from "ethers"
 
 import { Chains } from "../constants"
 
@@ -29,10 +29,16 @@ class Message {
   }
 
   static fromReceipt(_receipt: ContractReceipt) {
-    const events = _receipt.events.filter(({ event }) => event === "MessageDispatched")
-    const messages = events.map((_event) => _event.decode(_event?.data, _event?.topics))
+    const abi = [
+      "event MessageDispatched(bytes32 indexed messageId,address indexed from,uint256 indexed toChainId,address to,bytes data)",
+    ]
+    const iface = new ethers.utils.Interface(abi)
+    const logs = _receipt.logs.filter(
+      ({ topics }) => topics[0] === "0xe2f8f20ddbedfce5eb59a8b930077e7f4906a01300b9318db5f90d1c96c7b6d4",
+    )
+    const messages = logs.map(({ topics, data }) => iface.parseLog({ topics, data }))
     return messages.map(
-      ({ data, from, messageId, to, toChainId }) => new Message({ data, from, messageId, to, toChainId }),
+      ({ args: { data, from, messageId, to, toChainId } }) => new Message({ data, from, messageId, to, toChainId }),
     )
   }
 

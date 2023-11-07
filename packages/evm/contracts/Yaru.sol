@@ -23,6 +23,7 @@ contract Yaru is IYaru, MessageHashCalculator, MessageIdCalculator, ReentrancyGu
     error AlreadyInitialized(uint256 chainId);
 
     /// @param hashi_ Address of the Hashi contract.
+    /// @param headerVault_ Address of the HeaderVault contract.
     constructor(address hashi_, address headerVault_) {
         hashi = hashi_;
         headerVault = headerVault_;
@@ -48,7 +49,7 @@ contract Yaru is IYaru, MessageHashCalculator, MessageIdCalculator, ReentrancyGu
             executed[messageId] = true;
 
             bytes32 reportedHash = IHashi(hashi).getHash(message.fromChainId, messageId, oracleAdapters);
-            if (reportedHash != messageHash) revert MessageFailure(messageId, abi.encode(reportedHash, messageHash));
+            if (reportedHash != messageHash) revert MessageFailure(messageId, abi.encode(keccak256("HashMismatch")));
 
             address to = message.from == address(0) && message.to == address(0) ? headerVault : message.to;
             try IJushinki(to).onMessage(message.data, messageId, message.fromChainId, message.from) returns (
@@ -56,7 +57,7 @@ contract Yaru is IYaru, MessageHashCalculator, MessageIdCalculator, ReentrancyGu
             ) {
                 returnDatas[i] = returnData;
             } catch {
-                revert MessageFailure(messageId, abi.encode(0));
+                revert MessageFailure(messageId, abi.encode(keccak256("CallFailed")));
             }
 
             emit MessageIdExecuted(message.fromChainId, messageId);

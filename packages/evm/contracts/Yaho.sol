@@ -149,6 +149,7 @@ contract Yaho is IYaho, MessageHashCalculator, MessageIdCalculator {
     function _dispatchMessage(uint256 toChainId, address to, bytes calldata data) internal returns (bytes32 messageId) {
         bool isHeaderReporter = msg.sender == headerReporter;
         address from = isHeaderReporter ? address(0) : msg.sender;
+        // NOTE: in case of isHeaderReporter = true -> to = address(0)
         Message memory message = Message(block.chainid, toChainId, from, to, data);
         bytes32 messageHash = calculateMessageHash(message, address(this));
         bytes32 salt = keccak256(
