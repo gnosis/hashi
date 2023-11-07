@@ -20,7 +20,6 @@ describe("Yaho", function () {
   this.beforeEach(async function () {
     const Yaho = await ethers.getContractFactory("Yaho")
     const MessageRelay = await ethers.getContractFactory("MockMessageRelay")
-    const HeaderStorage = await ethers.getContractFactory("HeaderStorage")
 
     const signers = await ethers.getSigners()
     owner = signers[0]
@@ -29,7 +28,6 @@ describe("Yaho", function () {
     fakeAdapter1 = await signers[3]
     fakeHeaderReporter = await signers[4]
 
-    headerStorage = await HeaderStorage.deploy()
     yaho = await Yaho.deploy(fakeHeaderReporter.address)
     messageRelay = await MessageRelay.deploy()
   })
@@ -128,7 +126,6 @@ describe("Yaho", function () {
         "0x01",
       )
       const [message1, message2] = Message.fromReceipt(await tx.wait(1))
-
       await expect(
         yaho.relayMessagesToAdapters([], [message1.id, message2.id], [messageRelay.address], [fakeAdapter1.address]),
       )
@@ -158,7 +155,6 @@ describe("Yaho", function () {
         "0x01",
       )
       const [message1, message2] = Message.fromReceipt(await tx.wait(1))
-
       await expect(
         yaho.relayMessagesToAdapters([message1, message2], [message1.id, message2.id], [messageRelay.address], []),
       )
@@ -173,7 +169,6 @@ describe("Yaho", function () {
         "0x01",
       )
       const [message1, message2] = Message.fromReceipt(await tx.wait(1))
-
       await expect(
         yaho.relayMessagesToAdapters(
           [message1, message2],
@@ -300,7 +295,6 @@ describe("Yaho", function () {
       await expect(tx)
         .to.emit(yaho, "MessageDispatched")
         .withArgs(anyValue, ZERO_ADDRESS, Chains.Mainnet, fakeTo1.address, "0x01")
-
       expect(await yaho.hashes(message1.id)).to.not.be.eq(toBytes32(0))
     })
   })
