@@ -115,7 +115,7 @@ contract DendrETHAdapter is BlockHashOracleAdapter {
             abi.encode(blockNumbers, blockHeaders)
         );
         bytes32 messageHash = calculateMessageHash(message, yaho);
-        bytes32 messageId = calculateMessageId(keccak256(abi.encode(MESSAGE_BHR, bytes32(0))), messageHash);
+        bytes32 messageId = calculateMessageId(keccak256(abi.encode(MESSAGE_BHR, bytes(abi.encode(0)))), messageHash);
 
         _storeHash(fromChainId, messageId, messageHash);
     }

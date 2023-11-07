@@ -65,7 +65,7 @@ contract TelepathyAdapter is BlockHashOracleAdapter {
             abi.encode(blockNumbers, blockHeaders)
         );
         bytes32 messageHash = calculateMessageHash(message, _yaho);
-        bytes32 messageId = calculateMessageId(keccak256(abi.encode(MESSAGE_BHR, bytes32(0))), messageHash);
+        bytes32 messageId = calculateMessageId(keccak256(abi.encode(MESSAGE_BHR, bytes(abi.encode(0)))), messageHash);
 
         _storeHash(uint256(_chainId), messageId, messageHash);
     }

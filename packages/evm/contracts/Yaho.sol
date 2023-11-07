@@ -154,7 +154,7 @@ contract Yaho is IYaho, MessageHashCalculator, MessageIdCalculator {
         bytes32 salt = keccak256(
             abi.encode(
                 isHeaderReporter ? MESSAGE_BHR : MESSAGE_MPI,
-                isHeaderReporter ? bytes32(0) : keccak256(abi.encode(blockhash(block.number), gasleft()))
+                isHeaderReporter ? bytes(abi.encode(0)) : abi.encode(blockhash(block.number), gasleft())
             )
         );
         messageId = calculateMessageId(salt, messageHash);
