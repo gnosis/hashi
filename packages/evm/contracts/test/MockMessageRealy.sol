@@ -9,8 +9,8 @@ contract MockMessageRelay is IMessageRelay {
     event MessageRelayed(bytes32 messageId);
 
     function relayMessages(
-        bytes32[] memory messageIds,
-        uint256[] memory,
+        uint256[] calldata,
+        bytes32[] calldata messageIds,
         address
     ) external payable returns (bytes32 receipts) {
         for (uint256 i = 0; i < messageIds.length; i++) {

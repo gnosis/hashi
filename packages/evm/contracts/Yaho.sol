@@ -96,7 +96,7 @@ contract Yaho is IYaho, MessageHashCalculator, MessageIdCalculator {
             toChainIds[i] = messages[i].toChainId;
         }
 
-        adapterReciepts = _relayMessages(messageIds, toChainIds, messageRelays, adapters);
+        adapterReciepts = _relayMessages(toChainIds, messageIds, messageRelays, adapters);
         return adapterReciepts;
     }
 
@@ -116,7 +116,7 @@ contract Yaho is IYaho, MessageHashCalculator, MessageIdCalculator {
         address[] calldata adapters
     ) external payable returns (bytes32[] memory messageIds, bytes32[] memory adapterReciepts) {
         messageIds = dispatchMessages(toChainIds, tos, data);
-        adapterReciepts = _relayMessages(messageIds, toChainIds, messageRelays, adapters);
+        adapterReciepts = _relayMessages(toChainIds, messageIds, messageRelays, adapters);
         return (messageIds, adapterReciepts);
     }
 
@@ -136,7 +136,7 @@ contract Yaho is IYaho, MessageHashCalculator, MessageIdCalculator {
         address[] calldata adapters
     ) external payable returns (bytes32[] memory messageIds, bytes32[] memory adapterReciepts) {
         messageIds = dispatchMessages(toChainIds, tos, data);
-        adapterReciepts = _relayMessages(messageIds, toChainIds, messageRelays, adapters);
+        adapterReciepts = _relayMessages(toChainIds, messageIds, messageRelays, adapters);
         return (messageIds, adapterReciepts);
     }
 
@@ -158,8 +158,8 @@ contract Yaho is IYaho, MessageHashCalculator, MessageIdCalculator {
     }
 
     function _relayMessages(
-        bytes32[] memory messageIds,
         uint256[] memory toChainIds,
+        bytes32[] memory messageIds,
         address[] calldata messageRelays,
         address[] calldata adapters
     ) internal returns (bytes32[] memory) {
@@ -169,7 +169,7 @@ contract Yaho is IYaho, MessageHashCalculator, MessageIdCalculator {
 
         bytes32[] memory adapterReciepts = new bytes32[](messageRelays.length);
         for (uint256 i = 0; i < messageRelays.length; ) {
-            adapterReciepts[i] = IMessageRelay(messageRelays[i]).relayMessages(messageIds, toChainIds, adapters[i]);
+            adapterReciepts[i] = IMessageRelay(messageRelays[i]).relayMessages(toChainIds, messageIds, adapters[i]);
             unchecked {
                 ++i;
             }

@@ -18,8 +18,8 @@ contract AMBMessageRelay is IMessageRelay {
     }
 
     function relayMessages(
-        bytes32[] memory messageIds,
         uint256[] memory,
+        bytes32[] memory messageIds,
         address ambAdapter
     ) public payable returns (bytes32 receipt) {
         bytes32[] memory hashes = new bytes32[](messageIds.length);

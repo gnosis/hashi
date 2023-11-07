@@ -25,8 +25,8 @@ contract SygmaMessageRelayer is SygmaReporter, IMessageRelay {
         @param sygmaAdapter Address of the Sygma adapter on the target chain.
     */
     function relayMessages(
-        bytes32[] calldata messageIds,
         uint256[] calldata toChainIds,
+        bytes32[] calldata messageIds,
         address sygmaAdapter
     ) public payable returns (bytes32) {
         // TODO: group messages by toChainId
