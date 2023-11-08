@@ -169,7 +169,7 @@ contract Yaho is IYaho, MessageHashCalculator, MessageIdCalculator {
             messageId = calculateMessageId(
                 block.chainid,
                 address(this),
-                keccak256(abi.encode(blockhash(block.number), gasleft()))
+                keccak256(abi.encode(blockhash(block.number), gasleft(), MESSAGE_MPI))
             );
             messageHash = calculateMessageHash(message, messageId, address(this));
         }
