@@ -4,7 +4,7 @@ pragma solidity ^0.8.17;
 import { MessageRelay } from "../MessageRelay.sol";
 import { SygmaReporter } from "./SygmaReporter.sol";
 
-contract SygmaMessageRelayer is SygmaReporter, MessageRelay {
+contract SygmaMessageRelay is SygmaReporter, MessageRelay {
     event MessageRelayed(address indexed emitter, bytes32 indexed messageId);
 
     constructor(

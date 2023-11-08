@@ -49,7 +49,7 @@ const prepareDepositData = async (reporterAddress: string, ids: string[], hashes
   return depositData
 }
 
-describe("SygmaMessageRelayer", function () {
+describe("SygmaMessageRelay", function () {
   this.beforeEach(async function () {
     await network.provider.request({ method: "hardhat_reset", params: [] })
 
@@ -57,7 +57,7 @@ describe("SygmaMessageRelayer", function () {
     const HeaderReporter = await ethers.getContractFactory("HeaderReporter")
     const Yaho = await ethers.getContractFactory("Yaho")
     const SygmaBridge = await ethers.getContractFactory("MockSygmaBridge")
-    const SygmaMessageRelayer = await ethers.getContractFactory("SygmaMessageRelayer")
+    const SygmaMessageRelay = await ethers.getContractFactory("SygmaMessageRelay")
     const SygmaAdapter = await ethers.getContractFactory("SygmaAdapter")
     const PingPong = await ethers.getContractFactory("PingPong")
 
@@ -69,7 +69,7 @@ describe("SygmaMessageRelayer", function () {
     yaho = await Yaho.deploy(headerReporter.address)
     sygmaBridge = await SygmaBridge.deploy()
     sygmaAdapter = await SygmaAdapter.deploy(sygmaBridge.address)
-    sygmaMessageRelayer = await SygmaMessageRelayer.deploy(
+    sygmaMessageRelayer = await SygmaMessageRelay.deploy(
       sygmaBridge.address,
       fakeYaho.address,
       resourceID,
