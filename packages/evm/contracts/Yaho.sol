@@ -94,7 +94,7 @@ contract Yaho is IYaho, MessageHashCalculator, MessageIdCalculator {
         bytes32[] memory messageHashes = new bytes32[](messageIds.length);
         for (uint256 i = 0; i < messageIds.length; i++) {
             bytes32 expectedMessageHash = hashes[messageIds[i]];
-            messageHashes[i] = calculateMessageHash(messages[i], address(this));
+            messageHashes[i] = calculateMessageHash(messages[i], messageIds[i], address(this));
             if (messageHashes[i] != expectedMessageHash)
                 revert MessageHashMismatch(messageHashes[i], expectedMessageHash);
             toChainIds[i] = messages[i].toChainId;
@@ -153,16 +153,27 @@ contract Yaho is IYaho, MessageHashCalculator, MessageIdCalculator {
     ) internal returns (bytes32 messageId, bytes32 messageHash) {
         bool isHeaderReporter = msg.sender == headerReporter;
         address from = isHeaderReporter ? address(0) : msg.sender;
+
         // NOTE: in case of isHeaderReporter = true -> to = address(0)
-        Message memory message = Message(block.chainid, toChainId, from, to, data);
-        messageHash = calculateMessageHash(message, address(this));
-        bytes32 salt = keccak256(
-            abi.encode(
-                isHeaderReporter ? MESSAGE_BHR : MESSAGE_MPI,
-                isHeaderReporter ? bytes(abi.encode(0)) : abi.encode(blockhash(block.number), gasleft())
-            )
-        );
-        messageId = calculateMessageId(salt, messageHash);
+        if (isHeaderReporter) {
+            (uint256 blockNumber, ) = abi.decode(data, (uint256, bytes32));
+            Message memory message = Message(block.chainid, toChainId, from, to, data);
+            messageId = calculateMessageId(
+                block.chainid,
+                address(this),
+                keccak256(abi.encode(blockNumber, MESSAGE_BHR))
+            );
+            messageHash = calculateMessageHash(message, messageId, address(this));
+        } else {
+            Message memory message = Message(block.chainid, toChainId, from, to, data);
+            messageId = calculateMessageId(
+                block.chainid,
+                address(this),
+                keccak256(abi.encode(blockhash(block.number), gasleft()))
+            );
+            messageHash = calculateMessageHash(message, messageId, address(this));
+        }
+
         hashes[messageId] = messageHash;
         emit MessageDispatched(messageId, from, toChainId, to, data);
     }

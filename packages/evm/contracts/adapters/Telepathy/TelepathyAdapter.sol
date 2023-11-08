@@ -22,7 +22,7 @@ contract TelepathyAdapter is OracleAdapter {
 
     /// @notice Stores the block header for a given block only if it exists in the Telepathy
     ///         Light Client for the chainId.
-    function storeBlockHeader(
+    /*function storeBlockHeader(
         uint32 _chainId,
         uint64 _slot,
         uint256 _blockNumber,
@@ -63,5 +63,5 @@ contract TelepathyAdapter is OracleAdapter {
         bytes32 messageId = calculateMessageId(keccak256(abi.encode(MESSAGE_BHR, bytes(abi.encode(0)))), messageHash);
 
         _storeHash(uint256(_chainId), messageId, messageHash);
-    }
+    }*/
 }

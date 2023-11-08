@@ -2,8 +2,9 @@
 pragma solidity ^0.8.17;
 
 import { OracleAdapter } from "../adapters/OracleAdapter.sol";
+import { BlockHashOracleAdapter } from "../adapters/BlockHashOracleAdapter.sol";
 
-contract MockOracleAdapter is OracleAdapter {
+contract MockOracleAdapter is OracleAdapter, BlockHashOracleAdapter {
     error LengthMismatch(address emitter);
 
     function setHashes(uint256 domain, bytes32[] memory ids, bytes32[] memory _hashes) external {

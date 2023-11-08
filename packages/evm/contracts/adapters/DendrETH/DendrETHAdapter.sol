@@ -20,7 +20,7 @@ contract DendrETHAdapter is OracleAdapter {
 
     /// @notice Stores the block header for a given block only if it exists
     //          in the DendrETH Light Client for the chainId.
-    function storeBlockHeader(
+    /*function storeBlockHeader(
         uint32 _chainId,
         uint64 _slot,
         uint256 _blockNumber,
@@ -94,9 +94,9 @@ contract DendrETHAdapter is OracleAdapter {
         }
 
         _storeBlockNumberAndBlockHeader(_chainId, _blockNumber, _blockHash, _yaho);
-    }
+    }*/
 
-    function _storeBlockNumberAndBlockHeader(
+    /*function _storeBlockNumberAndBlockHeader(
         uint256 fromChainId,
         uint256 blockNumber,
         bytes32 blockHeader,
@@ -113,5 +113,5 @@ contract DendrETHAdapter is OracleAdapter {
         bytes32 messageId = calculateMessageId(keccak256(abi.encode(MESSAGE_BHR, bytes(abi.encode(0)))), messageHash);
 
         _storeHash(fromChainId, messageId, messageHash);
-    }
+    }*/
 }

@@ -1,3 +1,4 @@
+import { AbiCoder } from "@ethersproject/abi"
 import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs"
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address"
 import { expect } from "chai"
@@ -7,6 +8,8 @@ import { ethers } from "hardhat"
 import { Chains, ZERO_ADDRESS } from "./constants"
 import { toBytes32 } from "./utils"
 import Message from "./utils/Message"
+
+const abiCoder = new ethers.utils.AbiCoder()
 
 let messageRelay: Contract,
   owner: SignerWithAddress,
@@ -289,11 +292,12 @@ describe("Yaho", function () {
     })
 
     it("dispatch a message using header reporter", async function () {
-      const tx = await yaho.connect(fakeHeaderReporter).dispatchMessage(Chains.Mainnet, fakeTo1.address, "0x01")
+      const data = abiCoder.encode(["uint256", "bytes32"], [1, toBytes32(1)])
+      const tx = await yaho.connect(fakeHeaderReporter).dispatchMessage(Chains.Mainnet, fakeTo1.address, data)
       const [message1] = Message.fromReceipt(await tx.wait(1))
       await expect(tx)
         .to.emit(yaho, "MessageDispatched")
-        .withArgs(anyValue, ZERO_ADDRESS, Chains.Mainnet, fakeTo1.address, "0x01")
+        .withArgs(anyValue, ZERO_ADDRESS, Chains.Mainnet, fakeTo1.address, data)
       expect(await yaho.hashes(message1.id)).to.not.be.eq(toBytes32(0))
     })
   })

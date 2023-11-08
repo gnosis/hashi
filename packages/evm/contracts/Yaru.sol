@@ -7,10 +7,9 @@ import { IYaru } from "./interfaces/IYaru.sol";
 import { IHashi, IOracleAdapter } from "./interfaces/IHashi.sol";
 import { Message } from "./interfaces/IMessage.sol";
 import { MessageHashCalculator } from "./utils/MessageHashCalculator.sol";
-import { MessageIdCalculator } from "./utils/MessageIdCalculator.sol";
 import { IJushinki } from "./interfaces/IJushinki.sol";
 
-contract Yaru is IYaru, MessageHashCalculator, MessageIdCalculator, ReentrancyGuard, Ownable {
+contract Yaru is IYaru, MessageHashCalculator, ReentrancyGuard, Ownable {
     address public immutable hashi;
     address public immutable headerVault;
 
@@ -37,8 +36,9 @@ contract Yaru is IYaru, MessageHashCalculator, MessageIdCalculator, ReentrancyGu
         bytes[] memory returnDatas = new bytes[](messages.length);
         for (uint256 i = 0; i < messages.length; i++) {
             Message memory message = messages[i];
-            bytes32 messageHash = calculateMessageHash(message, _yahos[message.fromChainId]);
+
             bytes32 messageId = messageIds[i];
+            bytes32 messageHash = calculateMessageHash(message, messageId, _yahos[message.fromChainId]);
 
             if (message.toChainId != block.chainid)
                 revert MessageFailure(messageId, abi.encode(keccak256("InvalidToChainId")));

@@ -5,9 +5,14 @@ import { Message } from "../interfaces/IMessage.sol";
 
 contract MessageIdCalculator {
     /// @dev Calculates the ID of a given message.
+    /// @param fromChainId Source chain id
+    /// @param dispatcherAddress Source chain id
     /// @param salt Message salt.
-    /// @param messageHash Message Hash that was/will be dispatched.
-    function calculateMessageId(bytes32 salt, bytes32 messageHash) public pure returns (bytes32) {
-        return keccak256(abi.encode(salt, messageHash));
+    function calculateMessageId(
+        uint256 fromChainId,
+        address dispatcherAddress,
+        bytes32 salt
+    ) public pure returns (bytes32) {
+        return keccak256(abi.encode(fromChainId, dispatcherAddress, salt));
     }
 }
