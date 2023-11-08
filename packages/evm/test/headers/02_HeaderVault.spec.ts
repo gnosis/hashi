@@ -34,26 +34,25 @@ describe("HeaderVault", function () {
     )
     reportedBlockHashes = [blocks[0].hash, blocks[1].hash]
 
-    const data = abiCoder.encode(["uint256[]", "bytes32[]"], [reportedBlockNumbers, reportedBlockHashes])
-    await headerVault.connect(fakeYaru).onMessage(data, toBytes32(1), Chains.Hardhat, ZERO_ADDRESS)
+    await Promise.all
+    reportedBlockNumbers.map((_blockNumber, _index) =>
+      headerVault
+        .connect(fakeYaru)
+        .onMessage(
+          abiCoder.encode(["uint256", "bytes32"], [_blockNumber, reportedBlockHashes[_index]]),
+          toBytes32(1),
+          Chains.Hardhat,
+          ZERO_ADDRESS,
+        ),
+    )
   })
 
   describe("onMessage()", function () {
-    it("reverts if message is wrong", async function () {
-      const blockNumber = await ethers.provider.getBlockNumber()
-      const block = await ethers.provider.getBlock(blockNumber)
-
-      const data = abiCoder.encode(["uint256[]", "bytes32[]"], [[blockNumber, blockNumber + 1], [block.hash]])
-      await expect(
-        headerVault.connect(fakeYaru).onMessage(data, toBytes32(1), Chains.Hardhat, ZERO_ADDRESS),
-      ).to.be.revertedWithCustomError(headerVault, "UnequalArrayLengths")
-    })
-
     it("stores a block", async function () {
       const blockNumber = await ethers.provider.getBlockNumber()
       const block = await ethers.provider.getBlock(blockNumber)
 
-      const data = abiCoder.encode(["uint256[]", "bytes32[]"], [[blockNumber], [block.hash]])
+      const data = abiCoder.encode(["uint256", "bytes32"], [blockNumber, block.hash])
       await expect(headerVault.connect(fakeYaru).onMessage(data, toBytes32(1), Chains.Hardhat, ZERO_ADDRESS))
         .to.emit(headerVault, "NewBlock")
         .withArgs(Chains.Hardhat, blockNumber, block.hash)

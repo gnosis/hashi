@@ -52,17 +52,12 @@ contract TelepathyAdapter is OracleAdapter {
             revert InvalidBlockHashProof();
         }
 
-        uint256[] memory blockNumbers = new uint256[](1);
-        bytes32[] memory blockHeaders = new bytes32[](1);
-        blockNumbers[0] = _blockNumber;
-        blockHeaders[0] = _blockHash;
-
         Message memory message = Message(
             _chainId,
             block.chainid,
             address(0),
             address(0),
-            abi.encode(blockNumbers, blockHeaders)
+            abi.encode(_blockNumber, _blockHash)
         );
         bytes32 messageHash = calculateMessageHash(message, _yaho);
         bytes32 messageId = calculateMessageId(keccak256(abi.encode(MESSAGE_BHR, bytes(abi.encode(0)))), messageHash);

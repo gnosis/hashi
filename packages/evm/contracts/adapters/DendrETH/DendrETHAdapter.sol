@@ -102,17 +102,12 @@ contract DendrETHAdapter is OracleAdapter {
         bytes32 blockHeader,
         address yaho
     ) internal {
-        uint256[] memory blockNumbers = new uint256[](1);
-        bytes32[] memory blockHeaders = new bytes32[](1);
-        blockNumbers[0] = blockNumber;
-        blockHeaders[0] = blockHeader;
-
         Message memory message = Message(
             fromChainId,
             block.chainid,
             address(0),
             address(0),
-            abi.encode(blockNumbers, blockHeaders)
+            abi.encode(blockNumber, blockHeader)
         );
         bytes32 messageHash = calculateMessageHash(message, yaho);
         bytes32 messageId = calculateMessageId(keccak256(abi.encode(MESSAGE_BHR, bytes(abi.encode(0)))), messageHash);

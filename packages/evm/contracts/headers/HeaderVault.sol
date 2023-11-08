@@ -32,19 +32,9 @@ contract HeaderVault is IHeaderVault, Ownable {
         uint256 fromChainId,
         address from
     ) external onlyYaruAndOnlyHeaderReporter(fromChainId, from) returns (bytes memory) {
-        (uint256[] memory blockNumbers, bytes32[] memory blockHeaders) = abi.decode(data, (uint256[], bytes32[]));
-        if (blockNumbers.length != blockHeaders.length) revert UnequalArrayLengths();
-
-        for (uint256 i = 0; i < blockNumbers.length; ) {
-            uint256 blockNumber = blockNumbers[i];
-            bytes32 blockHeader = blockHeaders[i];
-            _blockHeaders[fromChainId][blockNumber] = blockHeader;
-            emit NewBlock(fromChainId, blockNumber, blockHeader);
-            unchecked {
-                ++i;
-            }
-        }
-
+        (uint256 blockNumber, bytes32 blockHeader) = abi.decode(data, (uint256, bytes32));
+        _blockHeaders[fromChainId][blockNumber] = blockHeader;
+        emit NewBlock(fromChainId, blockNumber, blockHeader);
         return bytes(abi.encode(true));
     }
 

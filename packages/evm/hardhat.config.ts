@@ -7,14 +7,16 @@ import { resolve } from "path"
 
 import "./tasks/accounts"
 import "./tasks/deploy"
+import "./tasks/headers"
+import "./tasks/yaru"
 
 const dotenvConfigPath: string = process.env.DOTENV_CONFIG_PATH || "./.env"
 dotenvConfig({ path: resolve(__dirname, dotenvConfigPath) })
 
 // Ensure that we have all the environment variables we need.
-const mnemonic: string | undefined = process.env.MNEMONIC
-if (!mnemonic) {
-  throw new Error("Please set your MNEMONIC in a .env file")
+const privateKey: string | undefined = process.env.PRIVATE_KEY
+if (!privateKey) {
+  throw new Error("Please set your PRIVATE_KEY in a .env file")
 }
 
 const infuraApiKey: string | undefined = process.env.INFURA_API_KEY
@@ -62,11 +64,7 @@ function getChainConfig(chain: keyof typeof chainIds): NetworkUserConfig {
   }
 
   return {
-    accounts: {
-      count: 10,
-      mnemonic,
-      path: "m/44'/60'/0'/0",
-    },
+    accounts: [privateKey as string],
     chainId: chainIds[chain],
     url: jsonRpcUrl,
   }
@@ -110,14 +108,20 @@ const config: HardhatUserConfig = {
     arbitrum: getChainConfig("arbitrum-mainnet"),
     avalanche: getChainConfig("avalanche"),
     bsc: getChainConfig("bsc"),
-    gnosis: getChainConfig("gnosis"),
+    gnosis: {
+      ...getChainConfig("gnosis"),
+      gasPrice: 15e9,
+    },
     chiado: getChainConfig("chiado"),
     mainnet: getChainConfig("mainnet"),
     optimism: getChainConfig("optimism-mainnet"),
     "polygon-mainnet": getChainConfig("polygon-mainnet"),
     "polygon-mumbai": getChainConfig("polygon-mumbai"),
     sepolia: getChainConfig("sepolia"),
-    goerli: getChainConfig("goerli"),
+    goerli: {
+      ...getChainConfig("goerli"),
+      gasPrice: 2e9,
+    },
   },
   paths: {
     artifacts: "./artifacts",

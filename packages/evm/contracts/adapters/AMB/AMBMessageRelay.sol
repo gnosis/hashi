@@ -28,6 +28,6 @@ contract AMBMessageRelay is MessageRelay {
         }
 
         bytes memory data = abi.encodeCall(AMBAdapter.storeHashes, (messageIds, hashes));
-        receipt = amb.requireToPassMessage(ambAdapter, data, 0);
+        receipt = amb.requireToPassMessage(ambAdapter, data, 500000);
     }
 }

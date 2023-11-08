@@ -192,8 +192,8 @@ describe("Yaru", function () {
     it("executes a message from HeaderReporter", async function () {
       const blockNumber = await ethers.provider.getBlockNumber()
       const block = await ethers.provider.getBlock(blockNumber - 1)
-      const tx = await headerReporter.reportHeaders(
-        [blockNumber - 1],
+      const tx = await headerReporter.reportHeader(
+        blockNumber - 1,
         [Chains.Hardhat],
         [messageRelay.address],
         [oracleAdapter.address],

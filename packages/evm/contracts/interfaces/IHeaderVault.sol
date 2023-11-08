@@ -13,7 +13,6 @@ interface IHeaderVault is IJushinki {
     error ConflictingBlockHeader(uint256 blockNumber, bytes32 reportedBlockHash, bytes32 storedBlockHash);
     error NotYaru(address currentYaru, address expectedYaru);
     error InvalidHeaderReporter(uint256 fromChainId, address headerReporter, address expectedHeaderReporter);
-    error UnequalArrayLengths();
     error YaruAlreadyInitialized(address yaru);
 
     function initializeYaru(address yaru_) external;

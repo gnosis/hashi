@@ -4,6 +4,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types"
 import "./amb"
 import "./hashi"
 import "./replay"
+import "./telepathy"
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const verify = async (hre: HardhatRuntimeEnvironment, contract: Contract, constructorArguments: any = []) => {
