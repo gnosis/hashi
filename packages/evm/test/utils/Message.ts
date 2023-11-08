@@ -5,7 +5,7 @@ import { Chains } from "../constants"
 type Configs = {
   data: string
   from: `0x${string}`
-  messageId: string
+  id: string
   to: `0x${string}`
   fromChainId: number
   toChainId: number
@@ -19,8 +19,8 @@ class Message {
   public fromChainId
   public data
 
-  constructor({ data, from, fromChainId = Chains.Hardhat, messageId, to, toChainId }: Configs) {
-    this.id = messageId
+  constructor({ data, from, fromChainId = Chains.Hardhat, id, to, toChainId }: Configs) {
+    this.id = id
     this.from = from
     this.toChainId = toChainId
     this.to = to
@@ -38,7 +38,7 @@ class Message {
     )
     const messages = logs.map(({ topics, data }) => iface.parseLog({ topics, data }))
     return messages.map(
-      ({ args: { data, from, messageId, to, toChainId } }) => new Message({ data, from, messageId, to, toChainId }),
+      ({ args: { data, from, messageId, to, toChainId } }) => new Message({ data, from, id: messageId, to, toChainId }),
     )
   }
 

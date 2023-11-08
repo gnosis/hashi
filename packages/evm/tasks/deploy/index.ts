@@ -1,6 +1,7 @@
 import { Contract } from "ethers"
 import { HardhatRuntimeEnvironment } from "hardhat/types"
 
+import "./amb"
 import "./hashi"
 import "./replay"
 
