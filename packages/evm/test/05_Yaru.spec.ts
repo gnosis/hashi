@@ -174,6 +174,21 @@ describe("Yaru", function () {
         .withArgs(message1.id)
     })
 
+    it("reverts if a valid message is being executed where toChainId is not equal to block.chainid", async function () {
+      const tx = await yaho["dispatchMessagesToAdapters(uint256[],address[],bytes[],address[],address[])"](
+        [Chains.Gnosis],
+        [pingPong.address],
+        ["0x01"],
+        [messageRelay.address],
+        [oracleAdapter.address],
+      )
+      const [message1] = Message.fromReceipt(await tx.wait(1))
+      await oracleAdapter.setHashes(Chains.Hardhat, [message1.id], [await yaho.hashes(message1.id)])
+      await expect(yaru.executeMessages([message1], [message1.id], [oracleAdapter.address]))
+        .to.be.revertedWithCustomError(yaru, "MessageFailure")
+        .withArgs(message1.id, "0x5625a2ac717b1cd54256f048b75a2092e54b5fe43e26a943409cd86b5fc487a6") // keccak256("InvalidToChainId")
+    })
+
     it("executes a message from HeaderReporter", async function () {
       const blockNumber = await ethers.provider.getBlockNumber()
       const block = await ethers.provider.getBlock(blockNumber - 1)

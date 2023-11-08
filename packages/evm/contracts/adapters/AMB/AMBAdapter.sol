@@ -6,17 +6,17 @@ import { OracleAdapter } from "../OracleAdapter.sol";
 
 contract AMBAdapter is OracleAdapter {
     IAMB public amb;
-    address public reporter;
+    address public messageRelay;
     bytes32 public chainId;
 
     error ArrayLengthMissmatch(address emitter);
     error UnauthorizedAMB(address emitter, address sender);
     error UnauthorizedChainId(address emitter, bytes32 chainId);
-    error UnauthorizedHashReporter(address emitter, address reporter);
+    error UnauthorizedMessageRelay(address emitter, address messageRelay);
 
-    constructor(IAMB _amb, address _reporter, bytes32 _chainId) {
+    constructor(IAMB _amb, address _messageRelay, bytes32 _chainId) {
         amb = _amb;
-        reporter = _reporter;
+        messageRelay = _messageRelay;
         chainId = _chainId;
     }
 
@@ -24,14 +24,14 @@ contract AMBAdapter is OracleAdapter {
     modifier onlyValid() {
         if (msg.sender != address(amb)) revert UnauthorizedAMB(address(this), msg.sender);
         if (amb.messageSourceChainId() != chainId) revert UnauthorizedChainId(address(this), chainId);
-        if (amb.messageSender() != reporter) revert UnauthorizedHashReporter(address(this), reporter);
+        if (amb.messageSender() != messageRelay) revert UnauthorizedMessageRelay(address(this), messageRelay);
         _;
     }
 
     /// @dev Stores the hashes for a given array of idss.
     /// @param ids Array of ids for which to set the hashes.
     /// @param _hashes Array of hashes to set for the given ids.
-    /// @notice Only callable by `amb` with a message passed from `reporter.
+    /// @notice Only callable by `amb` with a message passed from `messageRelay.
     /// @notice Will revert if given array lengths do not match.
     function storeHashes(bytes32[] memory ids, bytes32[] memory _hashes) public onlyValid {
         if (ids.length != _hashes.length) revert ArrayLengthMissmatch(address(this));

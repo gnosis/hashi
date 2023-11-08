@@ -33,7 +33,7 @@ describe("AMBAdapter", function () {
       const { amb, ambAdapter, wallet } = await setup()
       expect(await ambAdapter.deployed())
       expect(await ambAdapter.amb()).to.equal(amb.address)
-      expect(await ambAdapter.reporter()).to.equal(wallet.address)
+      expect(await ambAdapter.messageRelay()).to.equal(wallet.address)
       expect(await ambAdapter.chainId()).to.equal(DOMAIN_ID)
     })
   })
