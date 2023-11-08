@@ -24,7 +24,7 @@ contract AMBAdapter is OracleAdapter {
     modifier onlyValid() {
         if (msg.sender != address(amb)) revert UnauthorizedAMB(address(this), msg.sender);
         if (amb.messageSourceChainId() != chainId) revert UnauthorizedChainId(address(this), chainId);
-        //if (amb.messageSender() != reporter) revert UnauthorizedHashReporter(address(this), reporter);
+        if (amb.messageSender() != reporter) revert UnauthorizedHashReporter(address(this), reporter);
         _;
     }
 
