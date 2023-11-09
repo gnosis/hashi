@@ -93,6 +93,7 @@
     "typechain": "cross-env TS_NODE_TRANSPILE_ONLY=true hardhat typechain"
   },
   "dependencies": {
+    "@axelar-network/axelar-gmp-sdk-solidity": "^5.6.2",
     "@connext/interfaces": "^2.0.0",
     "@gnosis.pm/zodiac": "^3.3.2",
     "@openzeppelin/contracts-upgradeable": "^4.8.1",

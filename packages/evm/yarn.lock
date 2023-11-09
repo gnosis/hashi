@@ -5,6 +5,13 @@ __metadata:
   version: 6
   cacheKey: 8
 
+"@axelar-network/axelar-gmp-sdk-solidity@npm:^5.6.2":
+  version: 5.6.2
+  resolution: "@axelar-network/axelar-gmp-sdk-solidity@npm:5.6.2"
+  checksum: d36260a18e0303446685fac3a04c14503454de830320b55ddb0d4382ef0d970c4cfd759029b17b1b6178f85cf3300500aa94705690e752b398dfbc32c414cf2d
+  languageName: node
+  linkType: hard
+
 "@babel/code-frame@npm:^7.0.0, @babel/code-frame@npm:^7.16.7, @babel/code-frame@npm:^7.18.6":
   version: 7.21.4
   resolution: "@babel/code-frame@npm:7.21.4"
@@ -853,6 +860,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@gnosis/hashi@workspace:."
   dependencies:
+    "@axelar-network/axelar-gmp-sdk-solidity": ^5.6.2
     "@commitlint/cli": ^17.3.0
     "@commitlint/config-conventional": ^17.3.0
     "@connext/interfaces": ^2.0.0
