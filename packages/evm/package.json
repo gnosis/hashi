@@ -94,6 +94,7 @@
   },
   "dependencies": {
     "@axelar-network/axelar-gmp-sdk-solidity": "^5.6.2",
+    "@chainlink/contracts-ccip": "^0.7.6",
     "@connext/interfaces": "^2.0.0",
     "@gnosis.pm/zodiac": "^3.3.2",
     "@openzeppelin/contracts-upgradeable": "^4.8.1",
