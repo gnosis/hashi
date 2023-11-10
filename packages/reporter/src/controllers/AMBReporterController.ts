@@ -21,16 +21,14 @@ class AMBReporterController extends BaseController {
       const client = this.multiClient.getClientByChain(this.sourceChain)
 
       for (const chain of this.destinationChains) {
-        this.logger.info(
-          `reporting block headers of blocks [${_blockNumbers[0]},${_blockNumbers[_blockNumbers.length - 1]}] on ${
-            chain.name
-          } ...`,
-        )
+        const blockNumber = _blockNumbers[_blockNumbers.length - 1]
+
+        this.logger.info(`reporting block header for block ${blockNumber} on ${chain.name} ...`)
         const { request } = await client.simulateContract({
           address: this.reporterAddress as `0x${string}`,
           abi: ABI,
           functionName: "reportHeaders",
-          args: [_blockNumbers, this.adapterAddresses[chain.name], this._reportHeadersGas],
+          args: [[blockNumber], this.adapterAddresses[chain.name], this._reportHeadersGas],
         })
 
         const txHash = await client.writeContract(request)

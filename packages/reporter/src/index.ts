@@ -1,5 +1,5 @@
 import * as chains from "viem/chains"
-import { gnosis, goerli } from "viem/chains"
+import { gnosis, mainnet, goerli, polygon, optimism, bsc, arbitrum } from "viem/chains"
 import { Chain } from "viem"
 
 import Multiclient from "./MultiClient"
@@ -24,6 +24,11 @@ const main = () => {
     rpcUrls: {
       [goerli.name]: settings.rpcUrls.Goerli,
       [gnosis.name]: settings.rpcUrls.Gnosis,
+      [mainnet.name]: settings.rpcUrls.Ethereum,
+      [arbitrum.name]: settings.rpcUrls["Arbitrum One"],
+      [optimism.name]: settings.rpcUrls["OP Mainnet"],
+      [bsc.name]: settings.rpcUrls["BNB Smart Chain"],
+      [polygon.name]: settings.rpcUrls.Polygon,
     },
   })
 
@@ -34,7 +39,9 @@ const main = () => {
     logger,
     multiClient,
     reporterAddress: settings.contractAddresses.Goerli.AMBReporter,
-    adapterAddresses: { [gnosis.name]: settings.contractAddresses.Gnosis.AMBAdapter },
+    adapterAddresses: {
+      [gnosis.name]: settings.contractAddresses.Gnosis.AMBAdapter,
+    },
     reportHeadersGas: settings.reporterControllers.AMBReporterController.reportHeadersGas,
   })
 
@@ -56,9 +63,21 @@ const main = () => {
     destinationChains,
     logger,
     multiClient,
-    adapterAddresses: { [gnosis.name]: settings.contractAddresses.Gnosis.SygmaAdapter },
+    adapterAddresses: {
+      [gnosis.name]: settings.contractAddresses.Gnosis.TelepathyAdapter,
+      [arbitrum.name]: settings.contractAddresses["Arbitrum One"].TelepathyAdapter,
+      [optimism.name]: settings.contractAddresses["OP Mainnet"].TelepathyAdapter,
+      [bsc.name]: settings.contractAddresses["BNB Smart Chain"].TelepathyAdapter,
+      [polygon.name]: settings.contractAddresses.Polygon.TelepathyAdapter,
+    },
     baseProofUrl: settings.reporterControllers.TelepathyReporterController.baseProofUrl,
-    lightClientAddresses: { [gnosis.name]: settings.contractAddresses.Gnosis.TelepathyLightClient },
+    lightClientAddresses: {
+      [gnosis.name]: settings.contractAddresses.Gnosis.TelepathyLightClient,
+      [arbitrum.name]: settings.contractAddresses["Arbitrum One"].TelepathyLightClient,
+      [optimism.name]: settings.contractAddresses["OP Mainnet"].TelepathyLightClient,
+      [bsc.name]: settings.contractAddresses["BNB Smart Chain"].TelepathyLightClient,
+      [polygon.name]: settings.contractAddresses.Polygon.TelepathyLightClient,
+    },
   })
 
   const coordinator = new Coordinator({
