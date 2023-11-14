@@ -23,7 +23,11 @@ class AMBReporterController extends BaseController {
       for (const chain of this.destinationChains) {
         const blockNumber = _blockNumbers[_blockNumbers.length - 1]
 
-        this.logger.info(`reporting block header for block ${blockNumber} on ${chain.name} ...`)
+        this.logger.info(
+          `reporting block header for block from ${_blockNumbers[0]} to ${_blockNumbers[_blockNumbers.length - 1]} on ${
+            chain.name
+          } ...`,
+        )
         const { request } = await client.simulateContract({
           address: this.reporterAddress as `0x${string}`,
           abi: ABI,

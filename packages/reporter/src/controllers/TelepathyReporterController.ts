@@ -1,5 +1,6 @@
 import axios from "axios"
 import { hexToNumber } from "viem"
+import { Mutex } from "async-mutex"
 
 import LightClientContractABI from "../ABIs/TelepathyContractABI.json"
 import AdapterContractABI from "../ABIs/TelepathyAdapterABI.json"
@@ -23,21 +24,26 @@ class TelepathyReporterController extends BaseController {
     this.lightClientAddresses = _configs.lightClientAddresses
     this._baseProofUrl = _configs.baseProofUrl
 
-    this.lastProcessedBlock = 0n
+    this.lastProcessedBlock = 30946038n
   }
 
   async update() {
     try {
+      let mutex = new Mutex()
       for (const chain of this.destinationChains) {
         const client = this.multiClient.getClientByChain(chain)
 
         const currentBlockNumber = await client.getBlockNumber()
         const fromBlock = this.lastProcessedBlock === 0n ? currentBlockNumber : this.lastProcessedBlock + 1n
         const toBlock = currentBlockNumber
-        this.logger.info(`getting HeadUpdate events in [${fromBlock},${toBlock}] on ${chain.name} ...`)
+        this.logger.info(
+          `getting HeadUpdate events in [${fromBlock},${toBlock}] on ${chain.name} , on contract ${
+            this.lightClientAddresses[chain.name]
+          }...`,
+        )
 
         const logs = await client.getContractEvents({
-          address: this.lightClientAddresses[chain.name.toLocaleLowerCase()] as `0x${string}`,
+          address: this.lightClientAddresses[chain.name] as `0x${string}`,
           abi: LightClientContractABI,
           eventName: "HeadUpdate",
           fromBlock,
@@ -57,17 +63,22 @@ class TelepathyReporterController extends BaseController {
 
           const response = await axios.post(`${this._baseProofUrl}${this.sourceChain.id}/${hexToNumber(slotValue!)}`)
           const { chainId, slot, blockNumber, blockNumberProof, blockHash, blockHashProof } = response.data.result
-          this.logger.info(`calling storeBlockHeader for block number ${blockNumber} ...`)
+          this.logger.info(
+            `calling storeBlockHeader for block number ${blockNumber} on contract ${
+              this.adapterAddresses[chain.name]
+            } ...`,
+          )
 
           const { request } = await client.simulateContract({
-            address: this.adapterAddresses[chain.name.toLocaleLowerCase()] as `0x${string}`,
+            address: this.adapterAddresses[chain.name] as `0x${string}`,
             abi: AdapterContractABI,
             functionName: "storeBlockHeader",
             args: [chainId, slot, blockNumber, blockNumberProof, blockHash, blockHashProof],
           })
-
+          const release = await mutex.acquire()
           const txHash = await client.writeContract(request)
           this.logger.info(`tx sent on ${chain.name}: ${txHash}`)
+          release()
         })
         this.lastProcessedBlock = toBlock
       }
