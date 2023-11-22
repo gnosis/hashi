@@ -23,6 +23,7 @@ contract LayerZeroReporter is HeaderReporter {
 
     function _sendPayload(bytes memory payload) internal override {
         bytes memory path = abi.encodePacked(ADAPTER_ADDRESS, address(this));
+        // solhint-disable-next-line check-send-result
         ILayerZeroEndpoint(LZ_ENDPOINT).send{ value: msg.value }(
             LZ_ADAPTER_CHAIN, // _dstChainId: destination LayerZero chainId
             path, // _destination: send to this address on the destination

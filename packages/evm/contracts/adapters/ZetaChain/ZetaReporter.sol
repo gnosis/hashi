@@ -40,6 +40,7 @@ contract ZetaReporter is HeaderReporter {
         uint256 zetaAmount = ZetaTokenConsumer(ZETA_CONSUMER).getZetaFromEth{ value: msg.value }(address(this), 0);
         IERC20(ZETA_TOKEN).safeApprove(ZETA_CONNECTOR, zetaAmount);
 
+        // solhint-disable-next-line check-send-result
         ZetaConnector(ZETA_CONNECTOR).send(
             ZetaInterfaces.SendInput({
                 destinationChainId: ADAPTER_CHAIN,
