@@ -2,6 +2,7 @@ import { Contract } from "ethers"
 import { HardhatRuntimeEnvironment } from "hardhat/types"
 
 import "./hashi"
+import "./optimism"
 import "./replay"
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
