@@ -9,6 +9,8 @@ contract ChainlinkAdapter is HeaderOracleAdapter, CCIPReceiver {
     string public constant PROVIDER = "chainlink";
     uint64 public immutable CHAINLINK_REPORTER_CHAIN;
 
+    error UnauthorizedChainlinkReceive();
+
     constructor(
         uint256 reporterChain,
         address reporterAddress,
@@ -20,11 +22,10 @@ contract ChainlinkAdapter is HeaderOracleAdapter, CCIPReceiver {
 
     function _ccipReceive(Client.Any2EVMMessage memory message) internal virtual override {
         // Validity of `msg.sender` is ensured by `CCIPReceiver` prior this internal function invocation
-        require(
-            message.sourceChainSelector == CHAINLINK_REPORTER_CHAIN &&
-                abi.decode(message.sender, (address)) == REPORTER_ADDRESS,
-            "LA: auth"
-        );
+        if (
+            message.sourceChainSelector != CHAINLINK_REPORTER_CHAIN ||
+            abi.decode(message.sender, (address)) != REPORTER_ADDRESS
+        ) revert UnauthorizedChainlinkReceive();
         _receivePayload(message.data);
     }
 }

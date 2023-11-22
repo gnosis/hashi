@@ -17,7 +17,6 @@ contract ChainlinkReporter is HeaderReporter {
         address chainlinkRouter,
         uint64 chainlinkAdapterChain
     ) HeaderReporter(headerStorage, adapterChain, adapterAddress) {
-        require(chainlinkRouter != address(0), "LR: invalid ctor call");
         CHAINLINK_ROUTER = chainlinkRouter;
         CHAINLINK_ADAPTER_CHAIN = chainlinkAdapterChain;
     }

@@ -9,13 +9,14 @@ contract CelerAdapter is HeaderOracleAdapter, IMessageReceiverApp {
     address public immutable CELER_BUS;
     uint32 public immutable CELER_REPORTER_CHAIN;
 
+    error UnauthorizedCelerReceive();
+
     constructor(
         uint256 reporterChain,
         address reporterAddress,
         address celerBus,
         uint32 celerReporterChain
     ) HeaderOracleAdapter(reporterChain, reporterAddress) {
-        require(celerBus != address(0), "EA: invalid ctor call");
         CELER_BUS = celerBus;
         CELER_REPORTER_CHAIN = celerReporterChain;
     }
@@ -26,10 +27,9 @@ contract CelerAdapter is HeaderOracleAdapter, IMessageReceiverApp {
         bytes calldata message,
         address /* executor */
     ) external payable returns (ExecutionStatus) {
-        require(
-            msg.sender == CELER_BUS && srcChainId == CELER_REPORTER_CHAIN && sender == REPORTER_ADDRESS,
-            "EA: auth"
-        );
+        if (msg.sender != CELER_BUS || srcChainId != CELER_REPORTER_CHAIN || sender != REPORTER_ADDRESS)
+            revert UnauthorizedCelerReceive();
+
         _receivePayload(message);
         return ExecutionStatus.Success;
     }

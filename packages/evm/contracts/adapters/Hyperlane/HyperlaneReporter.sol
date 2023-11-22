@@ -21,7 +21,6 @@ contract HyperlaneReporter is HeaderReporter {
         uint32 hyperlaneAdapterChain,
         bytes32 hyperlaneAdapterAddress
     ) HeaderReporter(headerStorage, adapterChain, adapterAddress) {
-        require(hyperlaneMailbox != address(0), "HR: invalid ctor call");
         HYPERLANE_MAILBOX = hyperlaneMailbox;
         HYPERLANE_PAYMASTER = hyperlanePaymaster;
         HYPERLANE_ADAPTER_CHAIN = hyperlaneAdapterChain;

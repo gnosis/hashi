@@ -9,13 +9,14 @@ contract ConnextAdapter is HeaderOracleAdapter, IXReceiver {
     address public immutable CONNEXT;
     uint32 public immutable CONNEXT_REPORTER_CHAIN;
 
+    error UnauthorizedConnextReceive();
+
     constructor(
         uint256 reporterChain,
         address reporterAddress,
         address connext,
         uint32 connextReporterChain
     ) HeaderOracleAdapter(reporterChain, reporterAddress) {
-        require(connext != address(0), "CA: invalid ctor call");
         CONNEXT = connext;
         CONNEXT_REPORTER_CHAIN = connextReporterChain;
     }
@@ -28,10 +29,8 @@ contract ConnextAdapter is HeaderOracleAdapter, IXReceiver {
         uint32 origin,
         bytes memory callData
     ) external returns (bytes memory) {
-        require(
-            msg.sender == CONNEXT && origin == CONNEXT_REPORTER_CHAIN && originSender == REPORTER_ADDRESS,
-            "CA: auth"
-        );
+        if (msg.sender != CONNEXT || origin != CONNEXT_REPORTER_CHAIN || originSender != REPORTER_ADDRESS)
+            revert UnauthorizedConnextReceive();
         _receivePayload(callData);
         return "";
     }

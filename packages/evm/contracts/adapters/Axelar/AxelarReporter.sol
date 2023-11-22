@@ -21,13 +21,6 @@ contract AxelarReporter is HeaderReporter {
         string memory axelarAdapterChain,
         string memory axelarAdapterAddress
     ) HeaderReporter(headerStorage, adapterChain, adapterAddress) {
-        require(
-            axelarGateway != address(0) &&
-                axelarGasService != address(0) &&
-                bytes(axelarAdapterChain).length > 0 &&
-                bytes(axelarAdapterAddress).length > 0,
-            "AR: invalid ctor call"
-        );
         AXELAR_GATEWAY = axelarGateway;
         AXELAR_GAS_SERVICE = axelarGasService;
         AXELAR_ADAPTER_CHAIN = axelarAdapterChain;

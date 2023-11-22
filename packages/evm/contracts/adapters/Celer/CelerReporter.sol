@@ -16,7 +16,6 @@ contract CelerReporter is HeaderReporter {
         address celerBus,
         uint32 celerAdapterChain
     ) HeaderReporter(headerStorage, adapterChain, adapterAddress) {
-        require(celerBus != address(0), "ER: invalid ctor call");
         CELER_BUS = celerBus;
         CELER_ADAPTER_CHAIN = celerAdapterChain;
     }

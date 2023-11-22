@@ -16,7 +16,6 @@ contract LayerZeroReporter is HeaderReporter {
         address lzEndpoint,
         uint16 lzAdapterChain
     ) HeaderReporter(headerStorage, adapterChain, adapterAddress) {
-        require(lzEndpoint != address(0), "ZR: invalid ctor call");
         LZ_ENDPOINT = lzEndpoint;
         LZ_ADAPTER_CHAIN = lzAdapterChain;
     }

@@ -23,13 +23,6 @@ contract ZetaReporter is HeaderReporter {
         address zetaConsumer,
         bytes memory zetaAdapterAddress
     ) HeaderReporter(headerStorage, adapterChain, adapterAddress) {
-        require(
-            zetaConnector != address(0) &&
-                zetaToken != address(0) &&
-                zetaConsumer != address(0) &&
-                zetaAdapterAddress.length > 0,
-            "TR: invalid ctor call"
-        );
         ZETA_CONNECTOR = zetaConnector;
         ZETA_TOKEN = zetaToken;
         ZETA_CONSUMER = zetaConsumer;

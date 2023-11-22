@@ -18,7 +18,6 @@ contract ConnextReporter is HeaderReporter {
         address connext,
         uint32 connextAdapterChain
     ) HeaderReporter(headerStorage, adapterChain, adapterAddress) {
-        require(connext != address(0), "CR: invalid ctor call");
         CONNEXT = connext;
         CONNEXT_ADAPTER_CHAIN = connextAdapterChain;
     }

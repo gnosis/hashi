@@ -11,6 +11,9 @@ contract AxelarAdapter is HeaderOracleAdapter, AxelarExecutable {
     string public AXELAR_REPORTER_ADDRESS; // Immutable
     bytes32 public immutable AXELAR_REPORTER_ADDRESS_HASH;
 
+    error UnauthorizedAxelarReceive();
+    error ExecutionWithTokenNotSupported();
+
     constructor(
         uint256 reporterChain,
         address reporterAddress,
@@ -18,10 +21,6 @@ contract AxelarAdapter is HeaderOracleAdapter, AxelarExecutable {
         string memory axelarReporterChain,
         string memory axelarReporterAddress
     ) HeaderOracleAdapter(reporterChain, reporterAddress) AxelarExecutable(axelarGateway) {
-        require(
-            bytes(axelarReporterChain).length > 0 && bytes(axelarReporterAddress).length > 0,
-            "AA: invalid ctor call"
-        );
         AXELAR_REPORTER_CHAIN = axelarReporterChain;
         AXELAR_REPORTER_CHAIN_HASH = keccak256(bytes(axelarReporterChain));
         AXELAR_REPORTER_ADDRESS = axelarReporterAddress;
@@ -33,11 +32,12 @@ contract AxelarAdapter is HeaderOracleAdapter, AxelarExecutable {
         string calldata sourceAddress,
         bytes calldata payload
     ) internal override {
-        require(
-            keccak256(bytes(sourceChain)) == AXELAR_REPORTER_CHAIN_HASH &&
-                keccak256(bytes(sourceAddress)) == AXELAR_REPORTER_ADDRESS_HASH,
-            "AA: auth"
-        );
+        if (
+            keccak256(bytes(sourceChain)) != AXELAR_REPORTER_CHAIN_HASH ||
+            keccak256(bytes(sourceAddress)) == AXELAR_REPORTER_ADDRESS_HASH
+        ) {
+            revert UnauthorizedAxelarReceive();
+        }
         _receivePayload(payload);
     }
 
@@ -48,6 +48,6 @@ contract AxelarAdapter is HeaderOracleAdapter, AxelarExecutable {
         string calldata /* tokenSymbol */,
         uint256 /* amount */
     ) internal pure override {
-        revert("AA: no execute with token");
+        revert ExecutionWithTokenNotSupported();
     }
 }

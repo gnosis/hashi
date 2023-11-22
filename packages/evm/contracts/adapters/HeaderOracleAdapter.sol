@@ -11,7 +11,6 @@ abstract contract HeaderOracleAdapter is BlockHashOracleAdapter {
     /// @param reporterChain Chain ID of the reporter this adapter is served by
     /// @param reporterAddress Address of the reporter this adapter is served by
     constructor(uint256 reporterChain, address reporterAddress) {
-        require(reporterChain != 0 && reporterAddress != address(0), "BA: invalid ctor call");
         REPORTER_CHAIN = reporterChain;
         REPORTER_ADDRESS = reporterAddress;
     }

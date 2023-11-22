@@ -10,13 +10,14 @@ contract LayerZeroAdapter is HeaderOracleAdapter, ILayerZeroReceiver {
     uint32 public immutable LZ_REPORTER_CHAIN;
     bytes32 public immutable LZ_REPORTER_PATH_HASH;
 
+    error UnauthorizedLayerZeroReceive();
+
     constructor(
         uint256 reporterChain,
         address reporterAddress,
         address lzEndpoint,
         uint16 lzReporterChain
     ) HeaderOracleAdapter(reporterChain, reporterAddress) {
-        require(lzEndpoint != address(0), "ZA: invalid ctor call");
         LZ_ENDPOINT = lzEndpoint;
         LZ_REPORTER_CHAIN = lzReporterChain;
         bytes memory path = abi.encodePacked(reporterAddress, address(this));
@@ -24,12 +25,11 @@ contract LayerZeroAdapter is HeaderOracleAdapter, ILayerZeroReceiver {
     }
 
     function lzReceive(uint16 srcChainId, bytes memory srcAddress, uint64 /* nonce */, bytes memory payload) external {
-        require(
-            msg.sender == LZ_ENDPOINT &&
-                srcChainId == LZ_REPORTER_CHAIN &&
-                keccak256(srcAddress) == LZ_REPORTER_PATH_HASH,
-            "ZA: auth"
-        );
+        if (
+            msg.sender != LZ_ENDPOINT ||
+            srcChainId != LZ_REPORTER_CHAIN ||
+            keccak256(srcAddress) != LZ_REPORTER_PATH_HASH
+        ) revert UnauthorizedLayerZeroReceive();
         _receivePayload(payload);
     }
 }

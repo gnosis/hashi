@@ -14,10 +14,6 @@ abstract contract HeaderReporter is IHeaderReporter {
     /// @param adapterChain Chain ID of the adapter that is served by this reporter
     /// @param adapterAddress Address of the adapter that is served by this reporter
     constructor(address headerStorage, uint256 adapterChain, address adapterAddress) {
-        require(
-            headerStorage != address(0) && adapterChain != 0 && adapterAddress != address(0),
-            "HR: invalid ctor call"
-        );
         HEADER_STORAGE = headerStorage;
         ADAPTER_CHAIN = adapterChain;
         ADAPTER_ADDRESS = adapterAddress;

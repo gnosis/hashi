@@ -10,6 +10,8 @@ contract HyperlaneAdapter is HeaderOracleAdapter, IMessageRecipient {
     uint32 public immutable HYPERLANE_REPORTER_CHAIN;
     bytes32 public immutable HYPERLANE_REPORTER_ADDRESS;
 
+    error UnauthorizedHyperlaneReceive();
+
     constructor(
         uint256 reporterChain,
         address reporterAddress,
@@ -17,19 +19,17 @@ contract HyperlaneAdapter is HeaderOracleAdapter, IMessageRecipient {
         uint32 hyperlaneReporterChain,
         bytes32 hyperlaneReporterAddress
     ) HeaderOracleAdapter(reporterChain, reporterAddress) {
-        require(hyperlaneMailbox != address(0), "HA: invalid ctor call");
         HYPERLANE_MAILBOX = hyperlaneMailbox;
         HYPERLANE_REPORTER_CHAIN = hyperlaneReporterChain;
         HYPERLANE_REPORTER_ADDRESS = hyperlaneReporterAddress;
     }
 
     function handle(uint32 origin, bytes32 sender, bytes calldata message) external {
-        require(
-            msg.sender == HYPERLANE_MAILBOX &&
-                origin == HYPERLANE_REPORTER_CHAIN &&
-                sender == HYPERLANE_REPORTER_ADDRESS,
-            "HA: auth"
-        );
+        if (
+            msg.sender != HYPERLANE_MAILBOX ||
+            origin != HYPERLANE_REPORTER_CHAIN ||
+            sender != HYPERLANE_REPORTER_ADDRESS
+        ) revert UnauthorizedHyperlaneReceive();
         _receivePayload(message);
     }
 }
