@@ -11,7 +11,7 @@ import { L1CrossDomainMessengerMessageRelay__factory } from "../../types/factori
 import { L2CrossDomainMessengerAdapter__factory } from "../../types/factories/contracts/adapters/Optimism/L2CrossDomainMessengerAdapter__factory"
 
 // Deploy on destination chain
-task("deploy:Optimism:L2CrossDomainMessengerAdapter")
+task("deploy:Optimism:Adapter")
   .addParam("l2CrossDomainMessenger", "address of the L2CrossDomainMessenger contract", undefined, types.string)
   .addParam("reporter", "address of the hash reporter", undefined, types.string)
   .addParam("chainId", "chainId of the source chain", undefined, types.int)
@@ -36,7 +36,7 @@ task("deploy:Optimism:L2CrossDomainMessengerAdapter")
   })
 
 // Deploy source chain
-task("deploy:Optimism:L1CrossDomainMessengerHeaderReporter")
+task("deploy:Optimism:HeaderReporter")
   .addParam("l1CrossDomainMessenger", "address of the L1CrossDomainMessenger contract", undefined, types.string)
   .addParam("headerStorage", "address of the header storage contract", undefined, types.string)
   .addFlag("verify", "whether to verify the contract on Etherscan")
@@ -56,7 +56,7 @@ task("deploy:Optimism:L1CrossDomainMessengerHeaderReporter")
   })
 
 // Deploy source chain
-task("deploy:Optimism:L1CrossDomainMessengerMessageRelay")
+task("deploy:Optimism:MessageRelay")
   .addParam("l1CrossDomainMessenger", "address of the L1CrossDomainMessenger contract", undefined, types.string)
   .addParam("yaho", "address of the Yaho contract", undefined, types.string)
   .addFlag("verify", "whether to verify the contract on Etherscan")
