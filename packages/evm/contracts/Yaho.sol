@@ -2,17 +2,13 @@
 pragma solidity ^0.8.17;
 
 import { IMessageRelay } from "./interfaces/IMessageRelay.sol";
-import { IMessageDispatcher, Message } from "./interfaces/IMessageDispatcher.sol";
+import { Message } from "./interfaces/IMessageDispatcher.sol";
+import { IYaho } from "./interfaces/IYaho.sol";
 import { MessageHashCalculator } from "./utils/MessageHashCalculator.sol";
 
-contract Yaho is IMessageDispatcher, MessageHashCalculator {
+contract Yaho is IYaho, MessageHashCalculator {
     mapping(uint256 => bytes32) public hashes;
     uint256 private count;
-
-    error NoMessagesGiven(address emitter);
-    error NoMessageIdsGiven(address emitter);
-    error NoAdaptersGiven(address emitter);
-    error UnequalArrayLengths(address emitter);
 
     /// @dev Dispatches a batch of messages, putting their into storage and emitting their contents as an event.
     /// @param messages An array of Messages to be dispatched.
