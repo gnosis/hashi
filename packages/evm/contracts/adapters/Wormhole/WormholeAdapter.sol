@@ -24,12 +24,14 @@ contract WormholeAdapter is OracleAdapter, BlockHashOracleAdapter {
 
     /// @dev Stores the block header for a given block.
     /// @param encodedVM Encoded data reflecting the content of the Wormhole Verified Action Approval.
-    function storeHashByEncodedVM(bytes calldata encodedVM) public {
+    function storeHashesByEncodedVM(bytes calldata encodedVM) external {
         (VM memory vm, bool valid, string memory reason) = wormhole.parseAndVerifyVM(encodedVM);
         if (!valid) revert InvalidMessage(address(this), vm, reason);
         if (vm.emitterChainId != wormholeSourceChainId) revert InvalidEmitterChainId(address(this), vm.emitterChainId);
         if (vm.emitterAddress != reporter) revert InvalidReporter(address(this), vm.emitterAddress);
-        (uint256 id, bytes32 hash) = abi.decode(vm.payload, (uint256, bytes32));
-        _storeHash(sourceChainId, id, hash);
+        (uint256[] memory ids, bytes32[] memory _hashes) = abi.decode(vm.payload, (uint256[], bytes32[]));
+        for (uint256 i = 0; i < ids.length; i++) {
+            _storeHash(sourceChainId, ids[i], _hashes[i]);
+        }
     }
 }
