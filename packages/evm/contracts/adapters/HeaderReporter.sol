@@ -5,25 +5,27 @@ import { IHeaderReporter } from "../interfaces/IHeaderReporter.sol";
 import { HeaderStorage } from "../utils/HeaderStorage.sol";
 
 abstract contract HeaderReporter is IHeaderReporter {
-    address public immutable HEADER_STORAGE;
+    HeaderStorage public immutable HEADER_STORAGE;
     uint256 public immutable ADAPTER_CHAIN;
-    address public immutable ADAPTER_ADDRESS;
+
+    event HeaderReported(address indexed emitter, uint256 indexed blockNumber, bytes32 indexed blockHeader);
 
     /// @dev Constructs base reporter abstracted from specific message transport
-    /// @param headerStorage IBlockHashStorage contract on this chain to use for block hash obtaining
+    /// @param headerStorage HeaderStorage contract on this chain to use for block hash obtaining
     /// @param adapterChain Chain ID of the adapter that is served by this reporter
-    /// @param adapterAddress Address of the adapter that is served by this reporter
-    constructor(address headerStorage, uint256 adapterChain, address adapterAddress) {
-        HEADER_STORAGE = headerStorage;
+    constructor(address headerStorage, uint256 adapterChain) {
+        HEADER_STORAGE = HeaderStorage(headerStorage);
         ADAPTER_CHAIN = adapterChain;
-        ADAPTER_ADDRESS = adapterAddress;
     }
 
-    function reportHeader(uint256 blockNumber) external payable {
-        bytes32 blockHash = HeaderStorage(HEADER_STORAGE).storeBlockHeader(blockNumber);
-        bytes memory payload = abi.encode(blockNumber, blockHash);
-        _sendPayload(payload);
+    function reportHeaders(uint256[] memory blockNumbers, address adapter) external payable {
+        bytes32[] memory blockHeaders = HEADER_STORAGE.storeBlockHeaders(blockNumbers);
+        bytes memory payload = abi.encode(blockNumbers, blockHeaders);
+        _sendPayload(payload, adapter);
+        for (uint i = 0; i < blockNumbers.length; i++) {
+            emit HeaderReported(address(this), blockNumbers[i], blockHeaders[i]);
+        }
     }
 
-    function _sendPayload(bytes memory payload) internal virtual;
+    function _sendPayload(bytes memory payload, address adapter) internal virtual;
 }

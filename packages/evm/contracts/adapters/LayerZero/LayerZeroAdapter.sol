@@ -6,9 +6,9 @@ import { HeaderOracleAdapter } from "../HeaderOracleAdapter.sol";
 
 contract LayerZeroAdapter is HeaderOracleAdapter, ILayerZeroReceiver {
     string public constant PROVIDER = "layer-zero";
-    address public immutable LZ_ENDPOINT;
-    uint32 public immutable LZ_REPORTER_CHAIN;
-    bytes32 public immutable LZ_REPORTER_PATH_HASH;
+    address public immutable LAYER_ZERO_ENDPOINT;
+    uint32 public immutable LAYER_ZERO_REPORTER_CHAIN;
+    bytes32 public immutable LAYER_ZERO_REPORTER_PATH_HASH;
 
     error UnauthorizedLayerZeroReceive();
 
@@ -18,17 +18,17 @@ contract LayerZeroAdapter is HeaderOracleAdapter, ILayerZeroReceiver {
         address lzEndpoint,
         uint16 lzReporterChain
     ) HeaderOracleAdapter(reporterChain, reporterAddress) {
-        LZ_ENDPOINT = lzEndpoint;
-        LZ_REPORTER_CHAIN = lzReporterChain;
+        LAYER_ZERO_ENDPOINT = lzEndpoint;
+        LAYER_ZERO_REPORTER_CHAIN = lzReporterChain;
         bytes memory path = abi.encodePacked(reporterAddress, address(this));
-        LZ_REPORTER_PATH_HASH = keccak256(path);
+        LAYER_ZERO_REPORTER_PATH_HASH = keccak256(path);
     }
 
     function lzReceive(uint16 srcChainId, bytes memory srcAddress, uint64 /* nonce */, bytes memory payload) external {
         if (
-            msg.sender != LZ_ENDPOINT ||
-            srcChainId != LZ_REPORTER_CHAIN ||
-            keccak256(srcAddress) != LZ_REPORTER_PATH_HASH
+            msg.sender != LAYER_ZERO_ENDPOINT ||
+            srcChainId != LAYER_ZERO_REPORTER_CHAIN ||
+            keccak256(srcAddress) != LAYER_ZERO_REPORTER_PATH_HASH
         ) revert UnauthorizedLayerZeroReceive();
         _receivePayload(payload);
     }

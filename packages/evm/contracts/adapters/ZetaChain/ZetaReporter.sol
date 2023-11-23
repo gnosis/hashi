@@ -3,41 +3,32 @@ pragma solidity ^0.8.17;
 
 import { SafeERC20, IERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { ZetaConnector, ZetaTokenConsumer, ZetaInterfaces } from "./interfaces/ZetaInterfaces.sol";
-import { HeaderReporter } from "../HeaderReporter.sol";
 
-contract ZetaReporter is HeaderReporter {
+abstract contract ZetaReporter {
     using SafeERC20 for IERC20;
 
     string public constant PROVIDER = "zeta";
-    address public immutable ZETA_CONNECTOR;
+    ZetaConnector public immutable ZETA_CONNECTOR;
     address public immutable ZETA_TOKEN;
-    address public immutable ZETA_CONSUMER;
-    bytes public ZETA_ADAPTER_ADDRESS;
+    ZetaTokenConsumer public immutable ZETA_CONSUMER;
+    uint256 public immutable ZETA_ADAPTER_CHAIN;
 
-    constructor(
-        address headerStorage,
-        uint256 adapterChain,
-        address adapterAddress,
-        address zetaConnector,
-        address zetaToken,
-        address zetaConsumer,
-        bytes memory zetaAdapterAddress
-    ) HeaderReporter(headerStorage, adapterChain, adapterAddress) {
-        ZETA_CONNECTOR = zetaConnector;
+    constructor(address zetaConnector, address zetaToken, address zetaConsumer, uint256 zetaAdapterChain) {
+        ZETA_CONNECTOR = ZetaConnector(zetaConnector);
         ZETA_TOKEN = zetaToken;
-        ZETA_CONSUMER = zetaConsumer;
-        ZETA_ADAPTER_ADDRESS = zetaAdapterAddress;
+        ZETA_CONSUMER = ZetaTokenConsumer(zetaConsumer);
+        ZETA_ADAPTER_CHAIN = zetaAdapterChain;
     }
 
-    function _sendPayload(bytes memory payload) internal override {
-        uint256 zetaAmount = ZetaTokenConsumer(ZETA_CONSUMER).getZetaFromEth{ value: msg.value }(address(this), 0);
-        IERC20(ZETA_TOKEN).safeApprove(ZETA_CONNECTOR, zetaAmount);
+    function _zetaSend(bytes memory payload, address adapter) internal {
+        uint256 zetaAmount = ZETA_CONSUMER.getZetaFromEth{ value: msg.value }(address(this), 0);
+        IERC20(ZETA_TOKEN).safeApprove(address(ZETA_CONNECTOR), zetaAmount);
 
         // solhint-disable-next-line check-send-result
-        ZetaConnector(ZETA_CONNECTOR).send(
+        ZETA_CONNECTOR.send(
             ZetaInterfaces.SendInput({
-                destinationChainId: ADAPTER_CHAIN,
-                destinationAddress: ZETA_ADAPTER_ADDRESS,
+                destinationChainId: ZETA_ADAPTER_CHAIN,
+                destinationAddress: abi.encodePacked(adapter),
                 destinationGasLimit: 200_000,
                 message: payload,
                 zetaValueAndGas: zetaAmount,

@@ -20,7 +20,7 @@ contract ChainlinkAdapter is HeaderOracleAdapter, CCIPReceiver {
         CHAINLINK_REPORTER_CHAIN = chainlinkReporterChain;
     }
 
-    function _ccipReceive(Client.Any2EVMMessage memory message) internal virtual override {
+    function _ccipReceive(Client.Any2EVMMessage memory message) internal override {
         // Validity of `msg.sender` is ensured by `CCIPReceiver` prior this internal function invocation
         if (
             message.sourceChainSelector != CHAINLINK_REPORTER_CHAIN ||

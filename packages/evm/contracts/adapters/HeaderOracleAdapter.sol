@@ -16,7 +16,9 @@ abstract contract HeaderOracleAdapter is BlockHashOracleAdapter {
     }
 
     function _receivePayload(bytes memory payload) internal {
-        (uint256 blockNumber, bytes32 blockHash) = abi.decode(payload, (uint256, bytes32));
-        _storeHash(REPORTER_CHAIN, blockNumber, blockHash);
+        (uint256[] memory ids, bytes32[] memory hashes) = abi.decode(payload, (uint256[], bytes32[]));
+        for (uint256 i = 0; i < ids.length; i++) {
+            _storeHash(REPORTER_CHAIN, ids[i], hashes[i]);
+        }
     }
 }
