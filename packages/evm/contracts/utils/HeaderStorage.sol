@@ -1,12 +1,10 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity ^0.8.17;
 
-contract HeaderStorage {
+import { IHeaderStorage } from "../interfaces/IHeaderStorage.sol";
+
+contract HeaderStorage is IHeaderStorage {
     mapping(uint256 => bytes32) public headers;
-
-    event HeaderStored(uint256 indexed blockNumber, bytes32 indexed blockHeader);
-
-    error HeaderOutOfRange(address emitter, uint256 blockNumber);
 
     /// @dev Stores and returns the header for the given block.
     /// @param blockNumber Block number.
