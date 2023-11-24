@@ -83,7 +83,9 @@ class Coordinator {
         (_, _index) => startBlock + BigInt(_index),
       )
       this.logger.info(`New blocks detected on ${this.sourceChain.name}: [${startBlock},${endBlock}]`)
-      for (const controller of this.controllers.filter((_controller) => _controller.type === "classic")) {
+      for (const controller of this.controllers.filter(
+        (_controller) => _controller.type === "classic" || _controller.type === "native",
+      )) {
         const release = await this._mutex.acquire()
         await controller.onBlocks(blocks)
         release()

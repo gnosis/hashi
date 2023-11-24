@@ -1,4 +1,4 @@
-import { parseEther } from "viem"
+import { Chain, parseEther } from "viem"
 
 import ABI from "../ABIs/SygmaReporterContractABI.json"
 import BaseController from "./BaseController"
@@ -24,7 +24,7 @@ class SygmaReporterController extends BaseController {
     try {
       const client = this.multiClient.getClientByChain(this.sourceChain)
 
-      for (const chain of this.destinationChains) {
+      for (const chain of this.destinationChains as Chain[]) {
         this.logger.info(
           `reporting block headers of blocks [${_blockNumbers[0]},${_blockNumbers[_blockNumbers.length - 1]}] on ${
             chain.name

@@ -1,5 +1,5 @@
 import axios from "axios"
-import { hexToNumber } from "viem"
+import { Chain, hexToNumber } from "viem"
 import { Mutex } from "async-mutex"
 
 import LightClientContractABI from "../ABIs/TelepathyContractABI.json"
@@ -30,7 +30,7 @@ class TelepathyReporterController extends BaseController {
   async update() {
     try {
       let mutex = new Mutex()
-      for (const chain of this.destinationChains) {
+      for (const chain of this.destinationChains as Chain[]) {
         const client = this.multiClient.getClientByChain(chain)
 
         const currentBlockNumber = await client.getBlockNumber()

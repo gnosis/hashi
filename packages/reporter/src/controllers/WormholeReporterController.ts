@@ -1,11 +1,12 @@
 import axios, { AxiosInstance } from "axios"
-import HeaderReporterABI from "../ABIs/WormhomeHeaderReporterABI.json"
-import AdapterABI from "../ABIs/WormholeAdapterABI.json"
-import WormholeABI from "../ABIs/WormholeABI.json"
 import { Mutex } from "async-mutex"
+import { Chain } from "viem"
 
 import BaseController from "./BaseController"
 import sleep from "../utils/sleep"
+import HeaderReporterABI from "../ABIs/WormhomeHeaderReporterABI.json"
+import AdapterABI from "../ABIs/WormholeAdapterABI.json"
+import WormholeABI from "../ABIs/WormholeABI.json"
 
 import { BaseControllerConfigs } from "./BaseController"
 
@@ -72,7 +73,7 @@ class WormholeReporterController extends BaseController {
         await sleep(20000)
       }
 
-      for (const chain of this.destinationChains) {
+      for (const chain of this.destinationChains as Chain[]) {
         const destinationChainClient = this.multiClient.getClientByChain(chain)
 
         this.logger.info(`Storing header on ${chain.name} ...`)

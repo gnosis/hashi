@@ -3,13 +3,13 @@ import winston from "winston"
 
 import Multiclient from "../MultiClient"
 
-export type ControllerType = "classic" | "lightClient"
+export type ControllerType = "classic" | "lightClient" | "native"
 
 export type BaseControllerConfigs = {
   type: ControllerType
   sourceChain: Chain
-  destinationChains: Chain[]
-  reporterAddress?: string
+  destinationChains?: Chain[]
+  reporterAddress?: `0x${string}`
   adapterAddresses: { [chainName: string]: `0x${string}` }
   logger: winston.Logger
   multiClient: Multiclient
@@ -19,7 +19,7 @@ class BaseController {
   name: string
   type: ControllerType
   sourceChain: Chain
-  destinationChains: Chain[]
+  destinationChains?: Chain[]
   reporterAddress?: `0x${string}`
   adapterAddresses: { [chainName: string]: `0x${string}` }
   logger: winston.Logger

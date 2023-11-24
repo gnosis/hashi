@@ -1,3 +1,4 @@
+import { Chain } from "viem"
 import ABI from "../ABIs/AMBReporterContractABI.json"
 
 import BaseController from "./BaseController"
@@ -20,7 +21,7 @@ class AMBReporterController extends BaseController {
     try {
       const client = this.multiClient.getClientByChain(this.sourceChain)
 
-      for (const chain of this.destinationChains) {
+      for (const chain of this.destinationChains as Chain[]) {
         const blockNumber = _blockNumbers[_blockNumbers.length - 1]
 
         this.logger.info(

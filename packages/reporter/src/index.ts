@@ -4,6 +4,7 @@ import { Chain } from "viem"
 
 import Multiclient from "./MultiClient"
 import AMBReporterController from "./controllers/AMBReporterController"
+import OptimismReporterController from "./controllers/OptimismReporterController"
 import SygmaReporterController from "./controllers/SygmaReporterController"
 import TelepathyReporterController from "./controllers/TelepathyReporterController"
 import WormholeReporterController from "./controllers/WormholeReporterController"
@@ -100,12 +101,25 @@ const main = () => {
     wormholeChainIds: settings.reporterControllers.WormholeReporterController.wormholeChainIds,
   })
 
+  // TODO: add check to prevent to always run OptimismReporterController even when destinationChains does not include optimism
+  const optimismReporterController = new OptimismReporterController({
+    type: "native",
+    sourceChain,
+    logger,
+    multiClient,
+    reporterAddress: settings.contractAddresses.Ethereum.L1CrossDomainMessengerHeaderReporter,
+    adapterAddresses: {
+      [optimism.name]: settings.contractAddresses["OP Mainnet"].L2CrossDomainMessengerAdapter,
+    },
+  })
+
   const coordinator = new Coordinator({
     controllers: [
       ambReporterController,
       sygmaReporterController,
       telepathyReporterController,
       wormholeReporterController,
+      optimismReporterController,
     ].filter((_controller) => controllersEnabled?.includes(_controller.name)),
     intervalFetchBlocksMs: settings.Coordinator.intervalFetchBlocksMs,
     logger,

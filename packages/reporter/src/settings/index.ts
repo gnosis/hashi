@@ -25,6 +25,8 @@ export const settings = {
       AxelarReporter: process.env.MAINNET_HEADER_REPORTER as `0x${string}`,
       WormholeHeaderReporter: process.env.MAINNET_WORMHOLE_HEADER_REPORTER as `0x${string}`,
       Wormhole: process.env.MAINNET_WORMHOLE_ADDRESS as `0x${string}`,
+      L1CrossDomainMessengerHeaderReporter: process.env
+        .MAINNET_L1_CROSS_DOMAIN_MESSENGER_HEADER_REPORTER_ADDRESS as `0x${string}`,
     },
     [gnosis.name]: {
       AMBAdapter: process.env.GNOSIS_AMB_ADAPTER as `0x${string}`,
@@ -54,6 +56,7 @@ export const settings = {
       TelepathyLightClient: "0x34b5378DE786389a477b40dD710812c250185f83" as `0x${string}`,
       AxelarAdapter: process.env.OPTIMISM_AXELAR_ADAPTER as `0x${string}`,
       WormholeAdapter: process.env.OPTIMISM_WORMHOLE_ADAPTER as `0x${string}`,
+      L2CrossDomainMessengerAdapter: process.env.OPTIMISM_L2_CROSS_DOMAIN_MESSENGER_ADAPTER_ADDRESS as `0x${string}`,
     },
     [arbitrum.name]: {
       TelepathyAdapter: process.env.ARBITRUM_TELEPATHY_ADAPTER as `0x${string}`,
