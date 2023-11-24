@@ -34,7 +34,7 @@ contract AxelarAdapter is HeaderOracleAdapter, AxelarExecutable {
     ) internal override {
         if (
             keccak256(bytes(sourceChain)) != AXELAR_REPORTER_CHAIN_HASH ||
-            keccak256(bytes(sourceAddress)) == AXELAR_REPORTER_ADDRESS_HASH
+            keccak256(bytes(sourceAddress)) != AXELAR_REPORTER_ADDRESS_HASH
         ) {
             revert UnauthorizedAxelarReceive();
         }
