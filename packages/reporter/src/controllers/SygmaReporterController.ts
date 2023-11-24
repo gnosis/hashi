@@ -25,6 +25,8 @@ class SygmaReporterController extends BaseController {
       const client = this.multiClient.getClientByChain(this.sourceChain)
 
       for (const chain of this.destinationChains as Chain[]) {
+        if (!this.adapterAddresses[chain.name]) continue
+
         this.logger.info(
           `reporting block headers of blocks [${_blockNumbers[0]},${_blockNumbers[_blockNumbers.length - 1]}] on ${
             chain.name

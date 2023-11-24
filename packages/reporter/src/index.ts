@@ -4,6 +4,7 @@ import { Chain } from "viem"
 
 import Multiclient from "./MultiClient"
 import AMBReporterController from "./controllers/AMBReporterController"
+import AxelarReporterController from "./controllers/AxelarReporterController"
 import OptimismReporterController from "./controllers/OptimismReporterController"
 import SygmaReporterController from "./controllers/SygmaReporterController"
 import TelepathyReporterController from "./controllers/TelepathyReporterController"
@@ -37,7 +38,7 @@ const main = () => {
   const ambReporterController = new AMBReporterController({
     type: "classic",
     sourceChain,
-    destinationChains,
+    destinationChains: destinationChains.filter(({ name }) => name === gnosis.name),
     logger,
     multiClient,
     reporterAddress: settings.contractAddresses.Goerli.AMBReporter,
@@ -113,6 +114,18 @@ const main = () => {
     },
   })
 
+  const axelarReporterControllerMainnetBsc = new AxelarReporterController({
+    type: "classic",
+    sourceChain,
+    destinationChains,
+    logger,
+    multiClient,
+    reporterAddress: settings.contractAddresses.Ethereum.AxelarReporterBsc,
+    adapterAddresses: {
+      [bsc.name]: settings.contractAddresses["BNB Smart Chain"].AxelarAdapterMainnet,
+    },
+  })
+
   const coordinator = new Coordinator({
     controllers: [
       ambReporterController,
@@ -120,6 +133,7 @@ const main = () => {
       telepathyReporterController,
       wormholeReporterController,
       optimismReporterController,
+      axelarReporterControllerMainnetBsc,
     ].filter((_controller) => controllersEnabled?.includes(_controller.name)),
     intervalFetchBlocksMs: settings.Coordinator.intervalFetchBlocksMs,
     logger,

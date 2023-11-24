@@ -22,7 +22,7 @@ export const settings = {
   contractAddresses: {
     [mainnet.name]: {
       AMBReporter: process.env.MAINNET_AMB_REPORTER as `0x${string}`,
-      AxelarReporter: process.env.MAINNET_HEADER_REPORTER as `0x${string}`,
+      AxelarReporterBsc: process.env.MAINNET_AXELAR_HEADER_REPORTER_BSC as `0x${string}`,
       WormholeHeaderReporter: process.env.MAINNET_WORMHOLE_HEADER_REPORTER as `0x${string}`,
       Wormhole: process.env.MAINNET_WORMHOLE_ADDRESS as `0x${string}`,
       L1CrossDomainMessengerHeaderReporter: process.env
@@ -42,26 +42,23 @@ export const settings = {
     [polygon.name]: {
       TelepathyAdapter: process.env.POLYGON_TELEPATHY_ADAPTER as `0x${string}`,
       TelepathyLightClient: "0x34b5378DE786389a477b40dD710812c250185f83" as `0x${string}`,
-      AxelarAdapter: process.env.POLYGON_AXELAR_ADAPTER as `0x${string}`,
       WormholeAdapter: process.env.POLYGON_WORMHOLE_ADAPTER as `0x${string}`,
     },
     [bsc.name]: {
       TelepathyAdapter: process.env.BSC_TELEPATHY_ADAPTER as `0x${string}`,
       TelepathyLightClient: "0x34b5378DE786389a477b40dD710812c250185f83" as `0x${string}`,
-      AxelarAdapter: process.env.BSC_AXELAR_ADAPTER as `0x${string}`,
+      AxelarAdapterMainnet: process.env.BSC_AXELAR_ADAPTER_MAINNET as `0x${string}`,
       WormholeAdapter: process.env.BSC_WORMHOLE_ADAPTER as `0x${string}`,
     },
     [optimism.name]: {
       TelepathyAdapter: process.env.OPTIMISM_TELEPATHY_ADAPTER as `0x${string}`,
       TelepathyLightClient: "0x34b5378DE786389a477b40dD710812c250185f83" as `0x${string}`,
-      AxelarAdapter: process.env.OPTIMISM_AXELAR_ADAPTER as `0x${string}`,
       WormholeAdapter: process.env.OPTIMISM_WORMHOLE_ADAPTER as `0x${string}`,
       L2CrossDomainMessengerAdapter: process.env.OPTIMISM_L2_CROSS_DOMAIN_MESSENGER_ADAPTER_ADDRESS as `0x${string}`,
     },
     [arbitrum.name]: {
       TelepathyAdapter: process.env.ARBITRUM_TELEPATHY_ADAPTER as `0x${string}`,
       TelepathyLightClient: "0x34b5378DE786389a477b40dD710812c250185f83" as `0x${string}`,
-      AxelarAdapter: process.env.ARBITRUM_AXELAR_ADAPTER as `0x${string}`,
     },
     [avalanche.name]: {
       WormholeAdapter: process.env.AVALANCHE_WORMHOLE_ADAPTER as `0x${string}`,

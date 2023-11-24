@@ -74,6 +74,8 @@ class WormholeReporterController extends BaseController {
       }
 
       for (const chain of this.destinationChains as Chain[]) {
+        if (!this.adapterAddresses[chain.name]) continue
+
         const destinationChainClient = this.multiClient.getClientByChain(chain)
 
         this.logger.info(`Storing header on ${chain.name} ...`)

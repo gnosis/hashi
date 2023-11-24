@@ -1,0 +1,20 @@
+[
+  {
+    "inputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "blockNumbers",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "address",
+        "name": "adapter",
+        "type": "address"
+      }
+    ],
+    "name": "reportHeaders",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  }
+]
