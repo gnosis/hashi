@@ -12,6 +12,7 @@ import { verify } from "../index"
 
 task("deploy:adapter:ConnextAdapter")
   .addParam("chainId", "chain id of the reporter contract")
+  .addParam("connextDomainId", "connext domain id (according to https://docs.connext.network/resources/supported-chains)")
   .addParam("reporter", "address of the reporter contract")
   .addParam("connext", "address of the Connext contract")
   .addFlag("verify", "whether to verify the contract on Etherscan")
@@ -25,7 +26,7 @@ task("deploy:adapter:ConnextAdapter")
       taskArguments.chainId,
       taskArguments.reporter,
       taskArguments.connext,
-      taskArguments.chainId,
+      taskArguments.connextDomainId,
     ] as const
     const connextAdapter: ConnextAdapter = <ConnextAdapter>(
       await connextAdapterFactory.connect(signers[0]).deploy(...constructorArguments)
@@ -37,6 +38,7 @@ task("deploy:adapter:ConnextAdapter")
 
 task("deploy:adapter:ConnextHeaderReporter")
   .addParam("chainId", "chain id of the adapter contract")
+  .addParam("connextDomainId", "connext domain id (according to https://docs.connext.network/resources/supported-chains)")
   .addParam("headerStorage", "address of the header storage contract")
   .addParam("connext", "address of the Connext contract")
   .addFlag("verify", "whether to verify the contract on Etherscan")
@@ -50,7 +52,7 @@ task("deploy:adapter:ConnextHeaderReporter")
       taskArguments.headerStorage,
       taskArguments.chainId,
       taskArguments.connext,
-      taskArguments.chainId,
+      taskArguments.connextDomainId,
     ] as const
     const connextHeaderReporter: ConnextHeaderReporter = <ConnextHeaderReporter>(
       await connextHeaderReporterFactory.connect(signers[0]).deploy(...constructorArguments)
@@ -62,6 +64,7 @@ task("deploy:adapter:ConnextHeaderReporter")
 
 task("deploy:adapter:ConnextMessageRelay")
   .addParam("chainId", "chain id of the adapter contract")
+  .addParam("connextDomainId", "connext domain id (according to https://docs.connext.network/resources/supported-chains)")
   .addParam("yaho", "address of the Yaho contract")
   .addParam("connext", "address of the Connext contract")
   .addFlag("verify", "whether to verify the contract on Etherscan")
@@ -75,7 +78,7 @@ task("deploy:adapter:ConnextMessageRelay")
       taskArguments.yaho,
       taskArguments.chainId,
       taskArguments.connext,
-      taskArguments.chainId,
+      taskArguments.connextDomainId,
     ] as const
     const connextMessageRelay: ConnextMessageRelay = <ConnextMessageRelay>(
       await connextMessageRelayFactory.connect(signers[0]).deploy(...constructorArguments)

@@ -12,6 +12,7 @@ import { verify } from "../index"
 
 task("deploy:adapter:CCIPAdapter")
   .addParam("chainId", "chain id of the reporter contract")
+  .addParam("ccipChainSelector", "chain selector (according to https://docs.chain.link/ccip/supported-networks)")
   .addParam("reporter", "address of the reporter contract")
   .addParam("router", "address of the CCIP router contract")
   .addFlag("verify", "whether to verify the contract on Etherscan")
@@ -25,7 +26,7 @@ task("deploy:adapter:CCIPAdapter")
       taskArguments.chainId,
       taskArguments.reporter,
       taskArguments.router,
-      taskArguments.chainId,
+      taskArguments.ccipChainSelector,
     ] as const
     const ccipAdapter: CCIPAdapter = <CCIPAdapter>(
       await ccipAdapterFactory.connect(signers[0]).deploy(...constructorArguments)
@@ -37,6 +38,7 @@ task("deploy:adapter:CCIPAdapter")
 
 task("deploy:adapter:CCIPHeaderReporter")
   .addParam("chainId", "chain id of the adapter contract")
+  .addParam("ccipChainSelector", "chain selector (according to https://docs.chain.link/ccip/supported-networks)")
   .addParam("headerStorage", "address of the header storage contract")
   .addParam("router", "address of the CCIP router contract")
   .addFlag("verify", "whether to verify the contract on Etherscan")
@@ -50,7 +52,7 @@ task("deploy:adapter:CCIPHeaderReporter")
       taskArguments.headerStorage,
       taskArguments.chainId,
       taskArguments.router,
-      taskArguments.chainId,
+      taskArguments.ccipChainSelector,
     ] as const
     const ccipHeaderReporter: CCIPHeaderReporter = <CCIPHeaderReporter>(
       await ccipHeaderReporterFactory.connect(signers[0]).deploy(...constructorArguments)
@@ -62,6 +64,7 @@ task("deploy:adapter:CCIPHeaderReporter")
 
 task("deploy:adapter:CCIPMessageRelay")
   .addParam("chainId", "chain id of the adapter contract")
+  .addParam("ccipChainSelector", "chain selector (according to https://docs.chain.link/ccip/supported-networks)")
   .addParam("yaho", "address of the Yaho contract")
   .addParam("router", "address of the CCIP router contract")
   .addFlag("verify", "whether to verify the contract on Etherscan")
@@ -75,7 +78,7 @@ task("deploy:adapter:CCIPMessageRelay")
       taskArguments.yaho,
       taskArguments.chainId,
       taskArguments.router,
-      taskArguments.chainId,
+      taskArguments.ccipChainSelector,
     ] as const
     const ccipMessageRelay: CCIPMessageRelay = <CCIPMessageRelay>(
       await ccipMessageRelayFactory.connect(signers[0]).deploy(...constructorArguments)

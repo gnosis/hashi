@@ -12,6 +12,7 @@ import { verify } from "../index"
 
 task("deploy:adapter:LayerZeroAdapter")
   .addParam("chainId", "chain id of the reporter contract")
+  .addParam("lzChainId", "layerzero chain id (according to https://layerzero.gitbook.io/docs/technical-reference/mainnet/supported-chain-ids)")
   .addParam("reporter", "address of the reporter contract")
   .addParam("lzEndpoint", "address of the LayerZero endpoint contract")
   .addFlag("verify", "whether to verify the contract on Etherscan")
@@ -25,7 +26,7 @@ task("deploy:adapter:LayerZeroAdapter")
       taskArguments.chainId,
       taskArguments.reporter,
       taskArguments.lzEndpoint,
-      taskArguments.chainId,
+      taskArguments.lzChainId,
     ] as const
     const layerZeroAdapter: LayerZeroAdapter = <LayerZeroAdapter>(
       await layerZeroAdapterFactory.connect(signers[0]).deploy(...constructorArguments)
@@ -37,6 +38,7 @@ task("deploy:adapter:LayerZeroAdapter")
 
 task("deploy:adapter:LayerZeroHeaderReporter")
   .addParam("chainId", "chain id of the adapter contract")
+  .addParam("lzChainId", "layerzero chain id (according to https://layerzero.gitbook.io/docs/technical-reference/mainnet/supported-chain-ids)")
   .addParam("headerStorage", "address of the header storage contract")
   .addParam("lzEndpoint", "address of the LayerZero endpoint contract")
   .addFlag("verify", "whether to verify the contract on Etherscan")
@@ -50,7 +52,7 @@ task("deploy:adapter:LayerZeroHeaderReporter")
       taskArguments.headerStorage,
       taskArguments.chainId,
       taskArguments.lzEndpoint,
-      taskArguments.chainId,
+      taskArguments.lzChainId,
     ] as const
     const layerZeroHeaderReporter: LayerZeroHeaderReporter = <LayerZeroHeaderReporter>(
       await layerZeroHeaderReporterFactory.connect(signers[0]).deploy(...constructorArguments)
@@ -62,6 +64,7 @@ task("deploy:adapter:LayerZeroHeaderReporter")
 
 task("deploy:adapter:LayerZeroMessageRelay")
   .addParam("chainId", "chain id of the adapter contract")
+  .addParam("lzChainId", "layerzero chain id (according to https://layerzero.gitbook.io/docs/technical-reference/mainnet/supported-chain-ids)")
   .addParam("yaho", "address of the Yaho contract")
   .addParam("lzEndpoint", "address of the LayerZero endpoint contract")
   .addFlag("verify", "whether to verify the contract on Etherscan")
@@ -75,7 +78,7 @@ task("deploy:adapter:LayerZeroMessageRelay")
       taskArguments.yaho,
       taskArguments.chainId,
       taskArguments.lzEndpoint,
-      taskArguments.chainId,
+      taskArguments.lzChainId,
     ] as const
     const layerZeroMessageRelay: LayerZeroMessageRelay = <LayerZeroMessageRelay>(
       await layerZeroMessageRelayFactory.connect(signers[0]).deploy(...constructorArguments)
