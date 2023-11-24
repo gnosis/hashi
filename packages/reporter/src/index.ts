@@ -1,11 +1,12 @@
 import * as chains from "viem/chains"
-import { gnosis, mainnet, goerli, polygon, optimism, bsc, arbitrum } from "viem/chains"
+import { avalanche, gnosis, mainnet, goerli, polygon, optimism, bsc, arbitrum } from "viem/chains"
 import { Chain } from "viem"
 
 import Multiclient from "./MultiClient"
 import AMBReporterController from "./controllers/AMBReporterController"
 import SygmaReporterController from "./controllers/SygmaReporterController"
 import TelepathyReporterController from "./controllers/TelepathyReporterController"
+import WormholeReporterController from "./controllers/WormholeReporterController"
 import Coordinator from "./Coordinator"
 import { settings } from "./settings/index"
 import logger from "./utils/logger"
@@ -80,10 +81,32 @@ const main = () => {
     },
   })
 
+  const wormholeReporterController = new WormholeReporterController({
+    type: "classic",
+    sourceChain,
+    destinationChains,
+    logger,
+    multiClient,
+    reporterAddress: settings.contractAddresses.Ethereum.WormholeHeaderReporter,
+    adapterAddresses: {
+      [gnosis.name]: settings.contractAddresses.Gnosis.WormholeAdapter,
+      [optimism.name]: settings.contractAddresses["OP Mainnet"].WormholeAdapter,
+      [bsc.name]: settings.contractAddresses["BNB Smart Chain"].WormholeAdapter,
+      [polygon.name]: settings.contractAddresses.Polygon.WormholeAdapter,
+      [avalanche.name]: settings.contractAddresses.Avalanche.WormholeAdapter,
+    },
+    wormholeScanBaseUrl: settings.reporterControllers.WormholeReporterController.wormholeScanBaseUrl,
+    wormholeAddress: (settings.contractAddresses as any)[sourceChain.name].Wormhole,
+    wormholeChainIds: settings.reporterControllers.WormholeReporterController.wormholeChainIds,
+  })
+
   const coordinator = new Coordinator({
-    controllers: [ambReporterController, sygmaReporterController, telepathyReporterController].filter(
-      (_controller) => controllersEnabled?.includes(_controller.name),
-    ),
+    controllers: [
+      ambReporterController,
+      sygmaReporterController,
+      telepathyReporterController,
+      wormholeReporterController,
+    ].filter((_controller) => controllersEnabled?.includes(_controller.name)),
     intervalFetchBlocksMs: settings.Coordinator.intervalFetchBlocksMs,
     logger,
     multiclient: multiClient,

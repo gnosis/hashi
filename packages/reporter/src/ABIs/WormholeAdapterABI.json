@@ -1,0 +1,347 @@
+[
+  {
+    "inputs": [
+      {
+        "internalType": "contract IWormhole",
+        "name": "wormhole_",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "reporter_",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "sourceChainId_",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint16",
+        "name": "wormholeSourceChainId_",
+        "type": "uint16"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "blockNumber",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "reportedBlockHash",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "storedBlockHash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "ConflictingBlockHeader",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "length",
+        "type": "uint256"
+      }
+    ],
+    "name": "InvalidBlockHeaderLength",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidBlockHeaderRLP",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "emitter",
+        "type": "address"
+      },
+      {
+        "internalType": "uint16",
+        "name": "chainId",
+        "type": "uint16"
+      }
+    ],
+    "name": "InvalidEmitterChainId",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "emitter",
+        "type": "address"
+      },
+      {
+        "components": [
+          {
+            "internalType": "uint8",
+            "name": "version",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint32",
+            "name": "timestamp",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint32",
+            "name": "nonce",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint16",
+            "name": "emitterChainId",
+            "type": "uint16"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "emitterAddress",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "uint64",
+            "name": "sequence",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint8",
+            "name": "consistencyLevel",
+            "type": "uint8"
+          },
+          {
+            "internalType": "bytes",
+            "name": "payload",
+            "type": "bytes"
+          },
+          {
+            "internalType": "uint32",
+            "name": "guardianSetIndex",
+            "type": "uint32"
+          },
+          {
+            "components": [
+              {
+                "internalType": "bytes32",
+                "name": "r",
+                "type": "bytes32"
+              },
+              {
+                "internalType": "bytes32",
+                "name": "s",
+                "type": "bytes32"
+              },
+              {
+                "internalType": "uint8",
+                "name": "v",
+                "type": "uint8"
+              },
+              {
+                "internalType": "uint8",
+                "name": "guardianIndex",
+                "type": "uint8"
+              }
+            ],
+            "internalType": "struct Signature[]",
+            "name": "signatures",
+            "type": "tuple[]"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "hash",
+            "type": "bytes32"
+          }
+        ],
+        "internalType": "struct VM",
+        "name": "vm",
+        "type": "tuple"
+      },
+      {
+        "internalType": "string",
+        "name": "reason",
+        "type": "string"
+      }
+    ],
+    "name": "InvalidMessage",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "emitter",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "reporter",
+        "type": "bytes32"
+      }
+    ],
+    "name": "InvalidReporter",
+    "type": "error"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "id",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "hashes",
+        "type": "bytes32"
+      }
+    ],
+    "name": "HashStored",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "domain",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "id",
+        "type": "uint256"
+      }
+    ],
+    "name": "getHashFromOracle",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "hash",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "hashes",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "chainId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes[]",
+        "name": "blockHeaders",
+        "type": "bytes[]"
+      }
+    ],
+    "name": "proveAncestralBlockHashes",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "reporter",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "sourceChainId",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "encodedVM",
+        "type": "bytes"
+      }
+    ],
+    "name": "storeHashesByEncodedVM",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "wormhole",
+    "outputs": [
+      {
+        "internalType": "contract IWormhole",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "wormholeSourceChainId",
+    "outputs": [
+      {
+        "internalType": "uint16",
+        "name": "",
+        "type": "uint16"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]
