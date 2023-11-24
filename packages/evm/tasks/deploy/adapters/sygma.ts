@@ -25,7 +25,7 @@ task("deploy:adapter:SygmaAdapter")
     )
     await sygmaAdapter.deployed()
     console.log("SygmaAdapter deployed to:", sygmaAdapter.address)
-    if (taskArguments.verify) await verify(hre, sygmaAdapter)
+    if (taskArguments.verify) await verify(hre, sygmaAdapter, constructorArguments)
   })
 
 task("deploy:adapter:SygmaHeaderReporter")
@@ -45,15 +45,15 @@ task("deploy:adapter:SygmaHeaderReporter")
       taskArguments.bridge,
       taskArguments.headerStorage,
       taskArguments.resourceId,
-      taskArguments.defaultDestinationDomainID,
-      taskArguments.defaultSygmaAdapter,
+      taskArguments.chainId,
+      taskArguments.sygmaAdapter,
     ] as const
     const sygmaHeaderReporter: SygmaHeaderReporter = <SygmaHeaderReporter>(
       await sygmaHeaderReporterFactory.connect(signers[0]).deploy(...constructorArguments)
     )
     await sygmaHeaderReporter.deployed()
     console.log("SygmaHeaderReporter deployed to:", sygmaHeaderReporter.address)
-    if (taskArguments.verify) await verify(hre, sygmaHeaderReporter)
+    if (taskArguments.verify) await verify(hre, sygmaHeaderReporter, constructorArguments)
   })
 
 task("deploy:adapter:SygmaMessageRelayer")
@@ -73,13 +73,13 @@ task("deploy:adapter:SygmaMessageRelayer")
       taskArguments.bridge,
       taskArguments.yaho,
       taskArguments.resourceId,
-      taskArguments.defaultDestinationDomainID,
-      taskArguments.defaultSygmaAdapter,
+      taskArguments.chainId,
+      taskArguments.sygmaAdapter,
     ] as const
     const sygmaMessageRelayer: SygmaMessageRelayer = <SygmaMessageRelayer>(
       await sygmaMessageRelayerFactory.connect(signers[0]).deploy(...constructorArguments)
     )
     await sygmaMessageRelayer.deployed()
     console.log("SygmaMessageRelayer deployed to:", sygmaMessageRelayer.address)
-    if (taskArguments.verify) await verify(hre, sygmaMessageRelayer)
+    if (taskArguments.verify) await verify(hre, sygmaMessageRelayer, constructorArguments)
   })

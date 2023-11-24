@@ -18,7 +18,7 @@ task("deploy:adapter:ConnextAdapter")
   .setAction(async function (taskArguments: TaskArguments, hre) {
     console.log("Deploying ConnextAdapter...")
     const signers: SignerWithAddress[] = await hre.ethers.getSigners()
-    const ConnextAdapterFactory: ConnextAdapter__factory = <ConnextAdapter__factory>(
+    const connextAdapterFactory: ConnextAdapter__factory = <ConnextAdapter__factory>(
       await hre.ethers.getContractFactory("ConnextAdapter")
     )
     const constructorArguments = [
@@ -27,12 +27,12 @@ task("deploy:adapter:ConnextAdapter")
       taskArguments.connext,
       taskArguments.chainId,
     ] as const
-    const ConnextAdapter: ConnextAdapter = <ConnextAdapter>(
-      await ConnextAdapterFactory.connect(signers[0]).deploy(...constructorArguments)
+    const connextAdapter: ConnextAdapter = <ConnextAdapter>(
+      await connextAdapterFactory.connect(signers[0]).deploy(...constructorArguments)
     )
-    await ConnextAdapter.deployed()
-    console.log("ConnextAdapter deployed to:", ConnextAdapter.address)
-    if (taskArguments.verify) await verify(hre, ConnextAdapter)
+    await connextAdapter.deployed()
+    console.log("ConnextAdapter deployed to:", connextAdapter.address)
+    if (taskArguments.verify) await verify(hre, connextAdapter, constructorArguments)
   })
 
 task("deploy:adapter:ConnextHeaderReporter")
@@ -57,7 +57,7 @@ task("deploy:adapter:ConnextHeaderReporter")
     )
     await connextHeaderReporter.deployed()
     console.log("ConnextHeaderReporter deployed to:", connextHeaderReporter.address)
-    if (taskArguments.verify) await verify(hre, connextHeaderReporter)
+    if (taskArguments.verify) await verify(hre, connextHeaderReporter, constructorArguments)
   })
 
 task("deploy:adapter:ConnextMessageRelay")
@@ -82,5 +82,5 @@ task("deploy:adapter:ConnextMessageRelay")
     )
     await connextMessageRelay.deployed()
     console.log("ConnextMessageRelay deployed to:", connextMessageRelay.address)
-    if (taskArguments.verify) await verify(hre, connextMessageRelay)
+    if (taskArguments.verify) await verify(hre, connextMessageRelay, constructorArguments)
   })
