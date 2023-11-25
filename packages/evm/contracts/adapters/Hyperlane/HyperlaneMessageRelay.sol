@@ -9,9 +9,8 @@ contract HyperlaneMessageRelay is MessageRelay, HyperlaneReporter {
         address yaho,
         uint256 adapterChain,
         address hyperlaneMailbox,
-        address hyperlanePaymaster,
         uint32 hyperlaneAdapterChain
-    ) MessageRelay(yaho, adapterChain) HyperlaneReporter(hyperlaneMailbox, hyperlanePaymaster, hyperlaneAdapterChain) {} // solhint-disable no-empty-blocks
+    ) MessageRelay(yaho, adapterChain) HyperlaneReporter(hyperlaneMailbox, hyperlaneAdapterChain) {} // solhint-disable no-empty-blocks
 
     function _sendPayload(bytes memory payload, address adapter) internal override {
         _hyperlaneSend(payload, adapter);

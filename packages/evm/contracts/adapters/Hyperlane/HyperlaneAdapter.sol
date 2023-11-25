@@ -24,7 +24,7 @@ contract HyperlaneAdapter is HeaderOracleAdapter, IMessageRecipient {
         HYPERLANE_REPORTER_ADDRESS = hyperlaneReporterAddress;
     }
 
-    function handle(uint32 origin, bytes32 sender, bytes calldata message) external {
+    function handle(uint32 origin, bytes32 sender, bytes calldata message) external payable {
         if (
             msg.sender != HYPERLANE_MAILBOX ||
             origin != HYPERLANE_REPORTER_CHAIN ||

@@ -40,7 +40,6 @@ task("deploy:adapter:HyperlaneHeaderReporter")
   .addParam("chainId", "chain id of the adapter contract")
   .addParam("headerStorage", "address of the header storage contract")
   .addParam("mailbox", "address of the Hyperlane mailbox contract")
-  .addParam("paymaster", "address of the Hyperlane paymaster contract")
   .addFlag("verify", "whether to verify the contract on Etherscan")
   .setAction(async function (taskArguments: TaskArguments, hre) {
     console.log("Deploying HyperlaneHeaderReporter...")
@@ -52,7 +51,6 @@ task("deploy:adapter:HyperlaneHeaderReporter")
       taskArguments.headerStorage,
       taskArguments.chainId,
       taskArguments.mailbox,
-      taskArguments.paymaster,
       taskArguments.chainId,
     ] as const
     const hyperlaneHeaderReporter: HyperlaneHeaderReporter = <HyperlaneHeaderReporter>(
@@ -67,7 +65,6 @@ task("deploy:adapter:HyperlaneMessageRelay")
   .addParam("chainId", "chain id of the adapter contract")
   .addParam("yaho", "address of the Yaho contract")
   .addParam("mailbox", "address of the Hyperlane mailbox contract")
-  .addParam("paymaster", "address of the Hyperlane paymaster contract")
   .addFlag("verify", "whether to verify the contract on Etherscan")
   .setAction(async function (taskArguments: TaskArguments, hre) {
     console.log("Deploying HyperlaneMessageRelay...")
@@ -79,7 +76,6 @@ task("deploy:adapter:HyperlaneMessageRelay")
       taskArguments.yaho,
       taskArguments.chainId,
       taskArguments.mailbox,
-      taskArguments.paymaster,
       taskArguments.chainId,
     ] as const
     const hyperlaneMessageRelay: HyperlaneMessageRelay = <HyperlaneMessageRelay>(
