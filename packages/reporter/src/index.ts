@@ -164,7 +164,7 @@ const main = () => {
     adapterAddresses: {
       [polygon.name]: unidirectionalAdaptersAddresses[sourceChain.name][polygon.name].CelerAdapter,
     },
-    reportHeadersValue: settings.reporterControllers.AxelarReporterController.reportHeadersValue,
+    reportHeadersValue: settings.reporterControllers.CelerReporterController.reportHeadersValue,
   })
 
   const coordinator = new Coordinator({

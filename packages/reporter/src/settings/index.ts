@@ -85,7 +85,7 @@ export const settings = {
               .MAINNET_L1_CROSS_DOMAIN_MESSENGER_HEADER_REPORTER_ADDRESS as `0x${string}`,
           },
           [polygon.name]: {
-            CelerAdapter: process.env.MAINNET_CELER_REPORTER_POLYGON as `0x${string}`,
+            CelerReporter: process.env.MAINNET_CELER_REPORTER_POLYGON as `0x${string}`,
           },
         },
       },
