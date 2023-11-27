@@ -30,6 +30,7 @@ export const settings = {
           [gnosis.name]: {
             TelepathyAdapter: process.env.GNOSIS_TELEPATHY_ADAPTER as `0x${string}`,
             AMBAdapter: process.env.GNOSIS_AMB_ADAPTER as `0x${string}`,
+            ConnextAdapter: process.env.GNOSIS_CONNEXT_ADAPTER_MAINNET as `0x${string}`,
             // SygmaAdapter: process.env.GNOSIS_SYGMA_ADAPTER as `0x${string}`,
           },
           [polygon.name]: {
@@ -73,6 +74,7 @@ export const settings = {
           },
           [gnosis.name]: {
             AMBReporter: process.env.MAINNET_AMB_REPORTER as `0x${string}`,
+            ConnextReporter: process.env.MAINNET_REPORTER_GNOSIS as `0x${string}`,
           },
           [optimism.name]: {
             L1CrossDomainMessengerHeaderReporter: process.env

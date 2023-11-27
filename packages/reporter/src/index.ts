@@ -5,6 +5,7 @@ import { Chain } from "viem"
 import Multiclient from "./MultiClient"
 import AMBReporterController from "./controllers/AMBReporterController"
 import AxelarReporterController from "./controllers/AxelarReporterController"
+import ConnextReporterController from "./controllers/ConnextReporterController"
 import OptimismReporterController from "./controllers/OptimismReporterController"
 // import SygmaReporterController from "./controllers/SygmaReporterController"
 import TelepathyReporterController from "./controllers/TelepathyReporterController"
@@ -133,6 +134,20 @@ const main = () => {
     },
   })
 
+  const connextReporterController = new ConnextReporterController({
+    type: "classic",
+    sourceChain,
+    destinationChains,
+    logger,
+    multiClient,
+    reporterAddresses: {
+      [gnosis.name]: unidirectionalReportersAddresses[sourceChain.name][gnosis.name].ConnextReporter
+    },
+    adapterAddresses: {
+      [gnosis.name]: unidirectionalAdaptersAddresses[sourceChain.name][gnosis.name].ConnextAdapter
+    },
+  })
+
   const coordinator = new Coordinator({
     controllers: [
       ambReporterController,
@@ -141,6 +156,7 @@ const main = () => {
       wormholeReporterController,
       optimismReporterController,
       axelarReporterController,
+      connextReporterController
     ].filter((_controller) => controllersEnabled?.includes(_controller.name)),
     intervalFetchBlocksMs: settings.Coordinator.intervalFetchBlocksMs,
     logger,
