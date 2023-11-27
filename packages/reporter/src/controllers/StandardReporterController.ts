@@ -1,15 +1,22 @@
 import { Chain, formatEther } from "viem"
-import ABI from "../ABIs/ConnextHeaderReporterABI.json"
+import ABI from "../ABIs/StandardReporterContractABI.json"
 
 import BaseController from "./BaseController"
 
 import { BaseControllerConfigs } from "./BaseController"
 
-interface ConnextReporterControllerConfigs extends BaseControllerConfigs {}
+interface StandardReporterControllerConfigs extends BaseControllerConfigs {
+  name: string
+  reportHeadersValue?: bigint
+}
 
-class ConnextReporterController extends BaseController {
-  constructor(_configs: ConnextReporterControllerConfigs) {
-    super(_configs, "ConnextReporterController")
+class StandardReporterController extends BaseController {
+  private _reportHeadersValue: bigint
+
+  constructor(_configs: StandardReporterControllerConfigs) {
+    super(_configs, _configs.name)
+
+    this._reportHeadersValue = _configs.reportHeadersValue || BigInt(0)
   }
 
   async onBlocks(_blockNumbers: bigint[]) {
@@ -27,6 +34,7 @@ class ConnextReporterController extends BaseController {
           abi: ABI,
           functionName: "reportHeaders",
           args: [[blockNumber], this.adapterAddresses[chain.name]],
+          value: this._reportHeadersValue,
         })
 
         const txHash = await client.writeContract(request)
@@ -38,4 +46,4 @@ class ConnextReporterController extends BaseController {
   }
 }
 
-export default ConnextReporterController
+export default StandardReporterController

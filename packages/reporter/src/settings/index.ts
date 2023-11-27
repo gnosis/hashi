@@ -1,4 +1,5 @@
 import "dotenv/config"
+import { parseEther } from "viem"
 import { gnosis, mainnet, goerli, polygon, optimism, bsc, arbitrum, avalanche } from "viem/chains"
 
 export const settings = {
@@ -44,6 +45,9 @@ export const settings = {
           [arbitrum.name]: {
             TelepathyAdapter: process.env.ARBITRUM_TELEPATHY_ADAPTER as `0x${string}`,
           },
+          [polygon.name]: {
+            CelerAdapter: process.env.POLYGON_CELER_ADAPTER_MAINNET as `0x${string}`,
+          },
           /*[goerli.name]: {
             AMBReporter: "0xedc0b1d3de4496e0d917af42f29cb71eb2982319" as `0x${string}`,
             SygmaReporter: "0x2f96d347c932ac73b56e9352ecc0707e25173d88" as `0x${string}`,
@@ -70,7 +74,7 @@ export const settings = {
       unidirectional: {
         [mainnet.name]: {
           [bsc.name]: {
-            AxelarReporter: process.env.MAINNET_AXELAR_HEADER_REPORTER_BSC as `0x${string}`,
+            AxelarReporter: process.env.MAINNET_AXELAR_REPORTER_BSC as `0x${string}`,
           },
           [gnosis.name]: {
             AMBReporter: process.env.MAINNET_AMB_REPORTER as `0x${string}`,
@@ -80,12 +84,14 @@ export const settings = {
             L1CrossDomainMessengerHeaderReporter: process.env
               .MAINNET_L1_CROSS_DOMAIN_MESSENGER_HEADER_REPORTER_ADDRESS as `0x${string}`,
           },
+          [polygon.name]: {
+            CelerAdapter: process.env.MAINNET_CELER_REPORTER_POLYGON as `0x${string}`,
+          },
         },
       },
-
       [mainnet.name]: {
         WormholeHeaderReporter: process.env.MAINNET_WORMHOLE_HEADER_REPORTER as `0x${string}`,
-      }
+      },
     },
     [mainnet.name]: {
       Wormhole: process.env.MAINNET_WORMHOLE_ADDRESS as `0x${string}`,
@@ -107,11 +113,17 @@ export const settings = {
     },
   },
   reporterControllers: {
+    AxelarReporterController: {
+      reportHeadersValue: parseEther(process.env.AXELAR_REPORT_HEADERS_VALUE as string),
+    },
     AMBReporterController: {
       reportHeadersGas: Number(process.env.AMB_REPORTER_HEADERS_GAS),
     },
+    CelerReporterController: {
+      reportHeadersValue: parseEther(process.env.CELER_REPORT_HEADERS_VALUE as string),
+    },
     SygmaReporterController: {
-      reportHeadersToDomainMsgValue: process.env.SYGMA_REPORT_HEADERS_TO_DOMAIN_MSG_VALUE as string,
+      reportHeadersToDomainValue: parseEther(process.env.SYGMA_REPORT_HEADERS_TO_DOMAIN_MSG_VALUE as string),
       domainIds: {
         [gnosis.name]: 101,
         [mainnet.name]: 1,

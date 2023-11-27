@@ -4,10 +4,9 @@ import { Chain } from "viem"
 
 import Multiclient from "./MultiClient"
 import AMBReporterController from "./controllers/AMBReporterController"
-import AxelarReporterController from "./controllers/AxelarReporterController"
-import ConnextReporterController from "./controllers/ConnextReporterController"
 import OptimismReporterController from "./controllers/OptimismReporterController"
 // import SygmaReporterController from "./controllers/SygmaReporterController"
+import StandardReporterController from "./controllers/StandardReporterController"
 import TelepathyReporterController from "./controllers/TelepathyReporterController"
 import WormholeReporterController from "./controllers/WormholeReporterController"
 import Coordinator from "./Coordinator"
@@ -60,7 +59,7 @@ const main = () => {
     multiClient,
     reporterAddress: settings.contractAddresses.Goerli.SygmaReporter,
     adapterAddresses: { [gnosis.name]: settings.contractAddresses.Gnosis.SygmaAdapter },
-    reportHeadersToDomainMsgValue: settings.reporterControllers.SygmaReporterController.reportHeadersToDomainMsgValue,
+    reportHeadersToDomainValue: settings.reporterControllers.SygmaReporterController.reportHeadersToDomainValue,
     domainIds: settings.reporterControllers.SygmaReporterController.domainIds,
   })*/
 
@@ -113,14 +112,16 @@ const main = () => {
     logger,
     multiClient,
     reporterAddress:
-      settings.contractAddresses.reporterAddresses.unidirectional.Ethereum["OP Mainnet"].L1CrossDomainMessengerHeaderReporter,
+      settings.contractAddresses.reporterAddresses.unidirectional.Ethereum["OP Mainnet"]
+        .L1CrossDomainMessengerHeaderReporter,
     adapterAddresses: {
       [optimism.name]:
         settings.contractAddresses.adapterAddresses.unidirectional.Ethereum["OP Mainnet"].L2CrossDomainMessengerAdapter,
     },
   })
 
-  const axelarReporterController = new AxelarReporterController({
+  const axelarReporterController = new StandardReporterController({
+    name: "AxelarReporterController",
     type: "classic",
     sourceChain,
     destinationChains,
@@ -132,31 +133,50 @@ const main = () => {
     adapterAddresses: {
       [bsc.name]: unidirectionalAdaptersAddresses[sourceChain.name][bsc.name].AxelarAdapter,
     },
+    reportHeadersValue: settings.reporterControllers.AxelarReporterController.reportHeadersValue,
   })
 
-  const connextReporterController = new ConnextReporterController({
+  const connextReporterController = new StandardReporterController({
+    name: "ConnextReporterController",
     type: "classic",
     sourceChain,
     destinationChains,
     logger,
     multiClient,
     reporterAddresses: {
-      [gnosis.name]: unidirectionalReportersAddresses[sourceChain.name][gnosis.name].ConnextReporter
+      [gnosis.name]: unidirectionalReportersAddresses[sourceChain.name][gnosis.name].ConnextReporter,
     },
     adapterAddresses: {
-      [gnosis.name]: unidirectionalAdaptersAddresses[sourceChain.name][gnosis.name].ConnextAdapter
+      [gnosis.name]: unidirectionalAdaptersAddresses[sourceChain.name][gnosis.name].ConnextAdapter,
     },
+  })
+
+  const celerReporterController = new StandardReporterController({
+    name: "CelerReporterController",
+    type: "classic",
+    sourceChain,
+    destinationChains,
+    logger,
+    multiClient,
+    reporterAddresses: {
+      [polygon.name]: unidirectionalReportersAddresses[sourceChain.name][polygon.name].CelerReporter,
+    },
+    adapterAddresses: {
+      [polygon.name]: unidirectionalAdaptersAddresses[sourceChain.name][polygon.name].CelerAdapter,
+    },
+    reportHeadersValue: settings.reporterControllers.AxelarReporterController.reportHeadersValue,
   })
 
   const coordinator = new Coordinator({
     controllers: [
       ambReporterController,
-     // sygmaReporterController,
+      // sygmaReporterController,
       telepathyReporterController,
       wormholeReporterController,
       optimismReporterController,
       axelarReporterController,
-      connextReporterController
+      connextReporterController,
+      celerReporterController,
     ].filter((_controller) => controllersEnabled?.includes(_controller.name)),
     intervalFetchBlocksMs: settings.Coordinator.intervalFetchBlocksMs,
     logger,

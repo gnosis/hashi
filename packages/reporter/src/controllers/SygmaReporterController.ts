@@ -6,18 +6,18 @@ import BaseController from "./BaseController"
 import { BaseControllerConfigs } from "./BaseController"
 
 interface SygmaReporterControllerConfigs extends BaseControllerConfigs {
-  reportHeadersToDomainMsgValue: string
+  reportHeadersToDomainValue: bigint
   domainIds: { [chainName: string]: number }
 }
 
 class SygmaReporterController extends BaseController {
   private _domainIds: { [chainName: string]: number }
-  private _reportHeadersToDomainMsgValue: string
+  private _reportHeadersToDomainValue: bigint
 
   constructor(_configs: SygmaReporterControllerConfigs) {
     super(_configs, "SygmaReporterController")
     this._domainIds = _configs.domainIds
-    this._reportHeadersToDomainMsgValue = _configs.reportHeadersToDomainMsgValue
+    this._reportHeadersToDomainValue = _configs.reportHeadersToDomainValue
   }
 
   async onBlocks(_blockNumbers: bigint[]) {
@@ -43,7 +43,7 @@ class SygmaReporterController extends BaseController {
             this._domainIds[chain.name as keyof typeof this._domainIds],
             "0x",
           ],
-          value: parseEther(this._reportHeadersToDomainMsgValue),
+          value: this._reportHeadersToDomainValue,
         })
         const txHash = await client.writeContract(request)
         this.logger.info(`headers reporter from ${this.sourceChain.name} to ${chain.name}: ${txHash}`)
