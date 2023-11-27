@@ -20,48 +20,88 @@ export const settings = {
     [arbitrum.name]: process.env.ARBITRUM_RPC_URL as string,
   },
   contractAddresses: {
+    adapterAddresses: {
+      unidirectional: {
+        [mainnet.name]: {
+          [bsc.name]: {
+            AxelarAdapter: process.env.BSC_AXELAR_ADAPTER_MAINNET as `0x${string}`,
+            TelepathyAdapter: process.env.BSC_TELEPATHY_ADAPTER as `0x${string}`,
+          },
+          [gnosis.name]: {
+            TelepathyAdapter: process.env.GNOSIS_TELEPATHY_ADAPTER as `0x${string}`,
+            AMBAdapter: process.env.GNOSIS_AMB_ADAPTER as `0x${string}`,
+            // SygmaAdapter: process.env.GNOSIS_SYGMA_ADAPTER as `0x${string}`,
+          },
+          [polygon.name]: {
+            TelepathyAdapter: process.env.POLYGON_TELEPATHY_ADAPTER as `0x${string}`,
+          },
+          [optimism.name]: {
+            TelepathyAdapter: process.env.OPTIMISM_TELEPATHY_ADAPTER as `0x${string}`,
+            L2CrossDomainMessengerAdapter: process.env
+              .OPTIMISM_L2_CROSS_DOMAIN_MESSENGER_ADAPTER_ADDRESS as `0x${string}`,
+          },
+          [arbitrum.name]: {
+            TelepathyAdapter: process.env.ARBITRUM_TELEPATHY_ADAPTER as `0x${string}`,
+          },
+          /*[goerli.name]: {
+            AMBReporter: "0xedc0b1d3de4496e0d917af42f29cb71eb2982319" as `0x${string}`,
+            SygmaReporter: "0x2f96d347c932ac73b56e9352ecc0707e25173d88" as `0x${string}`,
+          },*/
+        },
+      },
+      [gnosis.name]: {
+        WormholeAdapter: process.env.GNOSIS_WORMHOLE_ADAPTER as `0x${string}`,
+      },
+      [polygon.name]: {
+        WormholeAdapter: process.env.POLYGON_WORMHOLE_ADAPTER as `0x${string}`,
+      },
+      [bsc.name]: {
+        WormholeAdapter: process.env.BSC_WORMHOLE_ADAPTER as `0x${string}`,
+      },
+      [optimism.name]: {
+        WormholeAdapter: process.env.OPTIMISM_WORMHOLE_ADAPTER as `0x${string}`,
+      },
+      [avalanche.name]: {
+        WormholeAdapter: process.env.AVALANCHE_WORMHOLE_ADAPTER as `0x${string}`,
+      },
+    },
+    reporterAddresses: {
+      unidirectional: {
+        [mainnet.name]: {
+          [bsc.name]: {
+            AxelarReporter: process.env.MAINNET_AXELAR_HEADER_REPORTER_BSC as `0x${string}`,
+          },
+          [gnosis.name]: {
+            AMBReporter: process.env.MAINNET_AMB_REPORTER as `0x${string}`,
+          },
+          [optimism.name]: {
+            L1CrossDomainMessengerHeaderReporter: process.env
+              .MAINNET_L1_CROSS_DOMAIN_MESSENGER_HEADER_REPORTER_ADDRESS as `0x${string}`,
+          },
+        },
+      },
+
+      [mainnet.name]: {
+        WormholeHeaderReporter: process.env.MAINNET_WORMHOLE_HEADER_REPORTER as `0x${string}`,
+      }
+    },
     [mainnet.name]: {
-      AMBReporter: process.env.MAINNET_AMB_REPORTER as `0x${string}`,
-      AxelarReporterBsc: process.env.MAINNET_AXELAR_HEADER_REPORTER_BSC as `0x${string}`,
-      WormholeHeaderReporter: process.env.MAINNET_WORMHOLE_HEADER_REPORTER as `0x${string}`,
       Wormhole: process.env.MAINNET_WORMHOLE_ADDRESS as `0x${string}`,
-      L1CrossDomainMessengerHeaderReporter: process.env
-        .MAINNET_L1_CROSS_DOMAIN_MESSENGER_HEADER_REPORTER_ADDRESS as `0x${string}`,
     },
     [gnosis.name]: {
-      AMBAdapter: process.env.GNOSIS_AMB_ADAPTER as `0x${string}`,
-      SygmaAdapter: process.env.GNOSIS_SYGMA_ADAPTER as `0x${string}`,
-      TelepathyAdapter: process.env.GNOSIS_TELEPATHY_ADAPTER as `0x${string}`,
-      TelepathyLightClient: "0x34b5378DE786389a477b40dD710812c250185f83" as `0x${string}`,
-      WormholeAdapter: process.env.GNOSIS_WORMHOLE_ADAPTER as `0x${string}`,
-    },
-    [goerli.name]: {
-      AMBReporter: "0xedc0b1d3de4496e0d917af42f29cb71eb2982319" as `0x${string}`,
-      SygmaReporter: "0x2f96d347c932ac73b56e9352ecc0707e25173d88" as `0x${string}`,
+      TelepathyLightClientMainnet: "0x34b5378DE786389a477b40dD710812c250185f83" as `0x${string}`,
     },
     [polygon.name]: {
-      TelepathyAdapter: process.env.POLYGON_TELEPATHY_ADAPTER as `0x${string}`,
-      TelepathyLightClient: "0x34b5378DE786389a477b40dD710812c250185f83" as `0x${string}`,
-      WormholeAdapter: process.env.POLYGON_WORMHOLE_ADAPTER as `0x${string}`,
+      TelepathyLightClientMainnet: "0x34b5378DE786389a477b40dD710812c250185f83" as `0x${string}`,
     },
     [bsc.name]: {
-      TelepathyAdapter: process.env.BSC_TELEPATHY_ADAPTER as `0x${string}`,
-      TelepathyLightClient: "0x34b5378DE786389a477b40dD710812c250185f83" as `0x${string}`,
-      AxelarAdapterMainnet: process.env.BSC_AXELAR_ADAPTER_MAINNET as `0x${string}`,
-      WormholeAdapter: process.env.BSC_WORMHOLE_ADAPTER as `0x${string}`,
+      TelepathyLightClientMainnet: "0x34b5378DE786389a477b40dD710812c250185f83" as `0x${string}`,
     },
     [optimism.name]: {
-      TelepathyAdapter: process.env.OPTIMISM_TELEPATHY_ADAPTER as `0x${string}`,
-      TelepathyLightClient: "0x34b5378DE786389a477b40dD710812c250185f83" as `0x${string}`,
-      WormholeAdapter: process.env.OPTIMISM_WORMHOLE_ADAPTER as `0x${string}`,
-      L2CrossDomainMessengerAdapter: process.env.OPTIMISM_L2_CROSS_DOMAIN_MESSENGER_ADAPTER_ADDRESS as `0x${string}`,
+      TelepathyLightClientMainnet: "0x34b5378DE786389a477b40dD710812c250185f83" as `0x${string}`,
     },
     [arbitrum.name]: {
-      TelepathyAdapter: process.env.ARBITRUM_TELEPATHY_ADAPTER as `0x${string}`,
-      TelepathyLightClient: "0x34b5378DE786389a477b40dD710812c250185f83" as `0x${string}`,
-    },
-    [avalanche.name]: {
-      WormholeAdapter: process.env.AVALANCHE_WORMHOLE_ADAPTER as `0x${string}`,
+      TelepathyLightClientMainnet: "0x34b5378DE786389a477b40dD710812c250185f83" as `0x${string}`,
     },
   },
   reporterControllers: {

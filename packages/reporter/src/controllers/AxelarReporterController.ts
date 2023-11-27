@@ -1,14 +1,14 @@
 import { Chain, formatEther } from "viem"
-import ABI from "../ABIs/AxelarHeaderReporter.json"
+import ABI from "../ABIs/AxelarHeaderReporterABI.json"
 
 import BaseController from "./BaseController"
 
 import { BaseControllerConfigs } from "./BaseController"
 
-interface AxelaReporterControllerConfigs extends BaseControllerConfigs {}
+interface AxelarReporterControllerConfigs extends BaseControllerConfigs {}
 
 class AxelarReporterController extends BaseController {
-  constructor(_configs: AxelaReporterControllerConfigs) {
+  constructor(_configs: AxelarReporterControllerConfigs) {
     super(_configs, "AxelarReporterController")
   }
 
@@ -23,7 +23,7 @@ class AxelarReporterController extends BaseController {
 
         this.logger.info(`reporting block header for block ${blockNumber} on ${chain.name} ...`)
         const { request } = await client.simulateContract({
-          address: this.reporterAddress as `0x${string}`,
+          address: this.reporterAddresses[chain.name],
           abi: ABI,
           functionName: "reportHeaders",
           args: [[blockNumber], this.adapterAddresses[chain.name]],

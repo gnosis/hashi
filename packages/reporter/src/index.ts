@@ -6,7 +6,7 @@ import Multiclient from "./MultiClient"
 import AMBReporterController from "./controllers/AMBReporterController"
 import AxelarReporterController from "./controllers/AxelarReporterController"
 import OptimismReporterController from "./controllers/OptimismReporterController"
-import SygmaReporterController from "./controllers/SygmaReporterController"
+// import SygmaReporterController from "./controllers/SygmaReporterController"
 import TelepathyReporterController from "./controllers/TelepathyReporterController"
 import WormholeReporterController from "./controllers/WormholeReporterController"
 import Coordinator from "./Coordinator"
@@ -20,6 +20,9 @@ const main = () => {
 
   const sourceChain = Object.values(chains).find((_chain) => _chain.id === sourceChainId) as Chain
   const destinationChains = Object.values(chains).filter((_chain) => destinationChainIds?.includes(_chain.id))
+
+  const unidirectionalAdaptersAddresses = settings.contractAddresses.adapterAddresses.unidirectional as any
+  const unidirectionalReportersAddresses = settings.contractAddresses.reporterAddresses.unidirectional as any
 
   const multiClient = new Multiclient({
     chains: [sourceChain, ...destinationChains],
@@ -41,14 +44,14 @@ const main = () => {
     destinationChains: destinationChains.filter(({ name }) => name === gnosis.name),
     logger,
     multiClient,
-    reporterAddress: settings.contractAddresses.Goerli.AMBReporter,
+    reporterAddress: unidirectionalReportersAddresses[sourceChain.name].Gnosis.AMBReporter,
     adapterAddresses: {
-      [gnosis.name]: settings.contractAddresses.Gnosis.AMBAdapter,
+      [gnosis.name]: unidirectionalAdaptersAddresses[sourceChain.name].Gnosis.AMBAdapter,
     },
     reportHeadersGas: settings.reporterControllers.AMBReporterController.reportHeadersGas,
   })
 
-  const sygmaReporterController = new SygmaReporterController({
+  /*const sygmaReporterController = new SygmaReporterController({
     type: "classic",
     sourceChain,
     destinationChains,
@@ -58,7 +61,7 @@ const main = () => {
     adapterAddresses: { [gnosis.name]: settings.contractAddresses.Gnosis.SygmaAdapter },
     reportHeadersToDomainMsgValue: settings.reporterControllers.SygmaReporterController.reportHeadersToDomainMsgValue,
     domainIds: settings.reporterControllers.SygmaReporterController.domainIds,
-  })
+  })*/
 
   const telepathyReporterController = new TelepathyReporterController({
     type: "lightClient",
@@ -67,19 +70,19 @@ const main = () => {
     logger,
     multiClient,
     adapterAddresses: {
-      [gnosis.name]: settings.contractAddresses.Gnosis.TelepathyAdapter,
-      [arbitrum.name]: settings.contractAddresses["Arbitrum One"].TelepathyAdapter,
-      [optimism.name]: settings.contractAddresses["OP Mainnet"].TelepathyAdapter,
-      [bsc.name]: settings.contractAddresses["BNB Smart Chain"].TelepathyAdapter,
-      [polygon.name]: settings.contractAddresses.Polygon.TelepathyAdapter,
+      [gnosis.name]: unidirectionalAdaptersAddresses[sourceChain.name].Gnosis.TelepathyAdapter,
+      [arbitrum.name]: unidirectionalAdaptersAddresses[sourceChain.name]["Arbitrum One"].TelepathyAdapter,
+      [optimism.name]: unidirectionalAdaptersAddresses[sourceChain.name]["OP Mainnet"].TelepathyAdapter,
+      [bsc.name]: unidirectionalAdaptersAddresses[sourceChain.name]["BNB Smart Chain"].TelepathyAdapter,
+      [polygon.name]: unidirectionalAdaptersAddresses[sourceChain.name].Polygon.TelepathyAdapter,
     },
     baseProofUrl: settings.reporterControllers.TelepathyReporterController.baseProofUrl,
     lightClientAddresses: {
-      [gnosis.name]: settings.contractAddresses.Gnosis.TelepathyLightClient,
-      [arbitrum.name]: settings.contractAddresses["Arbitrum One"].TelepathyLightClient,
-      [optimism.name]: settings.contractAddresses["OP Mainnet"].TelepathyLightClient,
-      [bsc.name]: settings.contractAddresses["BNB Smart Chain"].TelepathyLightClient,
-      [polygon.name]: settings.contractAddresses.Polygon.TelepathyLightClient,
+      [gnosis.name]: settings.contractAddresses.Gnosis.TelepathyLightClientMainnet,
+      [arbitrum.name]: settings.contractAddresses["Arbitrum One"].TelepathyLightClientMainnet,
+      [optimism.name]: settings.contractAddresses["OP Mainnet"].TelepathyLightClientMainnet,
+      [bsc.name]: settings.contractAddresses["BNB Smart Chain"].TelepathyLightClientMainnet,
+      [polygon.name]: settings.contractAddresses.Polygon.TelepathyLightClientMainnet,
     },
   })
 
@@ -89,13 +92,13 @@ const main = () => {
     destinationChains,
     logger,
     multiClient,
-    reporterAddress: settings.contractAddresses.Ethereum.WormholeHeaderReporter,
+    reporterAddress: (settings.contractAddresses.reporterAddresses as any)[sourceChain.name].WormholeHeaderReporter,
     adapterAddresses: {
-      [gnosis.name]: settings.contractAddresses.Gnosis.WormholeAdapter,
-      [optimism.name]: settings.contractAddresses["OP Mainnet"].WormholeAdapter,
-      [bsc.name]: settings.contractAddresses["BNB Smart Chain"].WormholeAdapter,
-      [polygon.name]: settings.contractAddresses.Polygon.WormholeAdapter,
-      [avalanche.name]: settings.contractAddresses.Avalanche.WormholeAdapter,
+      [gnosis.name]: (settings.contractAddresses.adapterAddresses as any).Gnosis.WormholeAdapter,
+      [optimism.name]: (settings.contractAddresses.adapterAddresses as any)["OP Mainnet"].WormholeAdapter,
+      [bsc.name]: (settings.contractAddresses.adapterAddresses as any)["BNB Smart Chain"].WormholeAdapter,
+      [polygon.name]: (settings.contractAddresses.adapterAddresses as any).Polygon.WormholeAdapter,
+      [avalanche.name]: (settings.contractAddresses.adapterAddresses as any).Avalanche.WormholeAdapter,
     },
     wormholeScanBaseUrl: settings.reporterControllers.WormholeReporterController.wormholeScanBaseUrl,
     wormholeAddress: (settings.contractAddresses as any)[sourceChain.name].Wormhole,
@@ -108,32 +111,36 @@ const main = () => {
     sourceChain,
     logger,
     multiClient,
-    reporterAddress: settings.contractAddresses.Ethereum.L1CrossDomainMessengerHeaderReporter,
+    reporterAddress:
+      settings.contractAddresses.reporterAddresses.unidirectional.Ethereum["OP Mainnet"].L1CrossDomainMessengerHeaderReporter,
     adapterAddresses: {
-      [optimism.name]: settings.contractAddresses["OP Mainnet"].L2CrossDomainMessengerAdapter,
+      [optimism.name]:
+        settings.contractAddresses.adapterAddresses.unidirectional.Ethereum["OP Mainnet"].L2CrossDomainMessengerAdapter,
     },
   })
 
-  const axelarReporterControllerMainnetBsc = new AxelarReporterController({
+  const axelarReporterController = new AxelarReporterController({
     type: "classic",
     sourceChain,
     destinationChains,
     logger,
     multiClient,
-    reporterAddress: settings.contractAddresses.Ethereum.AxelarReporterBsc,
+    reporterAddresses: {
+      [bsc.name]: unidirectionalReportersAddresses[sourceChain.name][bsc.name].AxelarReporter,
+    },
     adapterAddresses: {
-      [bsc.name]: settings.contractAddresses["BNB Smart Chain"].AxelarAdapterMainnet,
+      [bsc.name]: unidirectionalAdaptersAddresses[sourceChain.name][bsc.name].AxelarAdapter,
     },
   })
 
   const coordinator = new Coordinator({
     controllers: [
       ambReporterController,
-      sygmaReporterController,
+     // sygmaReporterController,
       telepathyReporterController,
       wormholeReporterController,
       optimismReporterController,
-      axelarReporterControllerMainnetBsc,
+      axelarReporterController,
     ].filter((_controller) => controllersEnabled?.includes(_controller.name)),
     intervalFetchBlocksMs: settings.Coordinator.intervalFetchBlocksMs,
     logger,

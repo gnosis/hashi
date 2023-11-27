@@ -10,6 +10,7 @@ export type BaseControllerConfigs = {
   sourceChain: Chain
   destinationChains?: Chain[]
   reporterAddress?: `0x${string}`
+  reporterAddresses?: { [chainName: string]: `0x${string}` }
   adapterAddresses: { [chainName: string]: `0x${string}` }
   logger: winston.Logger
   multiClient: Multiclient
@@ -21,6 +22,7 @@ class BaseController {
   sourceChain: Chain
   destinationChains?: Chain[]
   reporterAddress?: `0x${string}`
+  reporterAddresses: { [chainName: string]: `0x${string}` }
   adapterAddresses: { [chainName: string]: `0x${string}` }
   logger: winston.Logger
   multiClient: Multiclient
@@ -28,7 +30,8 @@ class BaseController {
   constructor(configs: BaseControllerConfigs, name: string) {
     this.sourceChain = configs.sourceChain
     this.destinationChains = configs.destinationChains
-    this.reporterAddress = configs.reporterAddress as `0x${string}`
+    this.reporterAddress = configs.reporterAddress
+    this.reporterAddresses = configs.reporterAddresses || {}
     this.adapterAddresses = configs.adapterAddresses
     this.multiClient = configs.multiClient
     this.type = configs.type
