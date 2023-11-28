@@ -1,6 +1,18 @@
 import "dotenv/config"
 import { parseEther } from "viem"
-import { gnosis, mainnet, goerli, polygon, optimism, bsc, arbitrum, avalanche } from "viem/chains"
+import {
+  arbitrum,
+  avalanche,
+  bsc,
+  bscTestnet,
+  gnosis,
+  goerli,
+  mainnet,
+  optimism,
+  optimismGoerli,
+  polygon,
+  sepolia,
+} from "viem/chains"
 
 export const settings = {
   Coordinator: {
@@ -19,6 +31,7 @@ export const settings = {
     [optimism.name]: process.env.OPTIMISM_RPC_URL as string,
     [bsc.name]: process.env.BSC_RPC_URL as string,
     [arbitrum.name]: process.env.ARBITRUM_RPC_URL as string,
+    [sepolia.name]: process.env.SEPOLIA_RPC_URL as string,
   },
   contractAddresses: {
     adapterAddresses: {
@@ -27,6 +40,7 @@ export const settings = {
           [bsc.name]: {
             AxelarAdapter: process.env.BSC_AXELAR_ADAPTER_MAINNET as `0x${string}`,
             TelepathyAdapter: process.env.BSC_TELEPATHY_ADAPTER as `0x${string}`,
+            HyperlaneAdapter: process.env.BSC_HYPERLANE_ADAPTER as `0x${string}`,
           },
           [gnosis.name]: {
             TelepathyAdapter: process.env.GNOSIS_TELEPATHY_ADAPTER as `0x${string}`,
@@ -48,10 +62,21 @@ export const settings = {
           [polygon.name]: {
             CelerAdapter: process.env.POLYGON_CELER_ADAPTER_MAINNET as `0x${string}`,
           },
+          [avalanche.name]: {
+            LayerZeroAdapter: process.env.AVALANCHE_LAYER_ZERO_ADAPTER_MAINNET as `0x${string}`,
+          },
           /*[goerli.name]: {
             AMBReporter: "0xedc0b1d3de4496e0d917af42f29cb71eb2982319" as `0x${string}`,
             SygmaReporter: "0x2f96d347c932ac73b56e9352ecc0707e25173d88" as `0x${string}`,
           },*/
+        },
+        [sepolia.name]: {
+          [optimismGoerli.name]: {
+            CCIPAdapter: process.env.OPTIMISM_GOERLI_CCIP_ADAPTER_SEPOLIA as `0x${string}`,
+          },
+          [bscTestnet.name]: {
+            CCIPAdapter: process.env.BSC_TESTNET_CCIP_ADAPTER_SEPOLIA as `0x${string}`,
+          },
         },
       },
       [gnosis.name]: {
@@ -75,6 +100,7 @@ export const settings = {
         [mainnet.name]: {
           [bsc.name]: {
             AxelarReporter: process.env.MAINNET_AXELAR_REPORTER_BSC as `0x${string}`,
+            HyperlaneReporter: process.env.MAINNET_HYPERLANE_REPORTER_BSC as `0x${string}`,
           },
           [gnosis.name]: {
             AMBReporter: process.env.MAINNET_AMB_REPORTER as `0x${string}`,
@@ -86,6 +112,17 @@ export const settings = {
           },
           [polygon.name]: {
             CelerReporter: process.env.MAINNET_CELER_REPORTER_POLYGON as `0x${string}`,
+          },
+          [avalanche.name]: {
+            LayerZeroReporter: process.env.MAINNET_LAYER_ZERO_REPORTER_AVALANCHE as `0x${string}`,
+          },
+        },
+        [sepolia.name]: {
+          [optimismGoerli.name]: {
+            CCIPReporter: process.env.SEPOLIA_CCIP_REPORTER_OPTIMISM_GOERLI as `0x${string}`,
+          },
+          [bscTestnet.name]: {
+            CCIPReporter: process.env.SEPOLIA_CCIP_REPORTER_BSC_TESTNET as `0x${string}`,
           },
         },
       },
@@ -121,6 +158,12 @@ export const settings = {
     },
     CelerReporterController: {
       reportHeadersValue: parseEther(process.env.CELER_REPORT_HEADERS_VALUE as string),
+    },
+    CCIPReporterController: {
+      reportHeadersValue: parseEther(process.env.CCIP_REPORT_HEADERS_VALUE as string),
+    },
+    LayerZeroReporterController: {
+      reportHeadersValue: parseEther(process.env.LAYER_ZERO_REPORT_HEADERS_VALUE as string),
     },
     SygmaReporterController: {
       reportHeadersToDomainValue: parseEther(process.env.SYGMA_REPORT_HEADERS_TO_DOMAIN_MSG_VALUE as string),
