@@ -31,19 +31,6 @@ interface ZetaInterfaces {
         uint256 zetaValue;
         bytes message;
     }
-
-    /**
-     * @dev Our Connector calls onZetaRevert with this struct as argument
-     */
-    struct ZetaRevert {
-        address zetaTxSenderAddress;
-        uint256 sourceChainId;
-        bytes destinationAddress;
-        uint256 destinationChainId;
-        /// @dev Equals to: zetaValueAndGas - ZetaChain gas fees - destination chain gas fees - source chain revert tx gas fees
-        uint256 remainingZetaValue;
-        bytes message;
-    }
 }
 
 interface ZetaConnector {
@@ -58,12 +45,6 @@ interface ZetaReceiver {
      * @dev onZetaMessage is called when a cross-chain message reaches a contract
      */
     function onZetaMessage(ZetaInterfaces.ZetaMessage calldata zetaMessage) external;
-
-    /**
-     * @dev onZetaRevert is called when a cross-chain message reverts.
-     * It's useful to rollback to the original state
-     */
-    function onZetaRevert(ZetaInterfaces.ZetaRevert calldata zetaRevert) external;
 }
 
 /**
@@ -103,8 +84,4 @@ interface ZetaTokenConsumer {
     ) external returns (uint256);
 
     function hasZetaLiquidity() external view returns (bool);
-}
-
-interface ZetaCommonErrors {
-    error InvalidAddress();
 }

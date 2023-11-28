@@ -11,7 +11,6 @@ contract ZetaAdapter is HeaderOracleAdapter, ZetaReceiver {
     bytes32 public immutable ZETA_REPORTER_ADDRESS_HASH;
 
     error UnauthorizedZetaChainReceive();
-    error UnauthorizedZetaChainReceiveRevert();
 
     constructor(
         uint256 reporterChain,
@@ -32,15 +31,5 @@ contract ZetaAdapter is HeaderOracleAdapter, ZetaReceiver {
             keccak256(zetaMessage.zetaTxSenderAddress) != ZETA_REPORTER_ADDRESS_HASH
         ) revert UnauthorizedZetaChainReceive();
         _receivePayload(zetaMessage.message);
-    }
-
-    function onZetaRevert(ZetaInterfaces.ZetaRevert calldata zetaRevert) external {
-        // Auth adapted from "ZetaInteractor" contract's "isValidRevertCall" modifier
-        if (
-            msg.sender != ZETA_CONNECTOR ||
-            zetaRevert.sourceChainId != block.chainid ||
-            zetaRevert.zetaTxSenderAddress != address(this)
-        ) revert UnauthorizedZetaChainReceiveRevert();
-        _receivePayload(zetaRevert.message);
     }
 }
