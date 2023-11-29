@@ -41,6 +41,7 @@ export const settings = {
             AxelarAdapter: process.env.BSC_AXELAR_ADAPTER_MAINNET as `0x${string}`,
             TelepathyAdapter: process.env.BSC_TELEPATHY_ADAPTER as `0x${string}`,
             HyperlaneAdapter: process.env.BSC_HYPERLANE_ADAPTER as `0x${string}`,
+            LayerZeroAdapter: process.env.BSC_LAYER_ZERO_ADAPTER_MAINNET as `0x${string}`,
           },
           [gnosis.name]: {
             TelepathyAdapter: process.env.GNOSIS_TELEPATHY_ADAPTER as `0x${string}`,
@@ -64,6 +65,7 @@ export const settings = {
           },
           [avalanche.name]: {
             LayerZeroAdapter: process.env.AVALANCHE_LAYER_ZERO_ADAPTER_MAINNET as `0x${string}`,
+            CCIPAdapter: process.env.AVALANCHE_CCIP_ADAPTER_MAINNET as `0x${string}`,
           },
           /*[goerli.name]: {
             AMBReporter: "0xedc0b1d3de4496e0d917af42f29cb71eb2982319" as `0x${string}`,
@@ -76,6 +78,11 @@ export const settings = {
           },
           [bscTestnet.name]: {
             CCIPAdapter: process.env.BSC_TESTNET_CCIP_ADAPTER_SEPOLIA as `0x${string}`,
+          },
+        },
+        [goerli.name]: {
+          [bscTestnet.name]: {
+            ZetaChainAdapter: process.env.BSC_TESTNET_ZETA_ADAPTER_GOERLI as `0x${string}`,
           },
         },
       },
@@ -101,6 +108,7 @@ export const settings = {
           [bsc.name]: {
             AxelarReporter: process.env.MAINNET_AXELAR_REPORTER_BSC as `0x${string}`,
             HyperlaneReporter: process.env.MAINNET_HYPERLANE_REPORTER_BSC as `0x${string}`,
+            LayerZeroReporter: process.env.MAINNET_LAYER_ZERO_REPORTER_BSC as `0x${string}`,
           },
           [gnosis.name]: {
             AMBReporter: process.env.MAINNET_AMB_REPORTER as `0x${string}`,
@@ -115,6 +123,7 @@ export const settings = {
           },
           [avalanche.name]: {
             LayerZeroReporter: process.env.MAINNET_LAYER_ZERO_REPORTER_AVALANCHE as `0x${string}`,
+            CCIPReporter: process.env.MAINNET_CCIP_REPORTER_AVALANCHE as `0x${string}`,
           },
         },
         [sepolia.name]: {
@@ -123,6 +132,11 @@ export const settings = {
           },
           [bscTestnet.name]: {
             CCIPReporter: process.env.SEPOLIA_CCIP_REPORTER_BSC_TESTNET as `0x${string}`,
+          },
+        },
+        [goerli.name]: {
+          [bscTestnet.name]: {
+            ZetaChainReporter: process.env.GOERLI_ZETA_REPORTER_BSC_TESTNET as `0x${string}`,
           },
         },
       },
@@ -150,36 +164,42 @@ export const settings = {
     },
   },
   reporterControllers: {
+    AMBReporterController: {
+      reportHeadersGas: Number(process.env.AMB_REPORTER_HEADERS_GAS),
+    },
     AxelarReporterController: {
       reportHeadersValue: parseEther(process.env.AXELAR_REPORT_HEADERS_VALUE as string),
     },
-    AMBReporterController: {
-      reportHeadersGas: Number(process.env.AMB_REPORTER_HEADERS_GAS),
+    CCIPReporterController: {
+      reportHeadersValue: parseEther(process.env.CCIP_REPORT_HEADERS_VALUE as string),
     },
     CelerReporterController: {
       reportHeadersValue: parseEther(process.env.CELER_REPORT_HEADERS_VALUE as string),
     },
-    CCIPReporterController: {
-      reportHeadersValue: parseEther(process.env.CCIP_REPORT_HEADERS_VALUE as string),
+    ConnextReporterController: {
+      reportHeadersValue: parseEther(process.env.CONNEXT_REPORT_HEADERS_VALUE as string),
     },
     LayerZeroReporterController: {
       reportHeadersValue: parseEther(process.env.LAYER_ZERO_REPORT_HEADERS_VALUE as string),
     },
     SygmaReporterController: {
-      reportHeadersToDomainValue: parseEther(process.env.SYGMA_REPORT_HEADERS_TO_DOMAIN_MSG_VALUE as string),
       domainIds: {
         [gnosis.name]: 101,
         [mainnet.name]: 1,
       },
+      reportHeadersToDomainValue: parseEther(process.env.SYGMA_REPORT_HEADERS_TO_DOMAIN_MSG_VALUE as string),
     },
     TelepathyReporterController: {
       baseProofUrl: process.env.TELEPATHY_PROOF_API_URL as string,
     },
     WormholeReporterController: {
-      wormholeScanBaseUrl: process.env.WORMHOLE_SCAN_BASE_URL as string,
       wormholeChainIds: {
         [mainnet.name]: 2,
       },
+      wormholeScanBaseUrl: process.env.WORMHOLE_SCAN_BASE_URL as string,
+    },
+    ZetaReporterController: {
+      reportHeadersValue: parseEther(process.env.ZETA_CHAIN_REPORT_HEADERS_VALUE as string),
     },
   },
 }

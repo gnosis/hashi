@@ -141,6 +141,7 @@ const main = () => {
     adapterAddresses: {
       [gnosis.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[gnosis.name]?.ConnextAdapter,
     },
+    reportHeadersValue: settings.reporterControllers.ConnextReporterController.reportHeadersValue,
   })
 
   const celerReporterController = new StandardReporterController({
@@ -168,9 +169,11 @@ const main = () => {
     multiClient,
     reporterAddresses: {
       [avalanche.name]: unidirectionalReportersAddresses[sourceChain.name]?.[avalanche.name]?.LayerZeroReporter,
+      [bsc.name]: unidirectionalReportersAddresses[sourceChain.name]?.[bsc.name]?.LayerZeroReporter,
     },
     adapterAddresses: {
       [avalanche.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[avalanche.name]?.LayerZeroAdapter,
+      [bsc.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[bsc.name]?.LayerZeroAdapter,
     },
     reportHeadersValue: settings.reporterControllers.LayerZeroReporterController.reportHeadersValue,
   })
@@ -200,12 +203,30 @@ const main = () => {
     reporterAddresses: {
       [optimismGoerli.name]: unidirectionalReportersAddresses[sourceChain.name]?.[optimismGoerli.name]?.CCIPReporter,
       [bscTestnet.name]: unidirectionalReportersAddresses[sourceChain.name]?.[bscTestnet.name]?.CCIPReporter,
+      [avalanche.name]: unidirectionalReportersAddresses[sourceChain.name]?.[avalanche.name]?.CCIPReporter,
     },
     adapterAddresses: {
       [optimismGoerli.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[optimismGoerli.name]?.CCIPAdapter,
       [bscTestnet.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[bscTestnet.name]?.CCIPAdapter,
+      [avalanche.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[avalanche.name]?.CCIPAdapter,
     },
     reportHeadersValue: settings.reporterControllers.CCIPReporterController.reportHeadersValue,
+  })
+
+  const zetaReporterController = new StandardReporterController({
+    name: "ZetaReporterController",
+    type: "classic",
+    sourceChain,
+    destinationChains,
+    logger,
+    multiClient,
+    reporterAddresses: {
+      [bscTestnet.name]: unidirectionalReportersAddresses[sourceChain.name]?.[bscTestnet.name]?.ZetaChainReporter,
+    },
+    adapterAddresses: {
+      [bscTestnet.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[bscTestnet.name]?.ZetaChainAdapter,
+    },
+    reportHeadersValue: settings.reporterControllers.ZetaReporterController.reportHeadersValue,
   })
 
   const coordinator = new Coordinator({
@@ -221,6 +242,7 @@ const main = () => {
       layerZeroReporterController,
       hyperlaneReporterController,
       ccipReporterController,
+      zetaReporterController,
     ].filter((_controller) => controllersEnabled?.includes(_controller.name)),
     intervalFetchBlocksMs: settings.Coordinator.intervalFetchBlocksMs,
     logger,
