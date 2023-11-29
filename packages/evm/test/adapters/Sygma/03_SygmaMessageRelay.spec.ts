@@ -13,11 +13,11 @@ const setup = async () => {
   const yaho = await Yaho.deploy()
   const SygmaBridge = await ethers.getContractFactory("MockSygmaBridge")
   const sygmaBridge = await SygmaBridge.deploy()
-  const SygmaMessageRelayer = await ethers.getContractFactory("SygmaMessageRelayer")
+  const SygmaMessageRelay = await ethers.getContractFactory("SygmaMessageRelay")
   const SygmaAdapter = await ethers.getContractFactory("SygmaAdapter")
   const sygmaAdapter = await SygmaAdapter.deploy(sygmaBridge.address)
   // IBridge bridge, HeaderStorage headerStorage, bytes32 resourceID, uint8 defaultDestinationDomainID, address defaultSygmaAdapter
-  const sygmaMessageRelayer = await SygmaMessageRelayer.deploy(
+  const sygmaMessageRelayer = await SygmaMessageRelay.deploy(
     sygmaBridge.address,
     yaho.address,
     resourceID,
@@ -80,7 +80,7 @@ const prepareDepositData = async (reporterAddress: string, ids: string[], hashes
   return depositData
 }
 
-describe("SygmaMessageRelayer", function () {
+describe("SygmaMessageRelay", function () {
   describe("Deploy", function () {
     it("Successfully deploys contract", async function () {
       const { sygmaBridge, yaho, sygmaAdapter, sygmaMessageRelayer } = await setup()
