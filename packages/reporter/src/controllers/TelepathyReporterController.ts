@@ -24,7 +24,7 @@ class TelepathyReporterController extends BaseController {
     this.lightClientAddresses = _configs.lightClientAddresses
     this._baseProofUrl = _configs.baseProofUrl
 
-    this.lastProcessedBlock = 30946038n
+    this.lastProcessedBlock = 0n
   }
 
   async update() {
