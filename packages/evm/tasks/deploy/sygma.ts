@@ -1,5 +1,4 @@
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
-import { ethers } from "ethers"
 import { task, types } from "hardhat/config"
 import type { TaskArguments } from "hardhat/types"
 
@@ -10,8 +9,6 @@ import type { SygmaMessageRelay } from "../../types/contracts/adapters/Sygma/Syg
 import type { SygmaAdapter__factory } from "../../types/factories/contracts/adapters/Sygma/SygmaAdapter__factory"
 import type { SygmaHeaderReporter__factory } from "../../types/factories/contracts/adapters/Sygma/SygmaHeaderReporter__factory"
 import type { SygmaMessageRelay__factory } from "../../types/factories/contracts/adapters/Sygma/SygmaMessageRelay__factory"
-
-const toBytes32 = (_n: number) => ethers.utils.hexZeroPad(ethers.utils.hexlify(_n), 32)
 
 // Deploy source chain
 task("deploy:Sygma:MessageRelay")
@@ -30,7 +27,7 @@ task("deploy:Sygma:MessageRelay")
     const constructorArguments = [
       taskArguments.bridge,
       taskArguments.yaho,
-      toBytes32(taskArguments.resourceId),
+      taskArguments.resourceId,
       taskArguments.defaultDestinationDomainId,
       taskArguments.defaultSygmaAdapter,
     ] as const
@@ -58,8 +55,8 @@ task("deploy:Sygma:HeaderReporter")
     )
     const constructorArguments = [
       taskArguments.bridge,
-      taskArguments.yaho,
-      toBytes32(taskArguments.resourceId),
+      taskArguments.headerStorage,
+      taskArguments.resourceId,
       taskArguments.defaultDestinationDomainId,
       taskArguments.defaultSygmaAdapter,
     ] as const

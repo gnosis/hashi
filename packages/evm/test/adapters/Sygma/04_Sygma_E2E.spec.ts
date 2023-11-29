@@ -95,8 +95,7 @@ const setupTestWithTestAvatar = async () => {
 describe("SygmaMessageRelayer End-to-End", function () {
   describe("executeTransaction()", function () {
     it("executes a transaction", async () => {
-      const { pingPong, yaho, sygmaMessageRelay, sygmaAdapter, module, wallet, yaru } =
-        await setupTestWithTestAvatar()
+      const { pingPong, yaho, sygmaMessageRelay, sygmaAdapter, module, wallet, yaru } = await setupTestWithTestAvatar()
       const calldata = await pingPong.interface.encodeFunctionData("ping", [])
       const tx = await module.interface.encodeFunctionData("executeTransaction", [pingPong.address, 0, calldata, 0])
       const message = {
