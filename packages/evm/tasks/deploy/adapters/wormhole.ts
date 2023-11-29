@@ -2,13 +2,13 @@ import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
 import { task, types } from "hardhat/config"
 import type { TaskArguments } from "hardhat/types"
 
-import { verify } from "."
-import type { WormholeAdapter } from "../../types/contracts/adapters/Wormhole/WormholeAdapter"
-import type { WormholeHeaderReporter } from "../../types/contracts/adapters/Wormhole/WormholeHeaderReporter"
-import type { WormholeMessageRelay } from "../../types/contracts/adapters/Wormhole/WormholeMessageRelay"
-import type { WormholeAdapter__factory } from "../../types/factories/contracts/adapters/Wormhole/WormholeAdapter__factory"
-import type { WormholeHeaderReporter__factory } from "../../types/factories/contracts/adapters/Wormhole/WormholeHeaderReporter__factory"
-import type { WormholeMessageRelay__factory } from "../../types/factories/contracts/adapters/Wormhole/WormholeMessageRelay__factory"
+import { verify } from ".."
+import type { WormholeAdapter } from "../../../types/contracts/adapters/Wormhole/WormholeAdapter"
+import type { WormholeHeaderReporter } from "../../../types/contracts/adapters/Wormhole/WormholeHeaderReporter"
+import type { WormholeMessageRelay } from "../../../types/contracts/adapters/Wormhole/WormholeMessageRelay"
+import type { WormholeAdapter__factory } from "../../../types/factories/contracts/adapters/Wormhole/WormholeAdapter__factory"
+import type { WormholeHeaderReporter__factory } from "../../../types/factories/contracts/adapters/Wormhole/WormholeHeaderReporter__factory"
+import type { WormholeMessageRelay__factory } from "../../../types/factories/contracts/adapters/Wormhole/WormholeMessageRelay__factory"
 
 // Deploy on destination chain
 task("deploy:Wormhole:Adapter")
