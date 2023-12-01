@@ -38,8 +38,8 @@ const baseSetup = async () => {
   const sygmaAdapter = await SygmaAdapter.deploy(sygmaBridge.address)
 
   // deploy Sygma Message Relayer
-  const SygmaMessageRelayer = await ethers.getContractFactory("SygmaMessageRelayer")
-  const sygmaMessageRelay = await SygmaMessageRelayer.deploy(
+  const SygmaMessageRelay = await ethers.getContractFactory("SygmaMessageRelay")
+  const sygmaMessageRelay = await SygmaMessageRelay.deploy(
     sygmaBridge.address,
     yaho.address,
     resourceID,
@@ -92,7 +92,7 @@ const setupTestWithTestAvatar = async () => {
   return { ...base, Module, module, network }
 }
 
-describe("SygmaMessageRelayer End-to-End", function () {
+describe("SygmaMessageRelay End-to-End", function () {
   describe("executeTransaction()", function () {
     it("executes a transaction", async () => {
       const { pingPong, yaho, sygmaMessageRelay, sygmaAdapter, module, wallet, yaru } = await setupTestWithTestAvatar()
