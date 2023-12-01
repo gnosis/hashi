@@ -3,9 +3,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types"
 
 import "./adapters"
 import "./hashi"
-import "./optimism"
 import "./replay"
-import "./wormhole"
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const verify = async (hre: HardhatRuntimeEnvironment, contract: Contract, constructorArguments: any = []) => {

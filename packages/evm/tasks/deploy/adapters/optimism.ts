@@ -2,13 +2,13 @@ import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
 import { task, types } from "hardhat/config"
 import type { TaskArguments } from "hardhat/types"
 
-import { verify } from "."
-import type { L1CrossDomainMessengerHeaderReporter } from "../../types/contracts/adapters/Optimism/L1CrossDomainMessengerHeaderReporter"
-import type { L1CrossDomainMessengerMessageRelay } from "../../types/contracts/adapters/Optimism/L1CrossDomainMessengerMessageRelay"
-import type { L2CrossDomainMessengerAdapter } from "../../types/contracts/adapters/Optimism/L2CrossDomainMessengerAdapter"
-import { L1CrossDomainMessengerHeaderReporter__factory } from "../../types/factories/contracts/adapters/Optimism/L1CrossDomainMessengerHeaderReporter__factory"
-import { L1CrossDomainMessengerMessageRelay__factory } from "../../types/factories/contracts/adapters/Optimism/L1CrossDomainMessengerMessageRelay__factory"
-import { L2CrossDomainMessengerAdapter__factory } from "../../types/factories/contracts/adapters/Optimism/L2CrossDomainMessengerAdapter__factory"
+import { verify } from ".."
+import type { L1CrossDomainMessengerHeaderReporter } from "../../../types/contracts/adapters/Optimism/L1CrossDomainMessengerHeaderReporter"
+import type { L1CrossDomainMessengerMessageRelay } from "../../../types/contracts/adapters/Optimism/L1CrossDomainMessengerMessageRelay"
+import type { L2CrossDomainMessengerAdapter } from "../../../types/contracts/adapters/Optimism/L2CrossDomainMessengerAdapter"
+import { L1CrossDomainMessengerHeaderReporter__factory } from "../../../types/factories/contracts/adapters/Optimism/L1CrossDomainMessengerHeaderReporter__factory"
+import { L1CrossDomainMessengerMessageRelay__factory } from "../../../types/factories/contracts/adapters/Optimism/L1CrossDomainMessengerMessageRelay__factory"
+import { L2CrossDomainMessengerAdapter__factory } from "../../../types/factories/contracts/adapters/Optimism/L2CrossDomainMessengerAdapter__factory"
 
 // Deploy on destination chain
 task("deploy:Optimism:Adapter")

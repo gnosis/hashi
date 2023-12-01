@@ -54,7 +54,7 @@ const prepareDepositData = async (reporterAddress: string, ids: string[], hashes
   // );
 
   const depositData =
-    ethers.utils.hexZeroPad("0x0", 32) +
+    ethers.utils.hexZeroPad("0xe7ef0", 32) +
     "0004" +
     functionSig.substring(2) +
     "14" +
