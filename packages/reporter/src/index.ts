@@ -5,7 +5,7 @@ import { Chain } from "viem"
 import Multiclient from "./MultiClient"
 import AMBReporterController from "./controllers/AMBReporterController"
 import OptimismReporterController from "./controllers/OptimismReporterController"
-// import SygmaReporterController from "./controllers/SygmaReporterController"
+import SygmaReporterController from "./controllers/SygmaReporterController"
 import StandardReporterController from "./controllers/StandardReporterController"
 import TelepathyReporterController from "./controllers/TelepathyReporterController"
 import WormholeReporterController from "./controllers/WormholeReporterController"
@@ -43,17 +43,20 @@ const main = () => {
     reportHeadersGas: settings.reporterControllers.AMBReporterController.reportHeadersGas,
   })
 
-  /*const sygmaReporterController = new SygmaReporterController({
+  const sygmaReporterController = new SygmaReporterController({
     type: "classic",
     sourceChain,
     destinationChains,
     logger,
     multiClient,
-    reporterAddress: settings.contractAddresses.Goerli.SygmaReporter,
-    adapterAddresses: { [gnosis.name]: settings.contractAddresses.Gnosis.SygmaAdapter },
-    reportHeadersToDomainValue: settings.reporterControllers.SygmaReporterController.reportHeadersToDomainValue,
+    reporterAddresses: {
+      [gnosis.name]: unidirectionalReportersAddresses[sourceChain.name]?.[gnosis.name]?.SygmaReporter,
+    },
+    adapterAddresses: {
+      [gnosis.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.Gnosis?.SygmaAdapter,
+    },
     domainIds: settings.reporterControllers.SygmaReporterController.domainIds,
-  })*/
+  })
 
   const telepathyReporterController = new TelepathyReporterController({
     type: "lightClient",
@@ -232,7 +235,7 @@ const main = () => {
   const coordinator = new Coordinator({
     controllers: [
       ambReporterController,
-      // sygmaReporterController,
+      sygmaReporterController,
       telepathyReporterController,
       wormholeReporterController,
       optimismReporterController,

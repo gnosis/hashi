@@ -47,7 +47,7 @@ export const settings = {
             TelepathyAdapter: process.env.GNOSIS_TELEPATHY_ADAPTER as `0x${string}`,
             AMBAdapter: process.env.GNOSIS_AMB_ADAPTER as `0x${string}`,
             ConnextAdapter: process.env.GNOSIS_CONNEXT_ADAPTER_MAINNET as `0x${string}`,
-            // SygmaAdapter: process.env.GNOSIS_SYGMA_ADAPTER as `0x${string}`,
+            SygmaAdapter: process.env.GNOSIS_SYGMA_ADAPTER as `0x${string}`, // this works with many chains
           },
           [polygon.name]: {
             TelepathyAdapter: process.env.POLYGON_TELEPATHY_ADAPTER as `0x${string}`,
@@ -112,7 +112,8 @@ export const settings = {
           },
           [gnosis.name]: {
             AMBReporter: process.env.MAINNET_AMB_REPORTER as `0x${string}`,
-            ConnextReporter: process.env.MAINNET_REPORTER_GNOSIS as `0x${string}`,
+            ConnextReporter: process.env.MAINNET_CONNEXT_REPORTER_GNOSIS as `0x${string}`,
+            SygmaReporter: process.env.MAINNET_SYGMA_REPORTER_GNOSIS as `0x${string}`,
           },
           [optimism.name]: {
             L1CrossDomainMessengerHeaderReporter: process.env
@@ -184,10 +185,9 @@ export const settings = {
     },
     SygmaReporterController: {
       domainIds: {
-        [gnosis.name]: 101,
+        [gnosis.name]: 6,
         [mainnet.name]: 1,
       },
-      reportHeadersToDomainValue: parseEther(process.env.SYGMA_REPORT_HEADERS_TO_DOMAIN_MSG_VALUE as string),
     },
     TelepathyReporterController: {
       baseProofUrl: process.env.TELEPATHY_PROOF_API_URL as string,

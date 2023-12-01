@@ -22,11 +22,10 @@ class StandardReporterController extends BaseController {
   async onBlocks(_blockNumbers: bigint[]) {
     try {
       const client = this.multiClient.getClientByChain(this.sourceChain)
+      const blockNumber = _blockNumbers[_blockNumbers.length - 1]
 
       for (const chain of this.destinationChains as Chain[]) {
         if (!this.adapterAddresses[chain.name]) continue
-
-        const blockNumber = _blockNumbers[_blockNumbers.length - 1]
 
         this.logger.info(`reporting block header for block ${blockNumber} on ${chain.name} ...`)
         const { request } = await client.simulateContract({
