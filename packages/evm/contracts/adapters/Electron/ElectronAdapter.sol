@@ -10,12 +10,15 @@ import "./lib/Ownable.sol";
 contract ElectronAdapter is BlockHashOracleAdapter, Ownable {
     ILightClient public lightClient;
 
-    address public constant EVENT_SOURCE = 0x4cD014AC64AAa899b46BF3a477B68bb67e33eDC4; // HeaderStorage contract
-    bytes32 public constant EVENT_SIG_HASH = 0xf7df17dce0093aedfcbae24b4f04e823f9e863c97986ab1ba6c5267ace49ddea;
-    uint256 public constant SOURCE_CHAIN_ID = 5;
+    bytes32 public constant EVENT_SIG_HASH = 0xf7df17dce0093aedfcbae24b4f04e823f9e863c97986ab1ba6c5267ace49ddea; // HeaderStored(uint256,bytes32)
 
-    constructor(address lightClientAddress) Ownable(msg.sender) {
-        lightClient = ILightClient(lightClientAddress);
+    address public eventSource; // HeaderStorage contract address
+    uint256 public chainIdSource; // Chain ID of HeaderStorage
+
+    constructor(address _lightClientAddress, address _eventSourceAddress, uint256 _chainIdSource) Ownable(msg.sender) {
+        lightClient = ILightClient(_lightClientAddress);
+        eventSource = _eventSourceAddress;
+        chainIdSource = _chainIdSource;
     }
 
     function storeHash(bytes calldata _metadata) external {
@@ -51,7 +54,7 @@ contract ElectronAdapter is BlockHashOracleAdapter, Ownable {
         if (!parsedReceipt.isValid) revert();
 
         // ensure correct event source
-        if (parsedReceipt.eventSource != EVENT_SOURCE) revert();
+        if (parsedReceipt.eventSource != eventSource) revert();
 
         // ensure correct event signature
         if (bytes32(parsedReceipt.topics[0]) != EVENT_SIG_HASH) revert();
@@ -59,7 +62,7 @@ contract ElectronAdapter is BlockHashOracleAdapter, Ownable {
         uint256 blockNumber = uint256(parsedReceipt.topics[1]);
         bytes32 blockHash = parsedReceipt.topics[2];
 
-        _storeHash(SOURCE_CHAIN_ID, blockNumber, blockHash);
+        _storeHash(chainIdSource, blockNumber, blockHash);
     }
 
     function setLightClientAddress(address lightclientAddress) external onlyOwner {
