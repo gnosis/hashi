@@ -960,6 +960,7 @@ __metadata:
     "@nomiclabs/hardhat-ethers": ^2.2.1
     "@nomiclabs/hardhat-etherscan": ^3.1.2
     "@openzeppelin/contracts-upgradeable": ^4.8.1
+    "@polytope-labs/solidity-merkle-trees": ^0.2.1
     "@trivago/prettier-plugin-sort-imports": ^4.0.0
     "@typechain/ethers-v5": ^10.1.1
     "@typechain/hardhat": ^6.1.4
@@ -985,6 +986,7 @@ __metadata:
     lint-staged: ^13.0.4
     lodash: ^4.17.21
     mocha: ^10.1.0
+    openzeppelin: "npm:@openzeppelin/contracts@4.3.3"
     pinst: ^3.0.0
     prettier: ^2.8.7
     prettier-plugin-solidity: ^1.0.0
@@ -1607,10 +1609,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@openzeppelin/contracts@npm:~4.3.3":
+"@openzeppelin/contracts@npm:~4.3.3, openzeppelin@npm:@openzeppelin/contracts@4.3.3":
   version: 4.3.3
   resolution: "@openzeppelin/contracts@npm:4.3.3"
   checksum: 73eb23e7acc8531931076d11251629bdc8579c99ef921a3facbd8abf7b860bc214c97a4bd56cd67db7c9d1db837765132640f24987aac8097a13960bb41ca6d1
+  languageName: node
+  linkType: hard
+
+"@polytope-labs/solidity-merkle-trees@npm:^0.2.1":
+  version: 0.2.1
+  resolution: "@polytope-labs/solidity-merkle-trees@npm:0.2.1"
+  checksum: c6808f104565a17305d3857932c87fb026d046bbe199ddb572bb2683758bee70fbda587585a2488c37832fe2524f45c4782516a6a497e00c57fc576a7499c6da
   languageName: node
   linkType: hard
 
