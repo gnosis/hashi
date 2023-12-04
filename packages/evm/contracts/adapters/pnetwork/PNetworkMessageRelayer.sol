@@ -50,7 +50,7 @@ contract PNetworkMessageRelay is IMessageRelay {
             hashes[i] = yaho.hashes(id);
             emit MessageRelayed(address(this), messageIds[i]);
         }
-        bytes memory userData = abi.encode(messageIds, hashes);
+        bytes memory userData = abi.encode(messageIds, hashes, block.chainid);
         if (vault != address(0)) {
             for (uint256 index = 0; index < _supportedNetworkIds.length; index++) {
                 IERC20(token).approve(vault, SWAP_AMOUNT);

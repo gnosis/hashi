@@ -3,8 +3,6 @@ import { ethers, network } from "hardhat"
 
 import { ZERO_ADDRESS, deployErc1820Registry, resetNetwork } from "./utils.spec"
 
-const DOMAIN_ID = "0x0000000000000000000000000000000000000000000000000000000000007a69"
-
 describe("PNetworkMessageRelayer", function () {
   describe("Native Network", () => {
     const setup = async () => {
@@ -27,7 +25,7 @@ describe("PNetworkMessageRelayer", function () {
       await erc777Token.connect(wallet).send(pNetworkMessageRelay.address, 10000, "0x")
 
       const PNetworkAdapter = await ethers.getContractFactory("PNetworkAdapter")
-      const pNetworkAdapter = await PNetworkAdapter.deploy(vault.address, pNetworkMessageRelay.address, DOMAIN_ID)
+      const pNetworkAdapter = await PNetworkAdapter.deploy(vault.address, pNetworkMessageRelay.address)
       const PingPong = await ethers.getContractFactory("PingPong")
       const pingPong = await PingPong.deploy()
       const message_1 = {
@@ -71,8 +69,14 @@ describe("PNetworkMessageRelayer", function () {
 
     describe("relayMessages()", function () {
       it("Relays message hashes over pNetwork", async function () {
-        const { pNetworkMessageRelay, pNetworkAdapter, vault, erc777Token } = await setup()
-        await expect(pNetworkMessageRelay.relayMessages([0, 1], pNetworkAdapter.address))
+        const { pNetworkMessageRelay, pNetworkAdapter, vault, erc777Token, yaho } = await setup()
+        const ids = [0, 1]
+        const hashes = await Promise.all(ids.map(async (_id) => await yaho.hashes(_id)))
+        const expectedUserData = new ethers.utils.AbiCoder().encode(
+          ["uint256[]", "bytes32[]", "uint256"],
+          [ids, hashes, network.config.chainId],
+        )
+        await expect(pNetworkMessageRelay.relayMessages(ids, pNetworkAdapter.address))
           .to.emit(pNetworkMessageRelay, "MessageRelayed")
           .withArgs(pNetworkMessageRelay.address, 0)
           .and.to.emit(vault, "PegIn")
@@ -81,7 +85,7 @@ describe("PNetworkMessageRelayer", function () {
             pNetworkMessageRelay.address,
             100,
             pNetworkAdapter.address.replace("0x", "").toLowerCase(),
-            "0x000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002fd0a21687761d1abc40ff03c81caca3fed1ee30a97ad6255c84706d3afe9fa2b92b1ce5792dbd6e0d8e27dc9819fee7d061c1836f6d145383057377bc24c9301",
+            expectedUserData,
             "0x12345678",
             "0x87654321",
           )
@@ -91,7 +95,7 @@ describe("PNetworkMessageRelayer", function () {
             pNetworkMessageRelay.address,
             100,
             pNetworkAdapter.address.replace("0x", "").toLowerCase(),
-            "0x000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002fd0a21687761d1abc40ff03c81caca3fed1ee30a97ad6255c84706d3afe9fa2b92b1ce5792dbd6e0d8e27dc9819fee7d061c1836f6d145383057377bc24c9301",
+            expectedUserData,
             "0x12345678",
             "0x11223344",
           )
@@ -120,7 +124,7 @@ describe("PNetworkMessageRelayer", function () {
       await pToken.connect(wallet).send(pNetworkMessageRelay.address, 10000, "0x")
 
       const PNetworkAdapter = await ethers.getContractFactory("PNetworkAdapter")
-      const pNetworkAdapter = await PNetworkAdapter.deploy(vault.address, pNetworkMessageRelay.address, DOMAIN_ID)
+      const pNetworkAdapter = await PNetworkAdapter.deploy(vault.address, pNetworkMessageRelay.address)
       const PingPong = await ethers.getContractFactory("PingPong")
       const pingPong = await PingPong.deploy()
       const message_1 = {
@@ -162,8 +166,14 @@ describe("PNetworkMessageRelayer", function () {
 
     describe("relayMessages()", function () {
       it("Relays message hashes over pNetwork", async function () {
-        const { pNetworkMessageRelay, pNetworkAdapter, pToken } = await setup()
-        await expect(pNetworkMessageRelay.relayMessages([0, 1], pNetworkAdapter.address))
+        const { pNetworkMessageRelay, pNetworkAdapter, pToken, yaho } = await setup()
+        const ids = [0, 1]
+        const hashes = await Promise.all(ids.map(async (_id) => await yaho.hashes(_id)))
+        const expectedUserData = new ethers.utils.AbiCoder().encode(
+          ["uint256[]", "bytes32[]", "uint256"],
+          [ids, hashes, network.config.chainId],
+        )
+        await expect(pNetworkMessageRelay.relayMessages(ids, pNetworkAdapter.address))
           .to.emit(pNetworkMessageRelay, "MessageRelayed")
           .withArgs(pNetworkMessageRelay.address, 0)
           .and.to.emit(pToken, "Redeem")
@@ -171,7 +181,7 @@ describe("PNetworkMessageRelayer", function () {
             pNetworkMessageRelay.address,
             100,
             pNetworkAdapter.address.replace("0x", "").toLowerCase(),
-            "0x000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002fd0a21687761d1abc40ff03c81caca3fed1ee30a97ad6255c84706d3afe9fa2b92b1ce5792dbd6e0d8e27dc9819fee7d061c1836f6d145383057377bc24c9301",
+            expectedUserData,
             "0x87654321",
             "0x12345678",
           )
@@ -180,7 +190,7 @@ describe("PNetworkMessageRelayer", function () {
             pNetworkMessageRelay.address,
             100,
             pNetworkAdapter.address.replace("0x", "").toLowerCase(),
-            "0x000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002fd0a21687761d1abc40ff03c81caca3fed1ee30a97ad6255c84706d3afe9fa2b92b1ce5792dbd6e0d8e27dc9819fee7d061c1836f6d145383057377bc24c9301",
+            expectedUserData,
             "0x87654321",
             "0x11223344",
           )
