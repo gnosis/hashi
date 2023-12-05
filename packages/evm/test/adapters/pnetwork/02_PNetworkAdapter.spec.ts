@@ -3,12 +3,19 @@ import { ethers } from "hardhat"
 
 import { ZERO_ADDRESS, deployErc1820Registry, resetNetwork } from "./utils.spec"
 
+const REPORTER_ADDRESS = "0xd5e099c71b797516c10ed0f0d895f429c2781142"
 const DOMAIN_ID = "0x0000000000000000000000000000000000000000000000000000000000001"
 const ID_ONE = 1
 const ID_TWO = 2
 const HASH_ZERO = "0x0000000000000000000000000000000000000000000000000000000000000000"
 const HASH_ONE = "0x0000000000000000000000000000000000000000000000000000000000000001"
 const HASH_TWO = "0x0000000000000000000000000000000000000000000000000000000000000002"
+
+const encodeToMetadata = (userData: string, originChainId: string, sender: string, version = 3) =>
+  new ethers.utils.AbiCoder().encode(
+    ["bytes1", "bytes", "bytes4", "address"],
+    [version, userData, originChainId, sender],
+  )
 
 describe("PNetworkAdapter", function () {
   describe("Host Blockchain", () => {
@@ -21,7 +28,7 @@ describe("PNetworkAdapter", function () {
       const PNetworkAdapter = await ethers.getContractFactory("PNetworkAdapter")
       const pNetworkAdapter = await PNetworkAdapter.deploy(
         DOMAIN_ID,
-        ZERO_ADDRESS,
+        REPORTER_ADDRESS,
         ZERO_ADDRESS,
         pToken.address,
         DOMAIN_ID,
@@ -48,13 +55,14 @@ describe("PNetworkAdapter", function () {
         const { pNetworkAdapter, wallet, pToken } = await setup()
 
         const coder = new ethers.utils.AbiCoder()
-        const data = coder.encode(
+        const userData = coder.encode(
           ["uint256[]", "bytes32[]"],
           [
             [ID_ONE, ID_TWO],
             [HASH_ONE, HASH_TWO],
           ],
         )
+        const data = encodeToMetadata(userData, "0x005fe7f9", REPORTER_ADDRESS)
         await pToken.connect(wallet).mint(pNetworkAdapter.address, 1000, data, "0x")
         expect(await pNetworkAdapter.getHashFromOracle(DOMAIN_ID, ID_ONE)).to.equal(HASH_ONE)
         expect(await pNetworkAdapter.getHashFromOracle(DOMAIN_ID, ID_TWO)).to.equal(HASH_TWO)
@@ -67,13 +75,14 @@ describe("PNetworkAdapter", function () {
         const fakePToken = await PToken.deploy("pToken", "P", [])
 
         const coder = new ethers.utils.AbiCoder()
-        const data = coder.encode(
+        const userData = coder.encode(
           ["uint256[]", "bytes32[]"],
           [
             [ID_ONE, ID_TWO],
             [HASH_ONE, HASH_TWO],
           ],
         )
+        const data = encodeToMetadata(userData, "0x005fe7f9", REPORTER_ADDRESS)
         await expect(fakePToken.connect(wallet).mint(pNetworkAdapter.address, 1000, data, "0x")).to.be.revertedWith(
           "Only accepted token is allowed",
         )
@@ -85,13 +94,14 @@ describe("PNetworkAdapter", function () {
         const { pNetworkAdapter, wallet, pToken } = await setup()
 
         const coder = new ethers.utils.AbiCoder()
-        const data = coder.encode(
+        const userData = coder.encode(
           ["uint256[]", "bytes32[]"],
           [
             [ID_ONE, ID_TWO],
             [HASH_ONE, HASH_TWO],
           ],
         )
+        const data = encodeToMetadata(userData, "0x005fe7f9", REPORTER_ADDRESS)
         await expect(pToken.connect(wallet).send(pNetworkAdapter.address, 1000, data))
           .to.be.revertedWithCustomError(pNetworkAdapter, "InvalidSender")
           .withArgs(wallet.address)
@@ -102,23 +112,25 @@ describe("PNetworkAdapter", function () {
       it("Overwrites previous hashes", async function () {
         const { pNetworkAdapter, wallet, pToken } = await setup()
         const coder = new ethers.utils.AbiCoder()
-        let data = coder.encode(
+        let userData = coder.encode(
           ["uint256[]", "bytes32[]"],
           [
             [ID_ONE, ID_TWO],
             [HASH_ONE, HASH_TWO],
           ],
         )
+        let data = encodeToMetadata(userData, "0x005fe7f9", REPORTER_ADDRESS)
         await pToken.connect(wallet).mint(pNetworkAdapter.address, 1000, data, "0x")
         expect(await pNetworkAdapter.getHashFromOracle(DOMAIN_ID, ID_ONE)).to.equal(HASH_ONE)
         expect(await pNetworkAdapter.getHashFromOracle(DOMAIN_ID, ID_TWO)).to.equal(HASH_TWO)
-        data = coder.encode(
+        userData = coder.encode(
           ["uint256[]", "bytes32[]"],
           [
             [ID_TWO, ID_ONE],
             [HASH_ONE, HASH_TWO],
           ],
         )
+        data = encodeToMetadata(userData, "0x005fe7f9", REPORTER_ADDRESS)
         await pToken.connect(wallet).mint(pNetworkAdapter.address, 1000, data, "0x")
         expect(await pNetworkAdapter.getHashFromOracle(DOMAIN_ID, ID_ONE)).to.equal(HASH_TWO)
         expect(await pNetworkAdapter.getHashFromOracle(DOMAIN_ID, ID_TWO)).to.equal(HASH_ONE)
@@ -146,7 +158,7 @@ describe("PNetworkAdapter", function () {
       const PNetworkAdapter = await ethers.getContractFactory("PNetworkAdapter")
       const pNetworkAdapter = await PNetworkAdapter.deploy(
         DOMAIN_ID,
-        ZERO_ADDRESS,
+        REPORTER_ADDRESS,
         vault.address,
         erc777Token.address,
         DOMAIN_ID,
@@ -182,13 +194,14 @@ describe("PNetworkAdapter", function () {
         const { pNetworkAdapter, wallet, vault, erc777Token } = await setup()
 
         const coder = new ethers.utils.AbiCoder()
-        const data = coder.encode(
+        const userData = coder.encode(
           ["uint256[]", "bytes32[]"],
           [
             [ID_ONE, ID_TWO],
             [HASH_ONE, HASH_TWO],
           ],
         )
+        const data = encodeToMetadata(userData, "0x005fe7f9", REPORTER_ADDRESS)
         await vault.connect(wallet).pegOut(pNetworkAdapter.address, erc777Token.address, 100, data)
         expect(await pNetworkAdapter.getHashFromOracle(DOMAIN_ID, ID_ONE)).to.equal(HASH_ONE)
         expect(await pNetworkAdapter.getHashFromOracle(DOMAIN_ID, ID_TWO)).to.equal(HASH_TWO)
@@ -198,13 +211,14 @@ describe("PNetworkAdapter", function () {
         const { pNetworkAdapter, wallet, vault, anotherErc777Token } = await setup()
 
         const coder = new ethers.utils.AbiCoder()
-        const data = coder.encode(
+        const userData = coder.encode(
           ["uint256[]", "bytes32[]"],
           [
             [ID_ONE, ID_TWO],
             [HASH_ONE, HASH_TWO],
           ],
         )
+        const data = encodeToMetadata(userData, "0x005fe7f9", REPORTER_ADDRESS)
         await expect(
           vault.connect(wallet).pegOut(pNetworkAdapter.address, anotherErc777Token.address, 100, data),
         ).to.be.revertedWith("Only accepted token is allowed")
@@ -216,13 +230,14 @@ describe("PNetworkAdapter", function () {
         const { pNetworkAdapter, wallet, erc777Token } = await setup()
 
         const coder = new ethers.utils.AbiCoder()
-        const data = coder.encode(
+        const userData = coder.encode(
           ["uint256[]", "bytes32[]"],
           [
             [ID_ONE, ID_TWO],
             [HASH_ONE, HASH_TWO],
           ],
         )
+        const data = encodeToMetadata(userData, "0x005fe7f9", REPORTER_ADDRESS)
         await expect(erc777Token.connect(wallet).send(pNetworkAdapter.address, 100, data))
           .to.be.revertedWithCustomError(pNetworkAdapter, "InvalidSender")
           .withArgs(wallet.address)
@@ -233,23 +248,25 @@ describe("PNetworkAdapter", function () {
       it("Overwrites previous hashes", async function () {
         const { pNetworkAdapter, wallet, erc777Token, vault } = await setup()
         const coder = new ethers.utils.AbiCoder()
-        let data = coder.encode(
+        let userData = coder.encode(
           ["uint256[]", "bytes32[]"],
           [
             [ID_ONE, ID_TWO],
             [HASH_ONE, HASH_TWO],
           ],
         )
+        let data = encodeToMetadata(userData, "0x005fe7f9", REPORTER_ADDRESS)
         await vault.connect(wallet).pegOut(pNetworkAdapter.address, erc777Token.address, 50, data)
         expect(await pNetworkAdapter.getHashFromOracle(DOMAIN_ID, ID_ONE)).to.equal(HASH_ONE)
         expect(await pNetworkAdapter.getHashFromOracle(DOMAIN_ID, ID_TWO)).to.equal(HASH_TWO)
-        data = coder.encode(
+        userData = coder.encode(
           ["uint256[]", "bytes32[]"],
           [
             [ID_TWO, ID_ONE],
             [HASH_ONE, HASH_TWO],
           ],
         )
+        data = encodeToMetadata(userData, "0x005fe7f9", REPORTER_ADDRESS)
         await vault.connect(wallet).pegOut(pNetworkAdapter.address, erc777Token.address, 50, data)
         expect(await pNetworkAdapter.getHashFromOracle(DOMAIN_ID, ID_ONE)).to.equal(HASH_TWO)
         expect(await pNetworkAdapter.getHashFromOracle(DOMAIN_ID, ID_TWO)).to.equal(HASH_ONE)

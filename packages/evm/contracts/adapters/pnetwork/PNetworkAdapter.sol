@@ -35,6 +35,12 @@ contract PNetworkAdapter is HeaderOracleAdapter, PNetworkBase {
     ) external override {
         require(msg.sender == address(TOKEN), "Only accepted token is allowed");
         if (from != ADMITTED_SENDER) revert InvalidSender(from);
-        _receivePayload(data);
+        (, bytes memory userData, bytes4 networkId, address sender) = abi.decode(
+            data,
+            (bytes1, bytes, bytes4, address)
+        );
+        require(networkId == SUPPORTED_NETWORK_IDS[PNETWORK_REF_CHAIN], "Invalid source network ID");
+        require(sender == REPORTER_ADDRESS, "Invalid reporter");
+        _receivePayload(userData);
     }
 }
