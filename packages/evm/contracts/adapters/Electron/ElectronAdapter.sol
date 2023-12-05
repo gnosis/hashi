@@ -5,7 +5,7 @@ import { BlockHashOracleAdapter } from "../BlockHashOracleAdapter.sol";
 import { ILightClient } from "./interfaces/ILightClient.sol";
 import { Merkle } from "./lib/Merkle.sol";
 import { Receipt } from "./lib/Receipt.sol";
-import {Ownable} from "openzeppelin/access/Ownable.sol";
+import { Ownable } from "openzeppelin/access/Ownable.sol";
 
 contract ElectronAdapter is BlockHashOracleAdapter, Ownable {
     ILightClient public lightClient;
@@ -33,7 +33,7 @@ contract ElectronAdapter is BlockHashOracleAdapter, Ownable {
 
         (uint64 lcSlot, uint64 txSlot) = abi.decode(lcSlotTxSlotPack, (uint64, uint64));
         bytes32 headerRoot = lightClient.headers(lcSlot);
-        if (headerRoot == bytes32(0)) revert();
+        if (headerRoot == bytes32(0)) revert("Missing header on the lightclient");
 
         bool isValidReceiptsRoot = Merkle.verifyReceiptsRoot(
             receiptsRootProof,
@@ -42,7 +42,7 @@ contract ElectronAdapter is BlockHashOracleAdapter, Ownable {
             txSlot,
             headerRoot
         );
-        if (!isValidReceiptsRoot) revert();
+        if (!isValidReceiptsRoot) revert("Invalid receipts root");
 
         Receipt.ParsedReceipt memory parsedReceipt = Receipt.parseReceipt(
             receiptsRoot,
@@ -51,13 +51,13 @@ contract ElectronAdapter is BlockHashOracleAdapter, Ownable {
             logIndex
         );
 
-        if (!parsedReceipt.isValid) revert();
+        if (!parsedReceipt.isValid) revert("Error parsing receipt");
 
         // ensure correct event source
-        if (parsedReceipt.eventSource != eventSource) revert();
+        if (parsedReceipt.eventSource != eventSource) revert("Invalid event source");
 
         // ensure correct event signature
-        if (bytes32(parsedReceipt.topics[0]) != EVENT_SIG_HASH) revert();
+        if (bytes32(parsedReceipt.topics[0]) != EVENT_SIG_HASH) revert("Invalid event signature");
 
         uint256 blockNumber = uint256(parsedReceipt.topics[1]);
         bytes32 blockHash = parsedReceipt.topics[2];
