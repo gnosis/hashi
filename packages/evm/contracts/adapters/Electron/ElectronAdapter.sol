@@ -15,6 +15,12 @@ contract ElectronAdapter is BlockHashOracleAdapter, Ownable {
     address public eventSource; // HeaderStorage contract address
     uint256 public chainIdSource; // Chain ID of HeaderStorage
 
+    error MissingHeaderOnLC(uint256 slot);
+    error InvalidReceiptsRoot();
+    error ErrorParseReceipt();
+    error InvalidEventSource();
+    error InvalidEventSignature();
+
     constructor(address _lightClientAddress, address _eventSourceAddress, uint256 _chainIdSource) Ownable() {
         lightClient = ILightClient(_lightClientAddress);
         eventSource = _eventSourceAddress;
@@ -33,7 +39,7 @@ contract ElectronAdapter is BlockHashOracleAdapter, Ownable {
 
         (uint64 lcSlot, uint64 txSlot) = abi.decode(lcSlotTxSlotPack, (uint64, uint64));
         bytes32 headerRoot = lightClient.headers(lcSlot);
-        if (headerRoot == bytes32(0)) revert("Missing header on the lightclient");
+        if (headerRoot == bytes32(0)) revert MissingHeaderOnLC(lcSlot);
 
         bool isValidReceiptsRoot = Merkle.verifyReceiptsRoot(
             receiptsRootProof,
@@ -42,7 +48,7 @@ contract ElectronAdapter is BlockHashOracleAdapter, Ownable {
             txSlot,
             headerRoot
         );
-        if (!isValidReceiptsRoot) revert("Invalid receipts root");
+        if (!isValidReceiptsRoot) revert InvalidReceiptsRoot();
 
         Receipt.ParsedReceipt memory parsedReceipt = Receipt.parseReceipt(
             receiptsRoot,
@@ -51,13 +57,13 @@ contract ElectronAdapter is BlockHashOracleAdapter, Ownable {
             logIndex
         );
 
-        if (!parsedReceipt.isValid) revert("Error parsing receipt");
+        if (!parsedReceipt.isValid) revert ErrorParseReceipt();
 
         // ensure correct event source
-        if (parsedReceipt.eventSource != eventSource) revert("Invalid event source");
+        if (parsedReceipt.eventSource != eventSource) revert InvalidEventSource();
 
         // ensure correct event signature
-        if (bytes32(parsedReceipt.topics[0]) != EVENT_SIG_HASH) revert("Invalid event signature");
+        if (bytes32(parsedReceipt.topics[0]) != EVENT_SIG_HASH) revert InvalidEventSignature();
 
         uint256 blockNumber = uint256(parsedReceipt.topics[1]);
         bytes32 blockHash = parsedReceipt.topics[2];

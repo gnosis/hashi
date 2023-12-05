@@ -5,6 +5,8 @@ import "@polytope-labs/solidity-merkle-trees/src/MerklePatricia.sol";
 import { RLPReader } from "@polytope-labs/solidity-merkle-trees/src/trie/ethereum/RLPReader.sol";
 
 library Receipt {
+    error UnsupportedTxType();
+
     struct ParsedReceipt {
         bool isValid;
         bytes32[] topics;
@@ -44,7 +46,7 @@ library Receipt {
             // LegacyReceipt
             offset = 0;
         } else {
-            revert("Unsupported transaction type");
+            revert UnsupportedTxType();
         }
 
         // memory pointer to the RLP Receipt
