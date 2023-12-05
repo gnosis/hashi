@@ -5,7 +5,7 @@ import { BlockHashOracleAdapter } from "../BlockHashOracleAdapter.sol";
 import { ILightClient } from "./interfaces/ILightClient.sol";
 import { Merkle } from "./lib/Merkle.sol";
 import { Receipt } from "./lib/Receipt.sol";
-import "./lib/Ownable.sol";
+import {Ownable} from "openzeppelin/access/Ownable.sol";
 
 contract ElectronAdapter is BlockHashOracleAdapter, Ownable {
     ILightClient public lightClient;
@@ -15,7 +15,7 @@ contract ElectronAdapter is BlockHashOracleAdapter, Ownable {
     address public eventSource; // HeaderStorage contract address
     uint256 public chainIdSource; // Chain ID of HeaderStorage
 
-    constructor(address _lightClientAddress, address _eventSourceAddress, uint256 _chainIdSource) Ownable(msg.sender) {
+    constructor(address _lightClientAddress, address _eventSourceAddress, uint256 _chainIdSource) Ownable() {
         lightClient = ILightClient(_lightClientAddress);
         eventSource = _eventSourceAddress;
         chainIdSource = _chainIdSource;
