@@ -238,6 +238,45 @@ describe("PNetworkAdapter", function () {
         expect(await pNetworkAdapter.getHashFromOracle(DOMAIN_ID, ID_TWO)).to.equal(HASH_ZERO)
       })
 
+      it("Should not store hashes when data is received from another chain", async function () {
+        const { pNetworkAdapter, wallet, vault, erc777Token } = await setup()
+
+        const coder = new ethers.utils.AbiCoder()
+        const userData = coder.encode(
+          ["uint256[]", "bytes32[]"],
+          [
+            [ID_ONE, ID_TWO],
+            [HASH_ONE, HASH_TWO],
+          ],
+        )
+        const data = encodeToMetadata(userData, "0x00e4b170", REPORTER_ADDRESS)
+        await expect(
+          vault.connect(wallet).pegOut(pNetworkAdapter.address, erc777Token.address, 100, data),
+        ).to.be.revertedWith("Invalid source network ID")
+        expect(await pNetworkAdapter.getHashFromOracle(DOMAIN_ID, ID_ONE)).to.equal(HASH_ZERO)
+        expect(await pNetworkAdapter.getHashFromOracle(DOMAIN_ID, ID_TWO)).to.equal(HASH_ZERO)
+      })
+
+      it("Should not store hashes when data originated from another address", async function () {
+        const { pNetworkAdapter, wallet, vault, erc777Token } = await setup()
+        const WRONG_REPORTER_ADDRESS = "0xa5e099c71b797516c10ed0f0d895f429c2781142"
+
+        const coder = new ethers.utils.AbiCoder()
+        const userData = coder.encode(
+          ["uint256[]", "bytes32[]"],
+          [
+            [ID_ONE, ID_TWO],
+            [HASH_ONE, HASH_TWO],
+          ],
+        )
+        const data = encodeToMetadata(userData, "0x005fe7f9", WRONG_REPORTER_ADDRESS)
+        await expect(
+          vault.connect(wallet).pegOut(pNetworkAdapter.address, erc777Token.address, 100, data),
+        ).to.be.revertedWith("Invalid reporter")
+        expect(await pNetworkAdapter.getHashFromOracle(DOMAIN_ID, ID_ONE)).to.equal(HASH_ZERO)
+        expect(await pNetworkAdapter.getHashFromOracle(DOMAIN_ID, ID_TWO)).to.equal(HASH_ZERO)
+      })
+
       it("Overwrites previous hashes", async function () {
         const { pNetworkAdapter, wallet, erc777Token, vault } = await setup()
         const coder = new ethers.utils.AbiCoder()
