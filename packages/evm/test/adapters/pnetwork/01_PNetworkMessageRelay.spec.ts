@@ -1,7 +1,9 @@
 import { expect } from "chai"
-import { ethers, network } from "hardhat"
+import { ethers } from "hardhat"
 
 import { ZERO_ADDRESS, deployErc1820Registry, resetNetwork } from "./utils.spec"
+
+const DOMAIN_ID = "0x0000000000000000000000000000000000000000000000000000000000001"
 
 describe("PNetworkMessageRelayer", function () {
   describe("Native Network", () => {
@@ -17,15 +19,27 @@ describe("PNetworkMessageRelayer", function () {
       const Vault = await ethers.getContractFactory("MockVault")
       const vault = await Vault.deploy()
       await vault.initialize([erc777Token.address, anotherErc777Token.address], "0x12345678")
+
       const PNetworkMessageRelay = await ethers.getContractFactory("PNetworkMessageRelay")
-      const pNetworkMessageRelay = await PNetworkMessageRelay.deploy(vault.address, erc777Token.address, yaho.address)
-      await pNetworkMessageRelay.addNetwork("0x87654321")
-      await pNetworkMessageRelay.addNetwork("0x11223344")
+      const pNetworkMessageRelay = await PNetworkMessageRelay.deploy(
+        yaho.address,
+        DOMAIN_ID,
+        vault.address,
+        erc777Token.address,
+        DOMAIN_ID,
+      )
 
       await erc777Token.connect(wallet).send(pNetworkMessageRelay.address, 10000, "0x")
 
       const PNetworkAdapter = await ethers.getContractFactory("PNetworkAdapter")
-      const pNetworkAdapter = await PNetworkAdapter.deploy(vault.address, pNetworkMessageRelay.address)
+      const pNetworkAdapter = await PNetworkAdapter.deploy(
+        1,
+        pNetworkMessageRelay.address,
+        vault.address,
+        pNetworkMessageRelay.address,
+        1,
+      )
+
       const PingPong = await ethers.getContractFactory("PingPong")
       const pingPong = await PingPong.deploy()
       const message_1 = {
@@ -53,17 +67,9 @@ describe("PNetworkMessageRelayer", function () {
       it("Successfully deploys contract", async function () {
         const { pNetworkMessageRelay, erc777Token, vault, yaho } = await setup()
         expect(await pNetworkMessageRelay.deployed())
-        expect(await pNetworkMessageRelay.token()).to.equal(erc777Token.address)
-        expect(await pNetworkMessageRelay.vault()).to.equal(vault.address)
-        expect(await pNetworkMessageRelay.yaho()).to.equal(yaho.address)
-      })
-
-      it("Should not permit to add again the same network", async function () {
-        const { pNetworkMessageRelay } = await setup()
-        await expect(pNetworkMessageRelay.addNetwork("0x11223344")).to.revertedWithCustomError(
-          pNetworkMessageRelay,
-          "AlreadyExistingNetworkId",
-        )
+        expect(await pNetworkMessageRelay.TOKEN()).to.equal(erc777Token.address)
+        expect(await pNetworkMessageRelay.VAULT()).to.equal(vault.address)
+        expect(await pNetworkMessageRelay.YAHO()).to.equal(yaho.address)
       })
     })
 
@@ -72,10 +78,7 @@ describe("PNetworkMessageRelayer", function () {
         const { pNetworkMessageRelay, pNetworkAdapter, vault, erc777Token, yaho } = await setup()
         const ids = [0, 1]
         const hashes = await Promise.all(ids.map(async (_id) => await yaho.hashes(_id)))
-        const expectedUserData = new ethers.utils.AbiCoder().encode(
-          ["uint256[]", "bytes32[]", "uint256"],
-          [ids, hashes, network.config.chainId],
-        )
+        const expectedUserData = new ethers.utils.AbiCoder().encode(["uint256[]", "bytes32[]"], [ids, hashes])
         await expect(pNetworkMessageRelay.relayMessages(ids, pNetworkAdapter.address))
           .to.emit(pNetworkMessageRelay, "MessageRelayed")
           .withArgs(pNetworkMessageRelay.address, 0)
@@ -87,17 +90,7 @@ describe("PNetworkMessageRelayer", function () {
             pNetworkAdapter.address.replace("0x", "").toLowerCase(),
             expectedUserData,
             "0x12345678",
-            "0x87654321",
-          )
-          .and.to.emit(vault, "PegIn")
-          .withArgs(
-            erc777Token.address,
-            pNetworkMessageRelay.address,
-            100,
-            pNetworkAdapter.address.replace("0x", "").toLowerCase(),
-            expectedUserData,
-            "0x12345678",
-            "0x11223344",
+            "0x005fe7f9",
           )
       })
     })
@@ -116,15 +109,26 @@ describe("PNetworkMessageRelayer", function () {
       const Vault = await ethers.getContractFactory("MockVault")
       const vault = await Vault.deploy()
       await vault.initialize([pToken.address, anotherPToken.address], "0x12345678")
+
       const PNetworkMessageRelay = await ethers.getContractFactory("PNetworkMessageRelay")
-      const pNetworkMessageRelay = await PNetworkMessageRelay.deploy(ZERO_ADDRESS, pToken.address, yaho.address)
-      await pNetworkMessageRelay.addNetwork("0x12345678")
-      await pNetworkMessageRelay.addNetwork("0x11223344")
+      const pNetworkMessageRelay = await PNetworkMessageRelay.deploy(
+        yaho.address,
+        DOMAIN_ID,
+        ZERO_ADDRESS,
+        pToken.address,
+        DOMAIN_ID,
+      )
 
       await pToken.connect(wallet).send(pNetworkMessageRelay.address, 10000, "0x")
 
       const PNetworkAdapter = await ethers.getContractFactory("PNetworkAdapter")
-      const pNetworkAdapter = await PNetworkAdapter.deploy(vault.address, pNetworkMessageRelay.address)
+      const pNetworkAdapter = await PNetworkAdapter.deploy(
+        1,
+        pNetworkMessageRelay.address,
+        vault.address,
+        pNetworkMessageRelay.address,
+        1,
+      )
       const PingPong = await ethers.getContractFactory("PingPong")
       const pingPong = await PingPong.deploy()
       const message_1 = {
@@ -150,17 +154,9 @@ describe("PNetworkMessageRelayer", function () {
       it("Successfully deploys contract", async function () {
         const { pNetworkMessageRelay, pToken, yaho } = await setup()
         expect(await pNetworkMessageRelay.deployed())
-        expect(await pNetworkMessageRelay.token()).to.equal(pToken.address)
-        expect(await pNetworkMessageRelay.vault()).to.equal(ZERO_ADDRESS)
-        expect(await pNetworkMessageRelay.yaho()).to.equal(yaho.address)
-      })
-
-      it("Should not permit to add again the same network", async function () {
-        const { pNetworkMessageRelay } = await setup()
-        await expect(pNetworkMessageRelay.addNetwork("0x11223344")).to.revertedWithCustomError(
-          pNetworkMessageRelay,
-          "AlreadyExistingNetworkId",
-        )
+        expect(await pNetworkMessageRelay.TOKEN()).to.equal(pToken.address)
+        expect(await pNetworkMessageRelay.VAULT()).to.equal(ZERO_ADDRESS)
+        expect(await pNetworkMessageRelay.YAHO()).to.equal(yaho.address)
       })
     })
 
@@ -169,10 +165,7 @@ describe("PNetworkMessageRelayer", function () {
         const { pNetworkMessageRelay, pNetworkAdapter, pToken, yaho } = await setup()
         const ids = [0, 1]
         const hashes = await Promise.all(ids.map(async (_id) => await yaho.hashes(_id)))
-        const expectedUserData = new ethers.utils.AbiCoder().encode(
-          ["uint256[]", "bytes32[]", "uint256"],
-          [ids, hashes, network.config.chainId],
-        )
+        const expectedUserData = new ethers.utils.AbiCoder().encode(["uint256[]", "bytes32[]"], [ids, hashes])
         await expect(pNetworkMessageRelay.relayMessages(ids, pNetworkAdapter.address))
           .to.emit(pNetworkMessageRelay, "MessageRelayed")
           .withArgs(pNetworkMessageRelay.address, 0)
@@ -183,16 +176,7 @@ describe("PNetworkMessageRelayer", function () {
             pNetworkAdapter.address.replace("0x", "").toLowerCase(),
             expectedUserData,
             "0x87654321",
-            "0x12345678",
-          )
-          .and.to.emit(pToken, "Redeem")
-          .withArgs(
-            pNetworkMessageRelay.address,
-            100,
-            pNetworkAdapter.address.replace("0x", "").toLowerCase(),
-            expectedUserData,
-            "0x87654321",
-            "0x11223344",
+            "0x005fe7f9",
           )
       })
     })
