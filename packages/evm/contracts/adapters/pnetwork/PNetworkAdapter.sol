@@ -17,9 +17,8 @@ contract PNetworkAdapter is HeaderOracleAdapter, PNetworkBase {
         uint256 reporterChain,
         address reporterAddress,
         address pNetworkAdmittedsender,
-        address pNetworkToken,
-        uint32 pNetworkReporterChain
-    ) HeaderOracleAdapter(reporterChain, reporterAddress) PNetworkBase(pNetworkReporterChain) {
+        address pNetworkToken
+    ) HeaderOracleAdapter(reporterChain, reporterAddress) PNetworkBase(reporterChain) {
         ADMITTED_SENDER = pNetworkAdmittedsender;
         TOKEN = pNetworkToken;
     }

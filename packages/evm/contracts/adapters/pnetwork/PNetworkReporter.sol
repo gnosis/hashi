@@ -13,7 +13,7 @@ abstract contract PNetworkReporter is PNetworkBase {
     address public immutable VAULT;
     address public immutable TOKEN;
 
-    constructor(address vault, address token, uint256 pNetworkAdapterChain) PNetworkBase(pNetworkAdapterChain) {
+    constructor(address vault, address token, uint256 adapterChain) PNetworkBase(adapterChain) {
         VAULT = vault;
         TOKEN = token;
     }

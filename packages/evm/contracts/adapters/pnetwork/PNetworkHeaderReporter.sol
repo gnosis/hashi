@@ -9,9 +9,8 @@ contract PNetworkHeaderReporter is HeaderReporter, PNetworkReporter {
         address headerStorage,
         uint64 adapterChain,
         address vault,
-        address token,
-        uint32 pNetworkAdapterChain
-    ) HeaderReporter(headerStorage, adapterChain) PNetworkReporter(vault, token, pNetworkAdapterChain) {} // solhint-disable no-empty-blocks
+        address token
+    ) HeaderReporter(headerStorage, adapterChain) PNetworkReporter(vault, token, adapterChain) {} // solhint-disable no-empty-blocks
 
     function _sendPayload(bytes memory payload, address adapter) internal override {
         _pNetworkSend(payload, adapter);

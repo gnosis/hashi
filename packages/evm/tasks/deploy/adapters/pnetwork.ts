@@ -11,8 +11,8 @@ import type { PNetworkMessageRelay__factory } from "../../../types/factories/con
 import { verify } from "../index"
 
 task("deploy:adapter:PNetworkHeaderReporter")
-  .addParam("chainId", "chain id of the adapter contract")
   .addParam("yaho", "address of the Yaho contract")
+  .addParam("chainId", "chain id of the adapter contract")
   .addParam("vault", "address of the vault contract (address 0 when deploying on non-native chain)")
   .addParam("token", "address of the token used to transfer data")
   .addFlag("verify", "whether to verify the contract on Etherscan")
@@ -27,7 +27,6 @@ task("deploy:adapter:PNetworkHeaderReporter")
       taskArguments.chainId,
       taskArguments.vault,
       taskArguments.token,
-      taskArguments.chainId,
     ] as const
     const pNetworkHeaderReporter: PNetworkHeaderReporter = <PNetworkHeaderReporter>(
       await pNetworkHeaderReporterFactory.connect(signers[0]).deploy(...constructorArguments)
@@ -39,8 +38,8 @@ task("deploy:adapter:PNetworkHeaderReporter")
   })
 
 task("deploy:adapter:PNetworkMessageRelay")
-  .addParam("chainId", "chain id of the adapter contract")
   .addParam("yaho", "address of the Yaho contract")
+  .addParam("chainId", "chain id of the adapter contract")
   .addParam("vault", "address of the vault contract (address 0 when deploying on non-native chain)")
   .addParam("token", "address of the token used to transfer data")
   .addFlag("verify", "whether to verify the contract on Etherscan")
@@ -55,7 +54,6 @@ task("deploy:adapter:PNetworkMessageRelay")
       taskArguments.chainId,
       taskArguments.vault,
       taskArguments.token,
-      taskArguments.chainId,
     ] as const
     const pNetworkMessageRelay: PNetworkMessageRelay = <PNetworkMessageRelay>(
       await pNetworkAdapterFactory.connect(signers[0]).deploy(...constructorArguments)
@@ -79,11 +77,10 @@ task("deploy:adapter:PNetworkAdapter")
       await hre.ethers.getContractFactory("TelepathyAdapter")
     )
     const constructorArguments = [
-      taskArguments.chainIdm,
-      taskArguments.reporter,
-      taskArguments.vaultm,
-      taskArguments.token,
       taskArguments.chainId,
+      taskArguments.reporter,
+      taskArguments.vault,
+      taskArguments.token,
     ] as const
     const pNetworkAdapter: PNetworkAdapter = <PNetworkAdapter>(
       await pNetworkAdapterFactory.connect(signers[0]).deploy(...constructorArguments)
