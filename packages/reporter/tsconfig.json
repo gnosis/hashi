@@ -7,15 +7,14 @@
     "experimentalDecorators": true,
     "forceConsistentCasingInFileNames": true,
     "lib": ["es6", "ESNext", "DOM"],
-    "module": "commonjs",
-    "moduleResolution": "node",
+    "module": "NodeNext",
     "noImplicitAny": true,
     "outDir": "./dist",
     "removeComments": true,
     "resolveJsonModule": true,
     "sourceMap": true,
     "strict": true,
-    "target": "ESNext"
+    "target": "ES2020"
   },
   "exclude": ["node_modules"],
   "include": ["./src/**/*"]

@@ -1,9 +1,9 @@
 import { Chain, formatEther } from "viem"
-import ABI from "../ABIs/StandardReporterContractABI.json"
+import ABI from "../ABIs/StandardReporterContractABI.json" assert { type: "json" }
 
-import BaseController from "./BaseController"
+import BaseController from "./BaseController.js"
 
-import { BaseControllerConfigs } from "./BaseController"
+import { BaseControllerConfigs } from "./BaseController.js"
 
 interface StandardReporterControllerConfigs extends BaseControllerConfigs {
   name: string

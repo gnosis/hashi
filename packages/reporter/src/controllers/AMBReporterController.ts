@@ -1,9 +1,9 @@
 import { Chain } from "viem"
-import ABI from "../ABIs/AMBReporterContractABI.json"
+import ABI from "../ABIs/AMBReporterContractABI.json" assert { type: "json" }
 
-import BaseController from "./BaseController"
+import BaseController from "./BaseController.js"
 
-import { BaseControllerConfigs } from "./BaseController"
+import { BaseControllerConfigs } from "./BaseController.js"
 
 interface AMBReporterControllerConfigs extends BaseControllerConfigs {
   reportHeadersGas: number

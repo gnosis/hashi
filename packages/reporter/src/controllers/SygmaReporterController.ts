@@ -1,9 +1,9 @@
 import { Chain, parseEther } from "viem"
 
-import ABI from "../ABIs/SygmaReporterContractABI.json"
-import BaseController from "./BaseController"
+import ABI from "../ABIs/SygmaReporterContractABI.json" assert { type: "json" }
+import BaseController from "./BaseController.js"
 
-import { BaseControllerConfigs } from "./BaseController"
+import { BaseControllerConfigs } from "./BaseController.js"
 
 interface SygmaReporterControllerConfigs extends BaseControllerConfigs {
   domainIds: { [chainName: string]: number }

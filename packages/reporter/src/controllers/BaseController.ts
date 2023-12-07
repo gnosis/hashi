@@ -1,7 +1,7 @@
 import { Chain } from "viem"
 import winston from "winston"
 
-import Multiclient from "../MultiClient"
+import Multiclient from "../MultiClient.js"
 
 export type ControllerType = "classic" | "lightClient" | "native"
 

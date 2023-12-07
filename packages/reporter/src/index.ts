@@ -1,28 +1,41 @@
-import * as chains from "viem/chains"
-import { arbitrum, avalanche, bsc, bscTestnet, gnosis, optimism, optimismGoerli, polygon } from "viem/chains"
+import {
+  arbitrum,
+  avalanche,
+  bsc,
+  bscTestnet,
+  gnosis,
+  gnosisChiado,
+  goerli,
+  optimism,
+  optimismGoerli,
+  polygon,
+} from "viem/chains"
 import { Chain } from "viem"
 
-import Multiclient from "./MultiClient"
-import AMBReporterController from "./controllers/AMBReporterController"
-import OptimismReporterController from "./controllers/OptimismReporterController"
-import SygmaReporterController from "./controllers/SygmaReporterController"
-import StandardReporterController from "./controllers/StandardReporterController"
-import TelepathyReporterController from "./controllers/TelepathyReporterController"
-import WormholeReporterController from "./controllers/WormholeReporterController"
-import Coordinator from "./Coordinator"
-import { settings } from "./settings/index"
-import logger from "./utils/logger"
+import Multiclient from "./MultiClient.js"
+import AMBReporterController from "./controllers/AMBReporterController.js"
+import ElectronReporterController from "./controllers/ElectronReporterController.js"
+import OptimismReporterController from "./controllers/OptimismReporterController.js"
+import SygmaReporterController from "./controllers/SygmaReporterController.js"
+import StandardReporterController from "./controllers/StandardReporterController.js"
+import TelepathyReporterController from "./controllers/TelepathyReporterController.js"
+import WormholeReporterController from "./controllers/WormholeReporterController.js"
+import Coordinator from "./Coordinator.js"
+import { settings } from "./settings/index.js"
+import logger from "./utils/logger.js"
 
 const main = () => {
   const controllersEnabled = process.env.REPORTERS_ENABLED?.split(",")
   const sourceChainId = Number(process.env.SOURCE_CHAIN_ID)
   const destinationChainIds = process.env.DESTINATION_CHAIN_IDS?.split(",").map((_chainId) => Number(_chainId))
 
-  const sourceChain = Object.values(chains).find((_chain) => _chain.id === sourceChainId) as Chain
-  const destinationChains = Object.values(chains).filter((_chain) => destinationChainIds?.includes(_chain.id))
+  const chains = [arbitrum, avalanche, bsc, bscTestnet, gnosis, gnosisChiado, goerli, optimism, optimismGoerli, polygon]
+  const sourceChain: Chain = Object.values(chains).find((_chain) => _chain.id === sourceChainId) as Chain
+  const destinationChains: Chain[] = Object.values(chains).filter((_chain) => destinationChainIds?.includes(_chain.id))
 
   const unidirectionalAdaptersAddresses = settings.contractAddresses.adapterAddresses.unidirectional as any
   const unidirectionalReportersAddresses = settings.contractAddresses.reporterAddresses.unidirectional as any
+  const lightClientAddresses = settings.contractAddresses.lightClientAddresses as any
 
   const multiClient = new Multiclient({
     chains: [sourceChain, ...destinationChains],
@@ -73,11 +86,11 @@ const main = () => {
     },
     baseProofUrl: settings.reporterControllers.TelepathyReporterController.baseProofUrl,
     lightClientAddresses: {
-      [gnosis.name]: settings.contractAddresses.Gnosis.TelepathyLightClientMainnet,
-      [arbitrum.name]: settings.contractAddresses["Arbitrum One"].TelepathyLightClientMainnet,
-      [optimism.name]: settings.contractAddresses["OP Mainnet"].TelepathyLightClientMainnet,
-      [bsc.name]: settings.contractAddresses["BNB Smart Chain"].TelepathyLightClientMainnet,
-      [polygon.name]: settings.contractAddresses.Polygon.TelepathyLightClientMainnet,
+      [gnosis.name]: lightClientAddresses.Gnosis?.[sourceChain.name]?.TelepathyLightClient,
+      [arbitrum.name]: lightClientAddresses["Arbitrum One"]?.[sourceChain.name]?.TelepathyLightClient,
+      [optimism.name]: lightClientAddresses["OP Mainnet"]?.[sourceChain.name]?.TelepathyLightClient,
+      [bsc.name]: lightClientAddresses["BNB Smart Chain"]?.[sourceChain.name]?.TelepathyLightClient,
+      [polygon.name]: lightClientAddresses.Polygon?.[sourceChain.name]?.TelepathyLightClient,
     },
   })
 
@@ -232,6 +245,25 @@ const main = () => {
     reportHeadersValue: settings.reporterControllers.ZetaReporterController.reportHeadersValue,
   })
 
+  const electronReporterController = new ElectronReporterController({
+    type: "lightClient",
+    sourceChain,
+    destinationChains,
+    logger,
+    multiClient,
+    adapterAddresses: {
+      [gnosisChiado.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.["Gnosis Chiado"]?.ElectronAdapter,
+    },
+    headerStorageAddress: (settings.contractAddresses as any)[sourceChain.name].HeaderStorage,
+    lightClientAddresses: {
+      [gnosisChiado.name]: lightClientAddresses["Gnosis Chiado"]?.[sourceChain.name]?.ElectronLightClient,
+    },
+    beaconchaBaseUrl: (settings.reporterControllers.ElectronReporterController.beaconchaBaseUrls as any)[
+      sourceChain.name
+    ],
+    beaconApiBaseUrl: (settings.beaconApiUrls as any)[sourceChain.name],
+  })
+
   const coordinator = new Coordinator({
     controllers: [
       ambReporterController,
@@ -246,6 +278,7 @@ const main = () => {
       hyperlaneReporterController,
       ccipReporterController,
       zetaReporterController,
+      electronReporterController,
     ].filter((_controller) => controllersEnabled?.includes(_controller.name)),
     intervalFetchBlocksMs: settings.Coordinator.intervalFetchBlocksMs,
     logger,

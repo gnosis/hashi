@@ -2,13 +2,13 @@ import axios, { AxiosInstance } from "axios"
 import { Mutex } from "async-mutex"
 import { Chain } from "viem"
 
-import BaseController from "./BaseController"
-import sleep from "../utils/sleep"
-import HeaderReporterABI from "../ABIs/WormhomeHeaderReporterABI.json"
-import AdapterABI from "../ABIs/WormholeAdapterABI.json"
-import WormholeABI from "../ABIs/WormholeABI.json"
+import BaseController from "./BaseController.js"
+import sleep from "../utils/sleep.js"
+import HeaderReporterABI from "../ABIs/WormhomeHeaderReporterABI.json" assert { type: "json" }
+import AdapterABI from "../ABIs/WormholeAdapterABI.json" assert { type: "json" }
+import WormholeABI from "../ABIs/WormholeABI.json" assert { type: "json" }
 
-import { BaseControllerConfigs } from "./BaseController"
+import { BaseControllerConfigs } from "./BaseController.js"
 
 interface WormholeReporterControllerConfigs extends BaseControllerConfigs {
   wormholeScanBaseUrl: string

@@ -6,6 +6,7 @@ import {
   bsc,
   bscTestnet,
   gnosis,
+  gnosisChiado,
   goerli,
   mainnet,
   optimism,
@@ -20,7 +21,8 @@ export const settings = {
     queryBlockLength: Number(process.env.QUERY_BLOCK_LENGTH),
     intervalFetchBlocksMs: Number(process.env.TIME_FETCH_BLOCKS_MS),
     intervalsUpdateLightClients: {
-      TelepathyReporterController: Number(process.env.TELEPATHY_INTERVAL_FETCH_HEAD_UPDATES),
+      TelepathyReporterController: Number(process.env.TELEPATHY_INTERVAL_UPDATE),
+      ElectronReporterController: Number(process.env.ELECTRON_INTERVAL_UPDATE),
     },
   },
   rpcUrls: {
@@ -32,6 +34,9 @@ export const settings = {
     [bsc.name]: process.env.BSC_RPC_URL as string,
     [arbitrum.name]: process.env.ARBITRUM_RPC_URL as string,
     [sepolia.name]: process.env.SEPOLIA_RPC_URL as string,
+  },
+  beaconApiUrls: {
+    [goerli.name]: process.env.GOERLI_BEACON_API_URL as string,
   },
   contractAddresses: {
     adapterAddresses: {
@@ -51,6 +56,7 @@ export const settings = {
           },
           [polygon.name]: {
             TelepathyAdapter: process.env.POLYGON_TELEPATHY_ADAPTER as `0x${string}`,
+            CelerAdapter: process.env.POLYGON_CELER_ADAPTER_MAINNET as `0x${string}`,
           },
           [optimism.name]: {
             TelepathyAdapter: process.env.OPTIMISM_TELEPATHY_ADAPTER as `0x${string}`,
@@ -59,9 +65,6 @@ export const settings = {
           },
           [arbitrum.name]: {
             TelepathyAdapter: process.env.ARBITRUM_TELEPATHY_ADAPTER as `0x${string}`,
-          },
-          [polygon.name]: {
-            CelerAdapter: process.env.POLYGON_CELER_ADAPTER_MAINNET as `0x${string}`,
           },
           [avalanche.name]: {
             LayerZeroAdapter: process.env.AVALANCHE_LAYER_ZERO_ADAPTER_MAINNET as `0x${string}`,
@@ -83,6 +86,9 @@ export const settings = {
         [goerli.name]: {
           [bscTestnet.name]: {
             ZetaChainAdapter: process.env.BSC_TESTNET_ZETA_ADAPTER_GOERLI as `0x${string}`,
+          },
+          [gnosisChiado.name]: {
+            ElectronAdapter: process.env.CHIADO_ELECTRON_ADAPTER_GOERLI as `0x${string}`,
           },
         },
       },
@@ -145,23 +151,44 @@ export const settings = {
         WormholeHeaderReporter: process.env.MAINNET_WORMHOLE_HEADER_REPORTER as `0x${string}`,
       },
     },
+    lightClientAddresses: {
+      [gnosisChiado.name]: {
+        [goerli.name]: {
+          ElectronLightClient: process.env.CHIADO_ELECTRON_LIGHT_CLIENT_GOERLI as `0x${string}`,
+        },
+      },
+      [gnosis.name]: {
+        [mainnet.name]: {
+          TelepathyLightClient: "0x34b5378DE786389a477b40dD710812c250185f83" as `0x${string}`,
+        },
+      },
+      [polygon.name]: {
+        [mainnet.name]: {
+          TelepathyLightClient: "0x34b5378DE786389a477b40dD710812c250185f83" as `0x${string}`,
+        },
+      },
+      [bsc.name]: {
+        [mainnet.name]: {
+          TelepathyLightClient: "0x34b5378DE786389a477b40dD710812c250185f83" as `0x${string}`,
+        },
+      },
+      [optimism.name]: {
+        [mainnet.name]: {
+          TelepathyLightClient: "0x34b5378DE786389a477b40dD710812c250185f83" as `0x${string}`,
+        },
+      },
+      [arbitrum.name]: {
+        [mainnet.name]: {
+          TelepathyLightClient: "0x34b5378DE786389a477b40dD710812c250185f83" as `0x${string}`,
+        },
+      },
+    },
+    [goerli.name]: {
+      HeaderStorage: process.env.GOERLI_HEADER_STORAGE as `0x${string}`,
+    },
     [mainnet.name]: {
       Wormhole: process.env.MAINNET_WORMHOLE_ADDRESS as `0x${string}`,
-    },
-    [gnosis.name]: {
-      TelepathyLightClientMainnet: "0x34b5378DE786389a477b40dD710812c250185f83" as `0x${string}`,
-    },
-    [polygon.name]: {
-      TelepathyLightClientMainnet: "0x34b5378DE786389a477b40dD710812c250185f83" as `0x${string}`,
-    },
-    [bsc.name]: {
-      TelepathyLightClientMainnet: "0x34b5378DE786389a477b40dD710812c250185f83" as `0x${string}`,
-    },
-    [optimism.name]: {
-      TelepathyLightClientMainnet: "0x34b5378DE786389a477b40dD710812c250185f83" as `0x${string}`,
-    },
-    [arbitrum.name]: {
-      TelepathyLightClientMainnet: "0x34b5378DE786389a477b40dD710812c250185f83" as `0x${string}`,
+      HeaderStorage: process.env.MAINNET_HEADER_STORAGE as `0x${string}`,
     },
   },
   reporterControllers: {
@@ -180,6 +207,11 @@ export const settings = {
     ConnextReporterController: {
       reportHeadersValue: parseEther(process.env.CONNEXT_REPORT_HEADERS_VALUE as string),
     },
+    ElectronReporterController: {
+      beaconchaBaseUrls: {
+        [goerli.name]: "https://goerli.beaconcha.in",
+      },
+    },
     LayerZeroReporterController: {
       reportHeadersValue: parseEther(process.env.LAYER_ZERO_REPORT_HEADERS_VALUE as string),
     },
@@ -196,7 +228,7 @@ export const settings = {
       wormholeChainIds: {
         [mainnet.name]: 2,
       },
-      wormholeScanBaseUrl: process.env.WORMHOLE_SCAN_BASE_URL as string,
+      wormholeScanBaseUrl: "https://api.wormholescan.io",
     },
     ZetaReporterController: {
       reportHeadersValue: parseEther(process.env.ZETA_CHAIN_REPORT_HEADERS_VALUE as string),

@@ -1,9 +1,9 @@
 import { optimism } from "viem/chains"
 
-import ABI from "../ABIs/L1CrossDomainMessengerHeaderReporterABI.json"
-import BaseController from "./BaseController"
+import ABI from "../ABIs/L1CrossDomainMessengerHeaderReporterABI.json" assert { type: "json" }
+import BaseController from "./BaseController.js"
 
-import { BaseControllerConfigs } from "./BaseController"
+import { BaseControllerConfigs } from "./BaseController.js"
 
 interface OptimismReporterControllerConfigs extends BaseControllerConfigs {}
 

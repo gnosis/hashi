@@ -2,11 +2,11 @@ import axios from "axios"
 import { Chain, hexToNumber } from "viem"
 import { Mutex } from "async-mutex"
 
-import LightClientContractABI from "../ABIs/TelepathyContractABI.json"
-import AdapterContractABI from "../ABIs/TelepathyAdapterABI.json"
-import BaseController from "./BaseController"
+import LightClientContractABI from "../ABIs/TelepathyContractABI.json" assert { type: "json" }
+import AdapterContractABI from "../ABIs/TelepathyAdapterABI.json" assert { type: "json" }
+import BaseController from "./BaseController.js"
 
-import { BaseControllerConfigs } from "./BaseController"
+import { BaseControllerConfigs } from "./BaseController.js"
 
 interface TelepathyReporterControllerConfigs extends BaseControllerConfigs {
   lightClientAddresses: { [chainName: string]: `0x${string}` }
