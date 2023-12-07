@@ -8,7 +8,6 @@ import { toHexString, fromHexString } from "@chainsafe/ssz"
 import { RLP } from "@ethereumjs/rlp"
 import { WalletClient, PublicClient, TransactionReceipt, Log } from "viem"
 import { Trie } from "@ethereumjs/trie"
-import fs from "fs"
 
 const SLOTS_PER_HISTORICAL_ROOT = 8192
 
