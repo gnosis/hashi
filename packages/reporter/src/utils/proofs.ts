@@ -27,8 +27,7 @@ export const getState = async (_stateId: BeaconId, _client: AxiosInstance): Prom
 
 export const getHeader = async (_blockId: BeaconId, _client: AxiosInstance): Promise<phase0.BeaconBlockHeader> => {
   const { data } = await _client.get(`/eth/v1/beacon/headers/${toStringFromBeaconId(_blockId)}`)
-  const header = ssz.phase0.BeaconBlockHeader.fromJson(data.data.header.message)
-  return header
+  return ssz.phase0.BeaconBlockHeader.fromJson(data.data.header.message)
 }
 
 export const getReceiptsRootProof = async (_srcBlockId: BeaconId, _targetBlockId: BeaconId, _client: AxiosInstance) => {
