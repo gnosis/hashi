@@ -4,10 +4,10 @@ import type { TaskArguments } from "hardhat/types"
 
 import type { PNetworkAdapter } from "../../../types/contracts/adapters/pnetwork/PNetworkAdapter"
 import type { PNetworkHeaderReporter } from "../../../types/contracts/adapters/pnetwork/PNetworkHeaderReporter"
-import type { PNetworkMessageRelay } from "../../../types/contracts/adapters/pnetwork/PNetworkMessageRelayer.sol"
+import type { PNetworkMessageRelay } from "../../../types/contracts/adapters/pnetwork/PNetworkMessageRelay"
 import type { PNetworkAdapter__factory } from "../../../types/factories/contracts/adapters/pnetwork/PNetworkAdapter__factory"
 import type { PNetworkHeaderReporter__factory } from "../../../types/factories/contracts/adapters/pnetwork/PNetworkHeaderReporter__factory"
-import type { PNetworkMessageRelay__factory } from "../../../types/factories/contracts/adapters/pnetwork/PNetworkMessageRelayer.sol"
+import type { PNetworkMessageRelay__factory } from "../../../types/factories/contracts/adapters/pnetwork/PNetworkMessageRelay__factory"
 import { verify } from "../index"
 
 task("deploy:adapter:PNetworkHeaderReporter")
@@ -15,6 +15,7 @@ task("deploy:adapter:PNetworkHeaderReporter")
   .addParam("chainId", "chain id of the adapter contract")
   .addParam("vault", "address of the vault contract (address 0 when deploying on non-native chain)")
   .addParam("token", "address of the token used to transfer data")
+  .addParam("adapterNetworkId", "pNetwork network ID of the adapter chain")
   .addFlag("verify", "whether to verify the contract on Etherscan")
   .setAction(async function (taskArguments: TaskArguments, hre) {
     console.log("Deploying PNetworkHeaderReporter...")
@@ -27,6 +28,7 @@ task("deploy:adapter:PNetworkHeaderReporter")
       taskArguments.chainId,
       taskArguments.vault,
       taskArguments.token,
+      taskArguments.adapterNetworkId,
     ] as const
     const pNetworkHeaderReporter: PNetworkHeaderReporter = <PNetworkHeaderReporter>(
       await pNetworkHeaderReporterFactory.connect(signers[0]).deploy(...constructorArguments)
@@ -42,6 +44,7 @@ task("deploy:adapter:PNetworkMessageRelay")
   .addParam("chainId", "chain id of the adapter contract")
   .addParam("vault", "address of the vault contract (address 0 when deploying on non-native chain)")
   .addParam("token", "address of the token used to transfer data")
+  .addParam("adapterNetworkId", "pNetwork network ID of the adapter chain")
   .addFlag("verify", "whether to verify the contract on Etherscan")
   .setAction(async function (taskArguments: TaskArguments, hre) {
     console.log("Deploying PNetworkMessageRelay...")
@@ -54,6 +57,7 @@ task("deploy:adapter:PNetworkMessageRelay")
       taskArguments.chainId,
       taskArguments.vault,
       taskArguments.token,
+      taskArguments.adapterNetworkId,
     ] as const
     const pNetworkMessageRelay: PNetworkMessageRelay = <PNetworkMessageRelay>(
       await pNetworkAdapterFactory.connect(signers[0]).deploy(...constructorArguments)
@@ -69,6 +73,7 @@ task("deploy:adapter:PNetworkAdapter")
   .addParam("reporter", "address of the reporter contract")
   .addParam("vault", "address of the vault contract (address 0 when deploying on non-native chain)")
   .addParam("token", "address of the token used to transfer data")
+  .addParam("reporterNetworkId", "pNetwork network ID of the reporter chain")
   .addFlag("verify", "whether to verify the contract on Etherscan")
   .setAction(async function (taskArguments: TaskArguments, hre) {
     console.log("Deploying PNetworkAdapter...")
@@ -81,6 +86,7 @@ task("deploy:adapter:PNetworkAdapter")
       taskArguments.reporter,
       taskArguments.vault,
       taskArguments.token,
+      taskArguments.reporterNetworkId,
     ] as const
     const pNetworkAdapter: PNetworkAdapter = <PNetworkAdapter>(
       await pNetworkAdapterFactory.connect(signers[0]).deploy(...constructorArguments)

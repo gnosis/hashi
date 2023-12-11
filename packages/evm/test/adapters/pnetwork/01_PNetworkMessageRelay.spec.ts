@@ -5,7 +5,7 @@ import { ZERO_ADDRESS, deployErc1820Registry, resetNetwork } from "./utils.spec"
 
 const DOMAIN_ID = "0x0000000000000000000000000000000000000000000000000000000000001"
 
-describe("PNetworkMessageRelayer", function () {
+describe("PNetworkMessageRelay", function () {
   describe("Native Network", () => {
     const setup = async () => {
       await resetNetwork()
