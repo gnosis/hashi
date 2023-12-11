@@ -26,6 +26,7 @@ describe("PNetworkMessageRelayer", function () {
         DOMAIN_ID,
         vault.address,
         erc777Token.address,
+        "0x005fe7f9",
       )
 
       await erc777Token.connect(wallet).send(pNetworkMessageRelay.address, 10000, "0x")
@@ -36,6 +37,7 @@ describe("PNetworkMessageRelayer", function () {
         pNetworkMessageRelay.address,
         vault.address,
         pNetworkMessageRelay.address,
+        "0x005fe7f9",
       )
 
       const PingPong = await ethers.getContractFactory("PingPong")
@@ -114,6 +116,7 @@ describe("PNetworkMessageRelayer", function () {
         DOMAIN_ID,
         ZERO_ADDRESS,
         pToken.address,
+        "0x005fe7f9",
       )
 
       await pToken.connect(wallet).send(pNetworkMessageRelay.address, 10000, "0x")
@@ -124,7 +127,9 @@ describe("PNetworkMessageRelayer", function () {
         pNetworkMessageRelay.address,
         vault.address,
         pNetworkMessageRelay.address,
+        "0x005fe7f9",
       )
+
       const PingPong = await ethers.getContractFactory("PingPong")
       const pingPong = await PingPong.deploy()
       const message_1 = {

@@ -26,7 +26,13 @@ describe("PNetworkAdapter", function () {
       const PToken = await ethers.getContractFactory("PToken")
       const pToken = await PToken.deploy("pToken", "P", [])
       const PNetworkAdapter = await ethers.getContractFactory("PNetworkAdapter")
-      const pNetworkAdapter = await PNetworkAdapter.deploy(DOMAIN_ID, REPORTER_ADDRESS, ZERO_ADDRESS, pToken.address)
+      const pNetworkAdapter = await PNetworkAdapter.deploy(
+        DOMAIN_ID,
+        REPORTER_ADDRESS,
+        ZERO_ADDRESS,
+        pToken.address,
+        "0x005fe7f9",
+      )
       return {
         wallet,
         pNetworkAdapter,
@@ -155,6 +161,7 @@ describe("PNetworkAdapter", function () {
         REPORTER_ADDRESS,
         vault.address,
         erc777Token.address,
+        "0x005fe7f9",
       )
 
       const coder = new ethers.utils.AbiCoder()

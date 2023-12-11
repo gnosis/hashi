@@ -13,7 +13,7 @@ abstract contract PNetworkReporter is PNetworkBase {
     address public immutable VAULT;
     address public immutable TOKEN;
 
-    constructor(address vault, address token, uint256 adapterChain) PNetworkBase(adapterChain) {
+    constructor(address vault, address token, bytes4 pNetworkAdapterNetworkId) PNetworkBase(pNetworkAdapterNetworkId) {
         VAULT = vault;
         TOKEN = token;
     }
@@ -43,20 +43,9 @@ abstract contract PNetworkReporter is PNetworkBase {
     function _pNetworkSend(bytes memory payload, address adapter) internal {
         if (VAULT != address(0)) {
             IERC20(TOKEN).approve(VAULT, SWAP_AMOUNT);
-            IErc20Vault(VAULT).pegIn(
-                SWAP_AMOUNT,
-                TOKEN,
-                _toAsciiString(adapter),
-                payload,
-                SUPPORTED_NETWORK_IDS[PNETWORK_REF_CHAIN]
-            );
+            IErc20Vault(VAULT).pegIn(SWAP_AMOUNT, TOKEN, _toAsciiString(adapter), payload, PNETWORK_REF_NETWORK_ID);
         } else {
-            IPToken(TOKEN).redeem(
-                SWAP_AMOUNT,
-                payload,
-                _toAsciiString(adapter),
-                SUPPORTED_NETWORK_IDS[PNETWORK_REF_CHAIN]
-            );
+            IPToken(TOKEN).redeem(SWAP_AMOUNT, payload, _toAsciiString(adapter), PNETWORK_REF_NETWORK_ID);
         }
     }
 

@@ -17,8 +17,9 @@ contract PNetworkAdapter is HeaderOracleAdapter, PNetworkBase {
         uint256 reporterChain,
         address reporterAddress,
         address pNetworkAdmittedsender,
-        address pNetworkToken
-    ) HeaderOracleAdapter(reporterChain, reporterAddress) PNetworkBase(reporterChain) {
+        address pNetworkToken,
+        bytes4 pNetworkSourceNetworkId
+    ) HeaderOracleAdapter(reporterChain, reporterAddress) PNetworkBase(pNetworkSourceNetworkId) {
         ADMITTED_SENDER = pNetworkAdmittedsender;
         TOKEN = pNetworkToken;
     }
@@ -38,7 +39,7 @@ contract PNetworkAdapter is HeaderOracleAdapter, PNetworkBase {
             data,
             (bytes1, bytes, bytes4, address)
         );
-        require(networkId == SUPPORTED_NETWORK_IDS[PNETWORK_REF_CHAIN], "Invalid source network ID");
+        require(networkId == PNETWORK_REF_NETWORK_ID, "Invalid source network ID");
         require(sender == REPORTER_ADDRESS, "Invalid reporter");
         _receivePayload(userData);
     }
