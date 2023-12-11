@@ -5,24 +5,19 @@ import "@openzeppelin/contracts/token/ERC777/presets/ERC777PresetFixedSupply.sol
 
 import { HeaderOracleAdapter } from "../HeaderOracleAdapter.sol";
 import { PNetworkBase } from "./PNetworkBase.sol";
+import { Errors } from "./Errors.sol";
 
 contract PNetworkAdapter is HeaderOracleAdapter, PNetworkBase {
-    address public immutable ADMITTED_SENDER;
-    address public immutable TOKEN;
-
-    error ArrayLengthMismatch();
-    error InvalidSender(address sender);
-
     constructor(
         uint256 reporterChain,
         address reporterAddress,
-        address pNetworkAdmittedsender,
+        address pNetworkVault,
         address pNetworkToken,
         bytes4 pNetworkSourceNetworkId
-    ) HeaderOracleAdapter(reporterChain, reporterAddress) PNetworkBase(pNetworkSourceNetworkId) {
-        ADMITTED_SENDER = pNetworkAdmittedsender;
-        TOKEN = pNetworkToken;
-    }
+    )
+        HeaderOracleAdapter(reporterChain, reporterAddress)
+        PNetworkBase(pNetworkVault, pNetworkToken, pNetworkSourceNetworkId)
+    {}
 
     // Implement the ERC777TokensRecipient interface
     function tokensReceived(
@@ -32,15 +27,14 @@ contract PNetworkAdapter is HeaderOracleAdapter, PNetworkBase {
         uint256,
         bytes calldata data,
         bytes calldata
-    ) external override {
-        require(msg.sender == address(TOKEN), "Only accepted token is allowed");
-        if (from != ADMITTED_SENDER) revert InvalidSender(from);
+    ) external override onlySupportedToken(msg.sender) {
+        if (from != VAULT) revert Errors.InvalidSender(from, VAULT);
         (, bytes memory userData, bytes4 networkId, address sender) = abi.decode(
             data,
             (bytes1, bytes, bytes4, address)
         );
-        require(networkId == PNETWORK_REF_NETWORK_ID, "Invalid source network ID");
-        require(sender == REPORTER_ADDRESS, "Invalid reporter");
+        if (networkId != PNETWORK_REF_NETWORK_ID) revert Errors.InvalidNetworkId(networkId, PNETWORK_REF_NETWORK_ID);
+        if (sender != REPORTER_ADDRESS) revert Errors.UnauthorizedPNetworkReceive();
         _receivePayload(userData);
     }
 }

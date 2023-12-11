@@ -10,30 +10,11 @@ import { PNetworkBase } from "./PNetworkBase.sol";
 abstract contract PNetworkReporter is PNetworkBase {
     uint256 private constant SWAP_AMOUNT = 100;
 
-    address public immutable VAULT;
-    address public immutable TOKEN;
-
-    constructor(address vault, address token, bytes4 pNetworkAdapterNetworkId) PNetworkBase(pNetworkAdapterNetworkId) {
-        VAULT = vault;
-        TOKEN = token;
-    }
-
-    // Implement the ERC777TokensRecipient interface
-    function tokensReceived(
-        address,
-        address,
-        address to,
-        uint256,
-        bytes calldata,
-        bytes calldata
-    ) external view onlySupportedToken(msg.sender) {
-        require(to == address(this), "Token receiver is not this contract");
-    }
-
-    modifier onlySupportedToken(address _tokenAddress) {
-        require(_tokenAddress == TOKEN, "Token at supplied address is NOT supported!");
-        _;
-    }
+    constructor(
+        address pNetworkVault,
+        address pNetworkToken,
+        bytes4 pNetworkAdapterNetworkId
+    ) PNetworkBase(pNetworkVault, pNetworkToken, pNetworkAdapterNetworkId) {}
 
     function _char(bytes1 b) internal pure returns (bytes1 c) {
         if (uint8(b) < 10) return bytes1(uint8(b) + 0x30);

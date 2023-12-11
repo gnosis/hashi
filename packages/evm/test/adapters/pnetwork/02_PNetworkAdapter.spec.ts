@@ -46,7 +46,7 @@ describe("PNetworkAdapter", function () {
 
         expect(await pNetworkAdapter.deployed())
         expect(await pNetworkAdapter.TOKEN()).to.equal(pToken.address)
-        expect(await pNetworkAdapter.ADMITTED_SENDER()).to.equal(ZERO_ADDRESS)
+        expect(await pNetworkAdapter.VAULT()).to.equal(ZERO_ADDRESS)
       })
     })
 
@@ -69,7 +69,7 @@ describe("PNetworkAdapter", function () {
       })
 
       it("Should not store hashes when receiving another token", async function () {
-        const { pNetworkAdapter, wallet } = await setup()
+        const { pNetworkAdapter, wallet, pToken } = await setup()
 
         const PToken = await ethers.getContractFactory("PToken")
         const fakePToken = await PToken.deploy("pToken", "P", [])
@@ -83,9 +83,9 @@ describe("PNetworkAdapter", function () {
           ],
         )
         const data = encodeToMetadata(userData, "0x005fe7f9", REPORTER_ADDRESS)
-        await expect(fakePToken.connect(wallet).mint(pNetworkAdapter.address, 1000, data, "0x")).to.be.revertedWith(
-          "Only accepted token is allowed",
-        )
+        await expect(fakePToken.connect(wallet).mint(pNetworkAdapter.address, 1000, data, "0x"))
+          .to.be.revertedWithCustomError(pNetworkAdapter, "InvalidToken")
+          .withArgs(fakePToken.address, pToken.address)
         expect(await pNetworkAdapter.getHashFromOracle(DOMAIN_ID, ID_ONE)).to.equal(HASH_ZERO)
         expect(await pNetworkAdapter.getHashFromOracle(DOMAIN_ID, ID_TWO)).to.equal(HASH_ZERO)
       })
@@ -104,7 +104,7 @@ describe("PNetworkAdapter", function () {
         const data = encodeToMetadata(userData, "0x005fe7f9", REPORTER_ADDRESS)
         await expect(pToken.connect(wallet).send(pNetworkAdapter.address, 1000, data))
           .to.be.revertedWithCustomError(pNetworkAdapter, "InvalidSender")
-          .withArgs(wallet.address)
+          .withArgs(wallet.address, ZERO_ADDRESS)
         expect(await pNetworkAdapter.getHashFromOracle(DOMAIN_ID, ID_ONE)).to.equal(HASH_ZERO)
         expect(await pNetworkAdapter.getHashFromOracle(DOMAIN_ID, ID_TWO)).to.equal(HASH_ZERO)
       })
@@ -185,7 +185,7 @@ describe("PNetworkAdapter", function () {
         const { pNetworkAdapter, erc777Token, vault } = await setup()
         expect(await pNetworkAdapter.deployed())
         expect(await pNetworkAdapter.TOKEN()).to.equal(erc777Token.address)
-        expect(await pNetworkAdapter.ADMITTED_SENDER()).to.equal(vault.address)
+        expect(await pNetworkAdapter.VAULT()).to.equal(vault.address)
       })
     })
 
@@ -208,7 +208,7 @@ describe("PNetworkAdapter", function () {
       })
 
       it("Should not store hashes when receiving another token", async function () {
-        const { pNetworkAdapter, wallet, vault, anotherErc777Token } = await setup()
+        const { pNetworkAdapter, wallet, vault, erc777Token, anotherErc777Token } = await setup()
 
         const coder = new ethers.utils.AbiCoder()
         const userData = coder.encode(
@@ -219,15 +219,15 @@ describe("PNetworkAdapter", function () {
           ],
         )
         const data = encodeToMetadata(userData, "0x005fe7f9", REPORTER_ADDRESS)
-        await expect(
-          vault.connect(wallet).pegOut(pNetworkAdapter.address, anotherErc777Token.address, 100, data),
-        ).to.be.revertedWith("Only accepted token is allowed")
+        await expect(vault.connect(wallet).pegOut(pNetworkAdapter.address, anotherErc777Token.address, 100, data))
+          .to.be.revertedWithCustomError(pNetworkAdapter, "InvalidToken")
+          .withArgs(anotherErc777Token.address, erc777Token.address)
         expect(await pNetworkAdapter.getHashFromOracle(DOMAIN_ID, ID_ONE)).to.equal(HASH_ZERO)
         expect(await pNetworkAdapter.getHashFromOracle(DOMAIN_ID, ID_TWO)).to.equal(HASH_ZERO)
       })
 
       it("Should not store hashes when tokens are not sent by the vault", async function () {
-        const { pNetworkAdapter, wallet, erc777Token } = await setup()
+        const { pNetworkAdapter, wallet, erc777Token, vault } = await setup()
 
         const coder = new ethers.utils.AbiCoder()
         const userData = coder.encode(
@@ -240,7 +240,7 @@ describe("PNetworkAdapter", function () {
         const data = encodeToMetadata(userData, "0x005fe7f9", REPORTER_ADDRESS)
         await expect(erc777Token.connect(wallet).send(pNetworkAdapter.address, 100, data))
           .to.be.revertedWithCustomError(pNetworkAdapter, "InvalidSender")
-          .withArgs(wallet.address)
+          .withArgs(wallet.address, vault.address)
         expect(await pNetworkAdapter.getHashFromOracle(DOMAIN_ID, ID_ONE)).to.equal(HASH_ZERO)
         expect(await pNetworkAdapter.getHashFromOracle(DOMAIN_ID, ID_TWO)).to.equal(HASH_ZERO)
       })
@@ -257,9 +257,9 @@ describe("PNetworkAdapter", function () {
           ],
         )
         const data = encodeToMetadata(userData, "0x00e4b170", REPORTER_ADDRESS)
-        await expect(
-          vault.connect(wallet).pegOut(pNetworkAdapter.address, erc777Token.address, 100, data),
-        ).to.be.revertedWith("Invalid source network ID")
+        await expect(vault.connect(wallet).pegOut(pNetworkAdapter.address, erc777Token.address, 100, data))
+          .to.be.revertedWithCustomError(pNetworkAdapter, "InvalidNetworkId")
+          .withArgs("0x00e4b170", "0x005fe7f9")
         expect(await pNetworkAdapter.getHashFromOracle(DOMAIN_ID, ID_ONE)).to.equal(HASH_ZERO)
         expect(await pNetworkAdapter.getHashFromOracle(DOMAIN_ID, ID_TWO)).to.equal(HASH_ZERO)
       })
@@ -277,9 +277,9 @@ describe("PNetworkAdapter", function () {
           ],
         )
         const data = encodeToMetadata(userData, "0x005fe7f9", WRONG_REPORTER_ADDRESS)
-        await expect(
-          vault.connect(wallet).pegOut(pNetworkAdapter.address, erc777Token.address, 100, data),
-        ).to.be.revertedWith("Invalid reporter")
+        await expect(vault.connect(wallet).pegOut(pNetworkAdapter.address, erc777Token.address, 100, data))
+          .to.be.revertedWithCustomError(pNetworkAdapter, "UnauthorizedPNetworkReceive")
+          .withArgs()
         expect(await pNetworkAdapter.getHashFromOracle(DOMAIN_ID, ID_ONE)).to.equal(HASH_ZERO)
         expect(await pNetworkAdapter.getHashFromOracle(DOMAIN_ID, ID_TWO)).to.equal(HASH_ZERO)
       })
