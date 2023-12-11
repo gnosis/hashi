@@ -8,7 +8,7 @@ import { IPToken } from "./interfaces/IPToken.sol";
 import { PNetworkBase } from "./PNetworkBase.sol";
 
 abstract contract PNetworkReporter is PNetworkBase {
-    uint256 private constant SWAP_AMOUNT = 100;
+    uint256 private constant SWAP_AMOUNT = 1;
 
     constructor(
         address pNetworkVault,

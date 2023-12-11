@@ -86,7 +86,7 @@ describe("PNetworkMessageRelay", function () {
           .withArgs(
             erc777Token.address,
             pNetworkMessageRelay.address,
-            100,
+            1,
             pNetworkAdapter.address.replace("0x", "").toLowerCase(),
             expectedUserData,
             "0x12345678",
@@ -173,7 +173,7 @@ describe("PNetworkMessageRelay", function () {
           .and.to.emit(pToken, "Redeem")
           .withArgs(
             pNetworkMessageRelay.address,
-            100,
+            1,
             pNetworkAdapter.address.replace("0x", "").toLowerCase(),
             expectedUserData,
             "0x87654321",
