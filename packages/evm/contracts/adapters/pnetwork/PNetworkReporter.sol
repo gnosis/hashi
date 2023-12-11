@@ -14,7 +14,7 @@ abstract contract PNetworkReporter is PNetworkBase {
         address pNetworkVault,
         address pNetworkToken,
         bytes4 pNetworkAdapterNetworkId
-    ) PNetworkBase(pNetworkVault, pNetworkToken, pNetworkAdapterNetworkId) {}
+    ) PNetworkBase(pNetworkVault, pNetworkToken, pNetworkAdapterNetworkId) {} // solhint-disable no-empty-blocks
 
     function _char(bytes1 b) internal pure returns (bytes1 c) {
         if (uint8(b) < 10) return bytes1(uint8(b) + 0x30);

@@ -8,10 +8,10 @@ contract PNetworkMessageRelay is MessageRelay, PNetworkReporter {
     constructor(
         address yaho,
         uint64 adapterChain,
-        address vault,
-        address token,
+        address pNetworkVault,
+        address pNetworktoken,
         bytes4 pNetworkAdapterNetworkId
-    ) MessageRelay(yaho, adapterChain) PNetworkReporter(vault, token, pNetworkAdapterNetworkId) {} // solhint-disable no-empty-blocks
+    ) MessageRelay(yaho, adapterChain) PNetworkReporter(pNetworkVault, pNetworktoken, pNetworkAdapterNetworkId) {} // solhint-disable no-empty-blocks
 
     function _sendPayload(bytes memory payload, address adapter) internal override {
         _pNetworkSend(payload, adapter);

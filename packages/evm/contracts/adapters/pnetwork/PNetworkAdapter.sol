@@ -13,11 +13,11 @@ contract PNetworkAdapter is HeaderOracleAdapter, PNetworkBase {
         address reporterAddress,
         address pNetworkVault,
         address pNetworkToken,
-        bytes4 pNetworkSourceNetworkId
+        bytes4 pNetworkReporterNetworkId
     )
         HeaderOracleAdapter(reporterChain, reporterAddress)
-        PNetworkBase(pNetworkVault, pNetworkToken, pNetworkSourceNetworkId)
-    {}
+        PNetworkBase(pNetworkVault, pNetworkToken, pNetworkReporterNetworkId)
+    {} // solhint-disable no-empty-blocks
 
     // Implement the ERC777TokensRecipient interface
     function tokensReceived(
