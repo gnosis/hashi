@@ -5,9 +5,12 @@ import "@openzeppelin/contracts/token/ERC777/presets/ERC777PresetFixedSupply.sol
 
 import { HeaderOracleAdapter } from "../HeaderOracleAdapter.sol";
 import { PNetworkBase } from "./PNetworkBase.sol";
-import { Errors } from "./Errors.sol";
 
 contract PNetworkAdapter is HeaderOracleAdapter, PNetworkBase {
+    error InvalidSender(address sender, address expected);
+    error InvalidNetworkId(bytes4 networkId, bytes4 expected);
+    error UnauthorizedPNetworkReceive();
+
     constructor(
         uint256 reporterChain,
         address reporterAddress,
@@ -28,13 +31,13 @@ contract PNetworkAdapter is HeaderOracleAdapter, PNetworkBase {
         bytes calldata data,
         bytes calldata
     ) external override onlySupportedToken(msg.sender) {
-        if (from != VAULT) revert Errors.InvalidSender(from, VAULT);
+        if (from != VAULT) revert InvalidSender(from, VAULT);
         (, bytes memory userData, bytes4 networkId, address sender) = abi.decode(
             data,
             (bytes1, bytes, bytes4, address)
         );
-        if (networkId != PNETWORK_REF_NETWORK_ID) revert Errors.InvalidNetworkId(networkId, PNETWORK_REF_NETWORK_ID);
-        if (sender != REPORTER_ADDRESS) revert Errors.UnauthorizedPNetworkReceive();
+        if (networkId != PNETWORK_REF_NETWORK_ID) revert InvalidNetworkId(networkId, PNETWORK_REF_NETWORK_ID);
+        if (sender != REPORTER_ADDRESS) revert UnauthorizedPNetworkReceive();
         _receivePayload(userData);
     }
 }
