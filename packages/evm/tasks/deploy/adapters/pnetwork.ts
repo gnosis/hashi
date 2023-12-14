@@ -79,7 +79,7 @@ task("deploy:adapter:PNetworkAdapter")
     console.log("Deploying PNetworkAdapter...")
     const signers: SignerWithAddress[] = await hre.ethers.getSigners()
     const pNetworkAdapterFactory: PNetworkAdapter__factory = <PNetworkAdapter__factory>(
-      await hre.ethers.getContractFactory("TelepathyAdapter")
+      await hre.ethers.getContractFactory("PNetworkAdapter")
     )
     const constructorArguments = [
       taskArguments.chainId,
