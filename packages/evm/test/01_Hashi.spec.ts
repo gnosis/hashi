@@ -39,15 +39,15 @@ describe("Hashi", function () {
   describe("getHashFromOracle()", function () {
     it("Returns correct hash", async function () {
       const { hashi, mockOracleAdapter } = await setup()
-      expect(await hashi.getHashFromOracle(mockOracleAdapter.address, DOMAIN_ID, 0)).to.equal(HASH_ZERO)
-      expect(await hashi.getHashFromOracle(mockOracleAdapter.address, DOMAIN_ID, 1)).to.equal(HASH_GOOD)
+      expect(await hashi.getHashFromOracle(DOMAIN_ID, 0, mockOracleAdapter.address)).to.equal(HASH_ZERO)
+      expect(await hashi.getHashFromOracle(DOMAIN_ID, 1, mockOracleAdapter.address)).to.equal(HASH_GOOD)
     })
   })
 
   describe("getHashesFromOracles()", function () {
     it("Reverts if oracleAdapters length is zero", async function () {
       const { hashi } = await setup()
-      await expect(hashi.getHashesFromOracles([], DOMAIN_ID, 1)).to.revertedWithCustomError(
+      await expect(hashi.getHashesFromOracles(DOMAIN_ID, 1, [])).to.revertedWithCustomError(
         hashi,
         "NoOracleAdaptersGiven",
       )
@@ -55,14 +55,14 @@ describe("Hashi", function () {
     it("Returns correct hashs from each oracle", async function () {
       const { hashi, mockOracleAdapter, badMockOracleAdapter } = await setup()
       const oracles = [mockOracleAdapter.address, badMockOracleAdapter.address]
-      const returnData = await hashi.getHashesFromOracles(oracles, DOMAIN_ID, 1)
+      const returnData = await hashi.getHashesFromOracles(DOMAIN_ID, 1, oracles)
       expect(returnData[0]).to.equal(HASH_GOOD)
       expect(returnData[1]).to.equal(HASH_BAD)
     })
     it("Returns Bytes(0) for non-reporting oracles", async function () {
       const { hashi, mockOracleAdapter, nonReportingMockOracleAdapter } = await setup()
       const oracles = [mockOracleAdapter.address, nonReportingMockOracleAdapter.address]
-      const returnData = await hashi.getHashesFromOracles(oracles, DOMAIN_ID, 1)
+      const returnData = await hashi.getHashesFromOracles(DOMAIN_ID, 1, oracles)
       expect(returnData[0]).to.equal(HASH_GOOD)
       expect(returnData[1]).to.equal(HASH_ZERO)
     })
@@ -102,6 +102,31 @@ describe("Hashi", function () {
     it("Returns hash for single oracle", async function () {
       const { hashi, mockOracleAdapter } = await setup()
       expect(await hashi.getHash(DOMAIN_ID, 1, [mockOracleAdapter.address])).to.equal(HASH_GOOD)
+    })
+  })
+
+  describe("checkHashWithThresholdFromOracles()", function () {
+    it("should return false if the threshold is not reached", async () => {
+      const { hashi, mockOracleAdapter, badMockOracleAdapter, nonReportingMockOracleAdapter } = await setup()
+      const id = 3
+      const threshold = 3
+      const oracles = [mockOracleAdapter, badMockOracleAdapter, nonReportingMockOracleAdapter].map(
+        ({ address }) => address,
+      )
+      await mockOracleAdapter.setHashes(DOMAIN_ID, [id], [HASH_GOOD])
+      expect(await hashi.checkHashWithThresholdFromOracles(DOMAIN_ID, id, threshold, oracles)).to.be.eq(false)
+    })
+    it("should return true if the threshold is reached", async () => {
+      const { hashi, mockOracleAdapter, badMockOracleAdapter, nonReportingMockOracleAdapter } = await setup()
+      const id = 3
+      const threshold = 3
+      const oracles = [mockOracleAdapter, badMockOracleAdapter, nonReportingMockOracleAdapter].map(
+        ({ address }) => address,
+      )
+      await mockOracleAdapter.setHashes(DOMAIN_ID, [id], [HASH_GOOD])
+      await badMockOracleAdapter.setHashes(DOMAIN_ID, [id], [HASH_GOOD])
+      await nonReportingMockOracleAdapter.setHashes(DOMAIN_ID, [id], [HASH_GOOD])
+      expect(await hashi.checkHashWithThresholdFromOracles(DOMAIN_ID, id, threshold, oracles)).to.be.eq(true)
     })
   })
 })
