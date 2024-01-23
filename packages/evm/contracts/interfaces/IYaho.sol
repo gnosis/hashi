@@ -4,6 +4,7 @@ pragma solidity ^0.8.17;
 import { IMessageHashCalculator } from "./IMessageHashCalculator.sol";
 import { IMessageIdCalculator } from "./IMessageIdCalculator.sol";
 import { Message } from "./IMessage.sol";
+import { IReporter } from "./IReporter.sol";
 import { IOracleAdapter } from "./IOracleAdapter.sol";
 
 interface IYaho is IMessageHashCalculator, IMessageIdCalculator {
@@ -23,7 +24,7 @@ interface IYaho is IMessageHashCalculator, IMessageIdCalculator {
         uint256 threshold,
         address receiver,
         bytes calldata data,
-        address[] calldata reporters,
+        IReporter[] calldata reporters,
         IOracleAdapter[] calldata adapters
     ) external returns (uint256);
 
@@ -32,7 +33,7 @@ interface IYaho is IMessageHashCalculator, IMessageIdCalculator {
         uint256 threshold,
         address receiver,
         bytes calldata data,
-        address[] calldata reporters,
+        IReporter[] calldata reporters,
         IOracleAdapter[] calldata adapters
     ) external returns (uint256, bytes32[] memory);
 
@@ -41,7 +42,7 @@ interface IYaho is IMessageHashCalculator, IMessageIdCalculator {
         uint256[] calldata thresholds,
         address[] calldata receivers,
         bytes[] calldata data,
-        address[] calldata reporters,
+        IReporter[] calldata reporters,
         IOracleAdapter[] calldata adapters
     ) external payable returns (uint256[] memory, bytes32[] memory);
 
