@@ -33,7 +33,7 @@ contract Yaho is IYaho, MessageIdCalculator, MessageHashCalculator {
         bytes calldata data,
         IReporter[] calldata reporters,
         IOracleAdapter[] calldata adapters
-    ) external returns (uint256, bytes32[] memory) {
+    ) external payable returns (uint256, bytes32[] memory) {
         _checkReportersAndAdapters(threshold, reporters, adapters);
         (uint256 messageId, bytes32 messageHash) = _dispatchMessage(
             toChainId,
@@ -97,8 +97,6 @@ contract Yaho is IYaho, MessageIdCalculator, MessageHashCalculator {
     function relayMessagesToAdapters(Message[] calldata messages) external payable returns (bytes32[] memory) {
         if (messages.length == 0) revert NoMessagesGiven();
 
-        // NOTE: In order to be able to aggregate messages within the reporter,
-        // it's mandatory that all messages have the same toChainId, reporters and adapters.
         bytes32 expectedParams = keccak256(
             abi.encode(messages[0].toChainId, messages[0].reporters, messages[0].adapters)
         );
@@ -188,12 +186,7 @@ contract Yaho is IYaho, MessageIdCalculator, MessageHashCalculator {
         bytes32[] memory reportersReceipts = new bytes32[](reporters.length);
 
         for (uint256 i = 0; i < reporters.length; ) {
-            reportersReceipts[i] = reporters[i].dispatchMessages(
-                toChainId,
-                adapters[i],
-                messageIds,
-                messageHashes
-            );
+            reportersReceipts[i] = reporters[i].dispatchMessages(toChainId, adapters[i], messageIds, messageHashes);
 
             for (uint256 j = 0; j < messageIds.length; ) {
                 delete _pendingMessageHashes[messageIds[j]];
