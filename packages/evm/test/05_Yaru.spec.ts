@@ -109,7 +109,7 @@ describe("Yaru", () => {
       await expect(yaru.executeMessages([message])).to.be.revertedWithCustomError(yaru, "ThresholdNotMet")
     })
 
-    it(`should be not able to execute an already execute message`, async () => {
+    it(`should not be able to execute an already execute message`, async () => {
       const threshold = 2
       const tx = await yaho.dispatchMessageToAdapters(
         Chains.Hardhat,
@@ -127,6 +127,24 @@ describe("Yaru", () => {
       expect(yaru.executeMessages([message]))
         .to.be.revertedWithCustomError(yaru, "MessageIdAlreadyExecuted")
         .withArgs(message.id)
+    })
+
+    it(`should not be able to execute a message using different adapters`, async () => {
+      const threshold = 2
+      const tx = await yaho.dispatchMessageToAdapters(
+        Chains.Hardhat,
+        threshold,
+        pingPong1.address,
+        "0x01",
+        [reporter1.address, reporter2.address],
+        [adapter1.address, adapter2.address],
+      )
+      const [message] = Message.fromReceipt(await tx.wait(1))
+      const hash = await yaho.calculateMessageHash(message.serialize())
+      await adapter1.setHashes(Chains.Hardhat, [message.id], [hash])
+      await adapter2.setHashes(Chains.Hardhat, [message.id], [hash])
+      message.adapters = [adapter3.address as `0x${string}`, adapter4.address as `0x${string}`]
+      expect(yaru.executeMessages([message])).to.be.revertedWithCustomError(yaru, "ThresholdNotMet")
     })
 
     for (let threshold = 1; threshold <= 4; threshold++) {
