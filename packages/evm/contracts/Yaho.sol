@@ -17,7 +17,7 @@ contract Yaho is IYaho, MessageIdCalculator, MessageHashCalculator {
         uint256 threshold,
         address receiver,
         bytes calldata data,
-        address[] calldata reporters,
+        IReporter[] calldata reporters,
         IOracleAdapter[] calldata adapters
     ) external returns (uint256) {
         _checkReportersAndAdapters(threshold, reporters, adapters);
@@ -31,7 +31,7 @@ contract Yaho is IYaho, MessageIdCalculator, MessageHashCalculator {
         uint256 threshold,
         address receiver,
         bytes calldata data,
-        address[] calldata reporters,
+        IReporter[] calldata reporters,
         IOracleAdapter[] calldata adapters
     ) external returns (uint256, bytes32[] memory) {
         _checkReportersAndAdapters(threshold, reporters, adapters);
@@ -59,7 +59,7 @@ contract Yaho is IYaho, MessageIdCalculator, MessageHashCalculator {
         uint256[] calldata thresholds,
         address[] calldata receivers,
         bytes[] calldata data,
-        address[] calldata reporters,
+        IReporter[] calldata reporters,
         IOracleAdapter[] calldata adapters
     ) external payable returns (uint256[] memory, bytes32[] memory) {
         if (thresholds.length != receivers.length) revert UnequalArrayLengths(thresholds.length, receivers.length);
@@ -129,7 +129,7 @@ contract Yaho is IYaho, MessageIdCalculator, MessageHashCalculator {
 
     function _checkReportersAndAdapters(
         uint256 threshold,
-        address[] calldata reporters,
+        IReporter[] calldata reporters,
         IOracleAdapter[] calldata adapters
     ) internal pure {
         if (reporters.length == 0) revert NoReportersGiven();
@@ -143,7 +143,7 @@ contract Yaho is IYaho, MessageIdCalculator, MessageHashCalculator {
         uint256 threshold,
         address receiver,
         bytes calldata data,
-        address[] calldata reporters,
+        IReporter[] calldata reporters,
         IOracleAdapter[] calldata adapters
     ) internal returns (uint256, bytes32) {
         address sender = msg.sender;
@@ -168,7 +168,7 @@ contract Yaho is IYaho, MessageIdCalculator, MessageHashCalculator {
         uint256 toChainId,
         uint256 messageId,
         bytes32 messageHash,
-        address[] memory reporters,
+        IReporter[] memory reporters,
         IOracleAdapter[] memory adapters
     ) internal returns (bytes32[] memory) {
         uint256[] memory messageIds = new uint256[](1);
@@ -182,13 +182,13 @@ contract Yaho is IYaho, MessageIdCalculator, MessageHashCalculator {
         uint256 toChainId,
         uint256[] memory messageIds,
         bytes32[] memory messageHashes,
-        address[] memory reporters,
+        IReporter[] memory reporters,
         IOracleAdapter[] memory adapters
     ) internal returns (bytes32[] memory) {
         bytes32[] memory reportersReceipts = new bytes32[](reporters.length);
 
         for (uint256 i = 0; i < reporters.length; ) {
-            reportersReceipts[i] = IReporter(reporters[i]).dispatchMessages(
+            reportersReceipts[i] = reporters[i].dispatchMessages(
                 toChainId,
                 adapters[i],
                 messageIds,
