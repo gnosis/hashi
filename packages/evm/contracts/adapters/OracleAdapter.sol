@@ -11,6 +11,15 @@ abstract contract OracleAdapter is IOracleAdapter {
         hash = hashes[domain][id];
     }
 
+    function _storeHashes(uint256 domain, uint256[] memory ids, bytes32[] memory hashes_) internal {
+        for (uint256 i = 0; i < ids.length; ) {
+            _storeHash(domain, ids[i], hashes_[i]);
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
     function _storeHash(uint256 domain, uint256 id, bytes32 hash) internal {
         bytes32 currentHash = hashes[domain][id];
         if (currentHash != hash) {
