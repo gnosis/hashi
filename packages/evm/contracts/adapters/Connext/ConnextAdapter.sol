@@ -9,8 +9,8 @@ contract ConnextAdapter is BlockHashOracleAdapter, Ownable, IXReceiver {
     string public constant PROVIDER = "connext";
     address public immutable CONNEXT;
 
-    mapping(uint64 => address) public enabledReporters;
-    mapping(uint64 => uint256) public chainIds;
+    mapping(uint32 => address) public enabledReporters;
+    mapping(uint32 => uint256) public chainIds;
 
     error UnauthorizedConnextReceive();
 
