@@ -10,7 +10,7 @@ import { Chains } from "./utils/constants"
 
 let reporter1: Contract,
   reporter2: Contract,
-  owner: SignerWithAddress,
+  headerStorage: Contract,
   yaho: Contract,
   receiver1: SignerWithAddress,
   receiver2: SignerWithAddress,
@@ -21,17 +21,18 @@ describe("Yaho", () => {
   beforeEach(async () => {
     const Yaho = await ethers.getContractFactory("Yaho")
     const Reporter = await ethers.getContractFactory("MockReporter")
+    const HeaderStorage = await ethers.getContractFactory("HeaderStorage")
 
     const signers = await ethers.getSigners()
-    owner = signers[0]
     receiver1 = await signers[1]
     receiver2 = await signers[2]
     adapter1 = await signers[3]
     adapter2 = await signers[4]
 
+    headerStorage = await HeaderStorage.deploy()
     yaho = await Yaho.deploy()
-    reporter1 = await Reporter.deploy(yaho.address)
-    reporter2 = await Reporter.deploy(yaho.address)
+    reporter1 = await Reporter.deploy(headerStorage.address, yaho.address)
+    reporter2 = await Reporter.deploy(headerStorage.address, yaho.address)
   })
 
   describe("dispatchMessage", () => {
@@ -145,9 +146,9 @@ describe("Yaho", () => {
       await expect(tx)
         .to.emit(yaho, "MessageDispatched")
         .withArgs(message.id, anyValue) // FIXME: https://github.com/NomicFoundation/hardhat/issues/3833
-        .and.to.emit(reporter1, "MessageReported")
+        .and.to.emit(reporter1, "MessageDispatched")
         .withArgs(toChainId, adapter1.address, message.id, await yaho.calculateMessageHash(message.serialize()))
-        .and.to.emit(reporter2, "MessageReported")
+        .and.to.emit(reporter2, "MessageDispatched")
         .withArgs(toChainId, adapter2.address, message.id, await yaho.calculateMessageHash(message.serialize()))
       expect(await yaho.getPendingMessageHash(message.id)).to.be.eq(toBytes32(0))
     })
@@ -229,13 +230,13 @@ describe("Yaho", () => {
       await expect(tx)
         .to.emit(yaho, "MessageDispatched")
         .withArgs(message1.id, anyValue) // FIXME: https://github.com/NomicFoundation/hardhat/issues/3833
-        .and.to.emit(reporter1, "MessageReported")
+        .and.to.emit(reporter1, "MessageDispatched")
         .withArgs(toChainId, adapter1.address, message1.id, await yaho.calculateMessageHash(message1.serialize()))
-        .and.to.emit(reporter1, "MessageReported")
+        .and.to.emit(reporter1, "MessageDispatched")
         .withArgs(toChainId, adapter1.address, message2.id, await yaho.calculateMessageHash(message2.serialize()))
-        .and.to.emit(reporter2, "MessageReported")
+        .and.to.emit(reporter2, "MessageDispatched")
         .withArgs(toChainId, adapter2.address, message1.id, await yaho.calculateMessageHash(message1.serialize()))
-        .and.to.emit(reporter2, "MessageReported")
+        .and.to.emit(reporter2, "MessageDispatched")
         .withArgs(toChainId, adapter2.address, message2.id, await yaho.calculateMessageHash(message2.serialize()))
       expect(await yaho.getPendingMessageHash(message1.id)).to.be.eq(toBytes32(0))
       expect(await yaho.getPendingMessageHash(message2.id)).to.be.eq(toBytes32(0))
@@ -412,13 +413,13 @@ describe("Yaho", () => {
         await yaho.calculateMessageHash(message2.serialize()),
       )
       await expect(yaho.relayMessagesToAdapters([message1, message2]))
-        .to.emit(reporter1, "MessageReported")
+        .to.emit(reporter1, "MessageDispatched")
         .withArgs(toChainId, adapter1.address, message1.id, await yaho.calculateMessageHash(message1.serialize()))
-        .and.to.emit(reporter1, "MessageReported")
+        .and.to.emit(reporter1, "MessageDispatched")
         .withArgs(toChainId, adapter1.address, message2.id, await yaho.calculateMessageHash(message2.serialize()))
-        .and.to.emit(reporter2, "MessageReported")
+        .and.to.emit(reporter2, "MessageDispatched")
         .withArgs(toChainId, adapter2.address, message1.id, await yaho.calculateMessageHash(message1.serialize()))
-        .and.to.emit(reporter2, "MessageReported")
+        .and.to.emit(reporter2, "MessageDispatched")
         .withArgs(toChainId, adapter2.address, message2.id, await yaho.calculateMessageHash(message2.serialize()))
       expect(await yaho.getPendingMessageHash(message1.id)).to.be.eq(toBytes32(0))
       expect(await yaho.getPendingMessageHash(message2.id)).to.be.eq(toBytes32(0))
