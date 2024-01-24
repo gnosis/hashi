@@ -5,7 +5,7 @@ import { ICrossDomainMessenger } from "./interfaces/ICrossDomainMessenger.sol";
 import { BlockHashOracleAdapter } from "../BlockHashOracleAdapter.sol";
 
 contract L2CrossDomainMessengerAdapter is BlockHashOracleAdapter {
-    string public constant PROVIDER = "amb";
+    string public constant PROVIDER = "optimism";
 
     ICrossDomainMessenger public immutable L2_CROSS_DOMAIN_MESSENGER;
     address public immutable REPORTER;

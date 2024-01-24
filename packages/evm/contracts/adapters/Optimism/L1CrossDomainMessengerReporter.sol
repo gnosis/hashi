@@ -6,7 +6,7 @@ import { IOracleAdapter } from "../../interfaces/IOracleAdapter.sol";
 import { ICrossDomainMessenger } from "./interfaces/ICrossDomainMessenger.sol";
 
 contract L1CrossDomainMessengerReporter is Reporter {
-    string public constant PROVIDER = "l1-cross-domain-messenger-reporter";
+    string public constant PROVIDER = "optimism";
     // The first 1.92 million gas on L2 is free. See here:
     // https://community.optimism.io/docs/developers/bridge/messaging/#for-l1-%E2%87%92-l2-transactions
     uint32 internal constant GAS_LIMIT = 1_920_000;
