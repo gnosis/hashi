@@ -4,16 +4,16 @@ pragma solidity ^0.8.17;
 import { IOracleAdapter } from "../interfaces/IOracleAdapter.sol";
 
 abstract contract OracleAdapter is IOracleAdapter {
-    mapping(uint256 => mapping(uint256 => bytes32)) public hashes;
+    mapping(uint256 => mapping(uint256 => bytes32)) private _hashes;
 
     /// @inheritdoc IOracleAdapter
-    function getHashFromOracle(uint256 domain, uint256 id) external view returns (bytes32 hash) {
-        hash = hashes[domain][id];
+    function getHashFromOracle(uint256 domain, uint256 id) public view returns (bytes32) {
+        return _hashes[domain][id];
     }
 
-    function _storeHashes(uint256 domain, uint256[] memory ids, bytes32[] memory hashes_) internal {
+    function _storeHashes(uint256 domain, uint256[] memory ids, bytes32[] memory hashes) internal {
         for (uint256 i = 0; i < ids.length; ) {
-            _storeHash(domain, ids[i], hashes_[i]);
+            _storeHash(domain, ids[i], hashes[i]);
             unchecked {
                 ++i;
             }
@@ -21,9 +21,9 @@ abstract contract OracleAdapter is IOracleAdapter {
     }
 
     function _storeHash(uint256 domain, uint256 id, bytes32 hash) internal {
-        bytes32 currentHash = hashes[domain][id];
+        bytes32 currentHash = _hashes[domain][id];
         if (currentHash != hash) {
-            hashes[domain][id] = hash;
+            _hashes[domain][id] = hash;
             emit HashStored(id, hash);
         }
     }
