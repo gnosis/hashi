@@ -10,11 +10,11 @@ contract ConnextReporter is Reporter, Ownable {
     IConnext public immutable CONNEXT;
 
     mapping(uint256 => uint32) public domainIds;
-    event ConnextTransfer(bytes32 transferId);
 
     error DomainIdNotAvailable();
 
     event DomainIdSet(uint256 indexed chainId, uint32 indexed domainId);
+    event ConnextTransfer(bytes32 transferId);
 
     constructor(address headerStorage, address yaho, address connext) Reporter(headerStorage, yaho) {
         CONNEXT = IConnext(connext);
