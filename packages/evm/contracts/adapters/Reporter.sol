@@ -32,7 +32,7 @@ abstract contract Reporter is IReporter {
                 ++i;
             }
         }
-        return _sendPayload(toChainId, address(adapter), blockNumbers, blockHeaders);
+        return _dispatch(toChainId, address(adapter), blockNumbers, blockHeaders);
     }
 
     /// @inheritdoc IReporter
@@ -48,10 +48,10 @@ abstract contract Reporter is IReporter {
                 ++i;
             }
         }
-        return _sendPayload(toChainId, address(adapter), messageIds, messageHashes);
+        return _dispatch(toChainId, address(adapter), messageIds, messageHashes);
     }
 
-    function _sendPayload(
+    function _dispatch(
         uint256 toChainId,
         address adapter,
         uint256[] memory messageIds,

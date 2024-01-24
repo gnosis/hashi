@@ -7,6 +7,8 @@ import { IOracleAdapter } from "../../interfaces/IOracleAdapter.sol";
 import { IAMB } from "./IAMB.sol";
 
 contract AMBReporter is Reporter {
+    string public constant PROVIDER = "amb";
+
     address public immutable AMB;
     uint256 public immutable GAS;
     uint256 public immutable TO_CHAIN_ID;
@@ -25,7 +27,7 @@ contract AMBReporter is Reporter {
         GAS = gas;
     }
 
-    function _sendPayload(
+    function _dispatch(
         uint256 toChainId,
         address adapter,
         uint256[] memory ids,

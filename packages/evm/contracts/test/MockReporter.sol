@@ -7,5 +7,5 @@ import { IOracleAdapter } from "../interfaces/IOracleAdapter.sol";
 contract MockReporter is Reporter {
     constructor(address headerStorage, address yaho) Reporter(headerStorage, yaho) {}
 
-    function _sendPayload(uint256, address, uint256[] memory, bytes32[] memory) internal override returns (bytes32) {}
+    function _dispatch(uint256, address, uint256[] memory, bytes32[] memory) internal override returns (bytes32) {}
 }

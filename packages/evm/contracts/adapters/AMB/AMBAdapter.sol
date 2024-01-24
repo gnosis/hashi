@@ -6,6 +6,8 @@ import { OracleAdapter } from "../OracleAdapter.sol";
 import { BlockHashOracleAdapter } from "../BlockHashOracleAdapter.sol";
 
 contract AMBAdapter is OracleAdapter, BlockHashOracleAdapter {
+    string public constant PROVIDER = "amb";
+
     IAMB public immutable AMB;
     address public immutable REPORTER;
     bytes32 public immutable SOURCE_CHAIN_ID;
