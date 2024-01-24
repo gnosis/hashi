@@ -10,7 +10,7 @@ contract CCIPAdapter is BlockHashOracleAdapter, Ownable, CCIPReceiver {
     string public constant PROVIDER = "ccip";
 
     mapping(uint64 => address) public enabledReporters;
-    mapping(uint64 => uint256) public chainSelectorIds;
+    mapping(uint64 => uint256) public chainIds;
 
     error UnauthorizedCCIPReceive();
 
@@ -20,7 +20,7 @@ contract CCIPAdapter is BlockHashOracleAdapter, Ownable, CCIPReceiver {
 
     function setReporterByChain(uint256 chainId, uint64 chainSelector, address reporter) external onlyOwner {
         enabledReporters[chainSelector] = reporter;
-        chainSelectorIds[chainSelector] = chainId;
+        chainIds[chainSelector] = chainId;
         emit ReporterSet(chainId, chainSelector, reporter);
     }
 
@@ -28,7 +28,7 @@ contract CCIPAdapter is BlockHashOracleAdapter, Ownable, CCIPReceiver {
         // NOTE: validity of `msg.sender` is ensured by `CCIPReceiver` prior this internal function invocation
         address sender = abi.decode(message.sender, (address));
         if (enabledReporters[message.sourceChainSelector] != sender) revert UnauthorizedCCIPReceive();
-        uint256 sourceChainId = chainSelectorIds[message.sourceChainSelector];
+        uint256 sourceChainId = chainIds[message.sourceChainSelector];
         (uint256[] memory ids, bytes32[] memory hashes) = abi.decode(message.data, (uint256[], bytes32[]));
         _storeHashes(sourceChainId, ids, hashes);
     }

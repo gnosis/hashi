@@ -9,7 +9,7 @@ contract AxelarAdapter is BlockHashOracleAdapter, Ownable, AxelarExecutable {
     string public constant PROVIDER = "axelar";
 
     mapping(bytes32 => bytes32) public enabledReporters;
-    mapping(bytes32 => uint256) public chainNameIds;
+    mapping(bytes32 => uint256) public chainIds;
 
     error UnauthorizedAxelarReceive();
     error ExecutionWithTokenNotSupported();
@@ -25,7 +25,7 @@ contract AxelarAdapter is BlockHashOracleAdapter, Ownable, AxelarExecutable {
     ) external onlyOwner {
         bytes32 chainNameHash = keccak256(bytes(chainName));
         enabledReporters[chainNameHash] = keccak256(bytes(reporter));
-        chainNameIds[chainNameHash] = chainId;
+        chainIds[chainNameHash] = chainId;
         emit ReporterSet(chainId, chainName, reporter);
     }
 
@@ -36,7 +36,7 @@ contract AxelarAdapter is BlockHashOracleAdapter, Ownable, AxelarExecutable {
     ) internal override {
         bytes32 chainNameHash = keccak256(bytes(sourceChain));
         bytes32 expectedSourceAddressHash = enabledReporters[chainNameHash];
-        uint256 sourceChainId = chainNameIds[chainNameHash];
+        uint256 sourceChainId = chainIds[chainNameHash];
         if (expectedSourceAddressHash != keccak256(bytes(sourceAddress)) || sourceChainId == 0) {
             revert UnauthorizedAxelarReceive();
         }

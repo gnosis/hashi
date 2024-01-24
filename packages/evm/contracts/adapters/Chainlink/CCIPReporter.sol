@@ -11,7 +11,7 @@ contract CCIPReporter is Reporter, Ownable {
 
     IRouterClient public immutable CCIP_ROUTER;
 
-    mapping(uint256 => uint64) public chainIdSelectors;
+    mapping(uint256 => uint64) public chainSelectors;
 
     error ChainSelectorNotAvailable();
 
@@ -22,7 +22,7 @@ contract CCIPReporter is Reporter, Ownable {
     }
 
     function setChainSelectorByChainId(uint256 chainId, uint64 chainSelector) external onlyOwner {
-        chainIdSelectors[chainId] = chainSelector;
+        chainSelectors[chainId] = chainSelector;
         emit ChainSelectorSet(chainId, chainSelector);
     }
 
@@ -32,7 +32,7 @@ contract CCIPReporter is Reporter, Ownable {
         uint256[] memory ids,
         bytes32[] memory hashes
     ) internal override returns (bytes32) {
-        uint64 chainSelector = chainIdSelectors[toChainId];
+        uint64 chainSelector = chainSelectors[toChainId];
         if (chainSelector == 0) revert ChainSelectorNotAvailable();
         bytes memory payload = abi.encode(ids, hashes);
         Client.EVM2AnyMessage memory message = Client.EVM2AnyMessage({

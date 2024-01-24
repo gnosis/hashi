@@ -15,7 +15,7 @@ contract AxelarReporter is Reporter, Ownable {
     IAxelarGateway public immutable AXELAR_GATEWAY;
     IAxelarGasService public immutable AXELAR_GAS_SERVICE;
 
-    mapping(uint256 => string) public chainIdNames;
+    mapping(uint256 => string) public chainNames;
 
     error ChainIdNotSupported(uint256 chainId);
 
@@ -32,7 +32,7 @@ contract AxelarReporter is Reporter, Ownable {
     }
 
     function setChainNameByChainId(uint256 chainId, string calldata chainName) external onlyOwner {
-        chainIdNames[chainId] = chainName;
+        chainNames[chainId] = chainName;
         emit ChainNameSet(chainId, chainName);
     }
 
@@ -42,7 +42,7 @@ contract AxelarReporter is Reporter, Ownable {
         uint256[] memory ids,
         bytes32[] memory hashes
     ) internal override returns (bytes32) {
-        string memory chainName = chainIdNames[toChainId];
+        string memory chainName = chainNames[toChainId];
         if (keccak256(abi.encode(chainName)) == NULL_STRING) revert ChainIdNotSupported(toChainId);
 
         string memory sAdapter = uint256(uint160(adapter)).toHexString(20);
