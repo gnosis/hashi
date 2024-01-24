@@ -6,38 +6,34 @@ import { OracleAdapter } from "../OracleAdapter.sol";
 import { BlockHashOracleAdapter } from "../BlockHashOracleAdapter.sol";
 
 contract AMBAdapter is OracleAdapter, BlockHashOracleAdapter {
-    IAMB public amb;
-    address public reporter;
-    bytes32 public chainId;
+    IAMB public immutable AMB;
+    address public immutable REPORTER;
+    bytes32 public immutable SOURCE_CHAIN_ID;
 
-    error ArrayLengthMissmatch(address emitter);
-    error UnauthorizedAMB(address emitter, address sender);
-    error UnauthorizedChainId(address emitter, bytes32 chainId);
-    error UnauthorizedHashReporter(address emitter, address reporter);
+    error ArrayLengthMissmatch();
+    error UnauthorizedAMB(address sender, address expectedSender);
+    error UnauthorizedChainId(bytes32 sourceChainId, bytes32 expectedSourceChainId);
+    error UnauthorizedHashReporter(address reporter, address expectedReporter);
 
-    constructor(IAMB _amb, address _reporter, bytes32 _chainId) {
-        amb = _amb;
-        reporter = _reporter;
-        chainId = _chainId;
+    constructor(IAMB amb, address reporter, bytes32 sourceChainId) {
+        AMB = amb;
+        REPORTER = reporter;
+        SOURCE_CHAIN_ID = sourceChainId;
     }
 
-    /// @dev Check that the amb, chainId, and owner are valid.
     modifier onlyValid() {
-        if (msg.sender != address(amb)) revert UnauthorizedAMB(address(this), msg.sender);
-        if (amb.messageSourceChainId() != chainId) revert UnauthorizedChainId(address(this), chainId);
-        if (amb.messageSender() != reporter) revert UnauthorizedHashReporter(address(this), reporter);
+        bytes32 ambSourceChainId = AMB.messageSourceChainId();
+        address ambMessageSender = AMB.messageSender();
+        if (msg.sender != address(AMB)) revert UnauthorizedAMB(msg.sender, address(AMB));
+        if (ambSourceChainId != SOURCE_CHAIN_ID) revert UnauthorizedChainId(ambSourceChainId, SOURCE_CHAIN_ID);
+        if (ambMessageSender != REPORTER) revert UnauthorizedHashReporter(ambMessageSender, REPORTER);
         _;
     }
 
-    /// @dev Stores the hashes for a given array of idss.
-    /// @param ids Array of ids number for which to set the hashes.
-    /// @param _hashes Array of hashes to set for the given ids.
-    /// @notice Only callable by `amb` with a message passed from `reporter.
-    /// @notice Will revert if given array lengths do not match.
     function storeHashes(uint256[] memory ids, bytes32[] memory _hashes) public onlyValid {
-        if (ids.length != _hashes.length) revert ArrayLengthMissmatch(address(this));
+        if (ids.length != _hashes.length) revert ArrayLengthMissmatch();
         for (uint256 i = 0; i < ids.length; i++) {
-            _storeHash(uint256(chainId), ids[i], _hashes[i]);
+            _storeHash(uint256(SOURCE_CHAIN_ID), ids[i], _hashes[i]);
         }
     }
 }
