@@ -1,37 +1,61 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity ^0.8.17;
 
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { IAxelarGateway } from "@axelar-network/axelar-gmp-sdk-solidity/contracts/interfaces/IAxelarGateway.sol";
 import { IAxelarGasService } from "@axelar-network/axelar-gmp-sdk-solidity/contracts/interfaces/IAxelarGasService.sol";
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+import { Reporter } from "../Reporter.sol";
 
-abstract contract AxelarReporter {
+contract AxelarReporter is Reporter, Ownable {
     using Strings for uint256;
 
     string public constant PROVIDER = "axelar";
+    bytes32 private constant NULL_STRING = keccak256("");
     IAxelarGateway public immutable AXELAR_GATEWAY;
     IAxelarGasService public immutable AXELAR_GAS_SERVICE;
-    string public AXELAR_ADAPTER_CHAIN; // Immutable
 
-    constructor(address axelarGateway, address axelarGasService, string memory axelarAdapterChain) {
+    mapping(uint256 => string) public chainIdNames;
+
+    error ChainIdNotSupported(uint256 chainId);
+
+    constructor(
+        address headerStorage,
+        address yaho,
+        address axelarGateway,
+        address axelarGasService
+    ) Reporter(headerStorage, yaho) {
         AXELAR_GATEWAY = IAxelarGateway(axelarGateway);
         AXELAR_GAS_SERVICE = IAxelarGasService(axelarGasService);
-        AXELAR_ADAPTER_CHAIN = axelarAdapterChain;
     }
 
-    function _axelarSend(bytes memory payload, address adapter) internal {
+    function addChain(uint256 chainId, string calldata chainName) external onlyOwner {
+        chainIdNames[chainId] = chainName;
+    }
+
+    function _dispatch(
+        uint256 toChainId,
+        address adapter,
+        uint256[] memory ids,
+        bytes32[] memory hashes
+    ) internal override returns (bytes32) {
+        string memory chainName = chainIdNames[toChainId];
+        if (keccak256(abi.encode(chainName)) == NULL_STRING) revert ChainIdNotSupported(toChainId);
+
         string memory sAdapter = uint256(uint160(adapter)).toHexString(20);
+        bytes memory payload = abi.encode(ids, hashes);
 
         if (msg.value > 0) {
             AXELAR_GAS_SERVICE.payNativeGasForContractCall{ value: msg.value }(
                 address(this),
-                AXELAR_ADAPTER_CHAIN,
+                chainName,
                 sAdapter,
                 payload,
                 msg.sender
             );
         }
 
-        AXELAR_GATEWAY.callContract(AXELAR_ADAPTER_CHAIN, sAdapter, payload);
+        AXELAR_GATEWAY.callContract(chainName, sAdapter, payload);
+        return bytes32(0);
     }
 }
