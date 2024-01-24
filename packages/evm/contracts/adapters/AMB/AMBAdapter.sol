@@ -16,8 +16,8 @@ contract AMBAdapter is BlockHashOracleAdapter {
     error UnauthorizedChainId(bytes32 sourceChainId, bytes32 expectedSourceChainId);
     error UnauthorizedHashReporter(address reporter, address expectedReporter);
 
-    constructor(IAMB amb, address reporter, bytes32 sourceChainId) {
-        AMB = amb;
+    constructor(address amb, address reporter, bytes32 sourceChainId) {
+        AMB = IAMB(amb);
         REPORTER = reporter;
         SOURCE_CHAIN_ID = sourceChainId;
     }
@@ -33,8 +33,6 @@ contract AMBAdapter is BlockHashOracleAdapter {
 
     function storeHashes(uint256[] memory ids, bytes32[] memory _hashes) public onlyValid {
         if (ids.length != _hashes.length) revert ArrayLengthMissmatch();
-        for (uint256 i = 0; i < ids.length; i++) {
-            _storeHash(uint256(SOURCE_CHAIN_ID), ids[i], _hashes[i]);
-        }
+        _storeHashes(uint256(SOURCE_CHAIN_ID), ids, _hashes);
     }
 }
