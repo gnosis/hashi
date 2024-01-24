@@ -19,6 +19,8 @@ contract AxelarReporter is Reporter, Ownable {
 
     error ChainIdNotSupported(uint256 chainId);
 
+    event ChainNameSet(uint256 indexed chainId, string indexed chainName);
+
     constructor(
         address headerStorage,
         address yaho,
@@ -29,8 +31,9 @@ contract AxelarReporter is Reporter, Ownable {
         AXELAR_GAS_SERVICE = IAxelarGasService(axelarGasService);
     }
 
-    function addChain(uint256 chainId, string calldata chainName) external onlyOwner {
+    function setChainNameByChainId(uint256 chainId, string calldata chainName) external onlyOwner {
         chainIdNames[chainId] = chainName;
+        emit ChainNameSet(chainId, chainName);
     }
 
     function _dispatch(

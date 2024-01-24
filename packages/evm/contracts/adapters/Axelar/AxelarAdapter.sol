@@ -14,12 +14,19 @@ contract AxelarAdapter is BlockHashOracleAdapter, Ownable, AxelarExecutable {
     error UnauthorizedAxelarReceive();
     error ExecutionWithTokenNotSupported();
 
+    event ReporterForChainSet(uint256 indexed chainId, string name, address indexed reporter);
+
     constructor(address axelarGateway) AxelarExecutable(axelarGateway) {}
 
-    function addChain(string calldata chainName, string calldata sourceAddress, uint256 chainId) external onlyOwner {
+    function setReporterForChain(
+        uint256 chainId,
+        string calldata chainName,
+        string calldata reporter
+    ) external onlyOwner {
         bytes32 chainNameHash = keccak256(bytes(chainName));
-        enabledReporters[chainNameHash] = keccak256(bytes(sourceAddress));
+        enabledReporters[chainNameHash] = keccak256(bytes(reporter));
         chainNameIds[chainNameHash] = chainId;
+        emit ReporterForChainSet(chainId, chainName, reporter);
     }
 
     function _execute(
