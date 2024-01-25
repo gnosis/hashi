@@ -128,5 +128,36 @@ describe("Hashi", function () {
       await nonReportingMockOracleAdapter.setHashes(DOMAIN_ID, [id], [HASH_GOOD])
       expect(await hashi.checkHashWithThresholdFromOracles(DOMAIN_ID, id, threshold, oracles)).to.be.eq(true)
     })
+    it("should revert if the threshold > oracle adapters", async () => {
+      const { hashi, mockOracleAdapter, badMockOracleAdapter, nonReportingMockOracleAdapter } = await setup()
+      const id = 3
+      const threshold = 4
+      const oracles = [mockOracleAdapter, badMockOracleAdapter, nonReportingMockOracleAdapter].map(
+        ({ address }) => address,
+      )
+      await expect(hashi.checkHashWithThresholdFromOracles(DOMAIN_ID, id, threshold, oracles))
+        .to.be.revertedWithCustomError(hashi, "InvalidThreshold")
+        .withArgs(threshold, oracles.length)
+    })
+    it("should revert false if the threshold is 0", async () => {
+      const { hashi, mockOracleAdapter, badMockOracleAdapter, nonReportingMockOracleAdapter } = await setup()
+      const id = 3
+      const threshold = 0
+      const oracles = [mockOracleAdapter, badMockOracleAdapter, nonReportingMockOracleAdapter].map(
+        ({ address }) => address,
+      )
+      await expect(hashi.checkHashWithThresholdFromOracles(DOMAIN_ID, id, threshold, oracles))
+        .to.be.revertedWithCustomError(hashi, "InvalidThreshold")
+        .withArgs(threshold, oracles.length)
+    })
+    it("should revert false if we don't provide any oracle adapter", async () => {
+      const { hashi } = await setup()
+      const id = 3
+      const threshold = 3
+      await expect(hashi.checkHashWithThresholdFromOracles(DOMAIN_ID, id, threshold, [])).to.be.revertedWithCustomError(
+        hashi,
+        "NoOracleAdaptersGiven",
+      )
+    })
   })
 })
