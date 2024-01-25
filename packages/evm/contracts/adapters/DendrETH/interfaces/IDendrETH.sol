@@ -14,13 +14,9 @@ struct LightClientUpdate {
 interface ILightClient {
     function currentIndex() external view returns (uint256);
 
-    function optimisticHeaders(uint256 index) external view returns (bytes32);
+    function finalizedHeaders(uint256 index) external view returns (bytes32);
 
-    function optimisticHeaderRoot() external view returns (bytes32);
-
-    function optimisticSlots(uint256 index) external view returns (uint256);
-
-    function optimisticHeaderSlot() external view returns (uint256);
+    function finalizedHeaderRoot() external view returns (bytes32);
 
     function light_client_update(LightClientUpdate calldata update) external;
 }

@@ -8,6 +8,7 @@ import { BlockHashOracleAdapter } from "../BlockHashOracleAdapter.sol";
 contract DendrETHAdapter is BlockHashOracleAdapter {
     error InvalidUpdate();
     error BlockHeaderNotAvailable(uint256 slot);
+    error InvalidSlot();
     error InvalidBlockNumberProof();
     error InvalidBlockHashProof();
 
@@ -22,6 +23,8 @@ contract DendrETHAdapter is BlockHashOracleAdapter {
     function storeBlockHeader(
         uint32 _chainId,
         uint64 _slot,
+        bytes32[] calldata _slotProof,
+        bytes32 _finalizedBlockHeader,
         uint256 _blockNumber,
         bytes32[] calldata _blockNumberProof,
         bytes32 _blockHash,
@@ -34,7 +37,7 @@ contract DendrETHAdapter is BlockHashOracleAdapter {
         bool found = false;
 
         do {
-            if (_slot == lightClient.optimisticSlots(i)) {
+            if (_finalizedBlockHeader == lightClient.finalizedHeaders(i)) {
                 found = true;
                 break;
             }
@@ -48,13 +51,15 @@ contract DendrETHAdapter is BlockHashOracleAdapter {
             revert BlockHeaderNotAvailable(_slot);
         }
 
-        bytes32 blockHeaderRoot = lightClient.optimisticHeaders(i);
+        if (!SSZ.verifySlot(_slot, _slotProof, _finalizedBlockHeader)) {
+            revert InvalidSlot();
+        }
 
-        if (!SSZ.verifyBlockNumber(_blockNumber, _blockNumberProof, blockHeaderRoot)) {
+        if (!SSZ.verifyBlockNumber(_blockNumber, _blockNumberProof, _finalizedBlockHeader)) {
             revert InvalidBlockNumberProof();
         }
 
-        if (!SSZ.verifyBlockHash(_blockHash, _blockHashProof, blockHeaderRoot)) {
+        if (!SSZ.verifyBlockHash(_blockHash, _blockHashProof, _finalizedBlockHeader)) {
             revert InvalidBlockHashProof();
         }
 
@@ -66,6 +71,7 @@ contract DendrETHAdapter is BlockHashOracleAdapter {
     function storeBlockHeader(
         uint32 _chainId,
         uint64 _slot,
+        bytes32[] calldata _slotProof,
         uint256 _blockNumber,
         bytes32[] calldata _blockNumberProof,
         bytes32 _blockHash,
@@ -76,17 +82,17 @@ contract DendrETHAdapter is BlockHashOracleAdapter {
 
         lightClient.light_client_update(update);
 
-        if (lightClient.optimisticHeaderSlot() != _slot) {
+        bytes32 finalizedHeaderRoot = lightClient.finalizedHeaderRoot();
+
+        if (!SSZ.verifySlot(_slot, _slotProof, finalizedHeaderRoot)) {
             revert InvalidUpdate();
         }
 
-        bytes32 blockHeaderRoot = lightClient.optimisticHeaderRoot();
-
-        if (!SSZ.verifyBlockNumber(_blockNumber, _blockNumberProof, blockHeaderRoot)) {
+        if (!SSZ.verifyBlockNumber(_blockNumber, _blockNumberProof, finalizedHeaderRoot)) {
             revert InvalidBlockNumberProof();
         }
 
-        if (!SSZ.verifyBlockHash(_blockHash, _blockHashProof, blockHeaderRoot)) {
+        if (!SSZ.verifyBlockHash(_blockHash, _blockHashProof, finalizedHeaderRoot)) {
             revert InvalidBlockHashProof();
         }
 
