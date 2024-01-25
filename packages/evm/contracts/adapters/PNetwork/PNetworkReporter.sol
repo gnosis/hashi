@@ -2,32 +2,55 @@
 pragma solidity ^0.8.17;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { Reporter } from "../Reporter.sol";
 import { IErc20Vault } from "./interfaces/IErc20Vault.sol";
 import { IPToken } from "./interfaces/IPToken.sol";
-import { PNetworkBase } from "./PNetworkBase.sol";
 
-abstract contract PNetworkReporter is PNetworkBase {
+contract PNetworkReporter is Reporter, Ownable {
+    string public constant PROVIDER = "pnetwork";
     uint256 private constant SWAP_AMOUNT = 1;
 
-    constructor(
-        address pNetworkVault,
-        address pNetworkToken,
-        bytes4 pNetworkAdapterNetworkId
-    ) PNetworkBase(pNetworkVault, pNetworkToken, pNetworkAdapterNetworkId) {} // solhint-disable no-empty-blocks
+    address public immutable VAULT;
+    address public immutable TOKEN;
 
-    function _char(bytes1 b) internal pure returns (bytes1 c) {
-        if (uint8(b) < 10) return bytes1(uint8(b) + 0x30);
-        else return bytes1(uint8(b) + 0x57);
+    mapping(uint256 => bytes4) public networkIds;
+
+    error NetworkIdNotAvailable();
+
+    event NetworkIdSet(uint256 indexed chainId, bytes4 indexed networkId);
+
+    constructor(
+        address headerStorage,
+        address yaho,
+        address pNetworkVault,
+        address pNetworkToken
+    ) Reporter(headerStorage, yaho) {
+        VAULT = pNetworkVault;
+        TOKEN = pNetworkToken;
     }
 
-    function _pNetworkSend(bytes memory payload, address adapter) internal {
+    function setNetworkIdByChainId(uint256 chainId, bytes4 networkId) external onlyOwner {
+        networkIds[chainId] = networkId;
+        emit NetworkIdSet(chainId, networkId);
+    }
+
+    function _dispatch(
+        uint256 toChainId,
+        address adapter,
+        uint256[] memory ids,
+        bytes32[] memory hashes
+    ) internal override returns (bytes32) {
+        bytes4 networkId = networkIds[toChainId];
+        if (networkId == 0) revert NetworkIdNotAvailable();
+        bytes memory payload = abi.encode(ids, hashes);
         if (VAULT != address(0)) {
             IERC20(TOKEN).approve(VAULT, SWAP_AMOUNT);
-            IErc20Vault(VAULT).pegIn(SWAP_AMOUNT, TOKEN, _toAsciiString(adapter), payload, PNETWORK_REF_NETWORK_ID);
+            IErc20Vault(VAULT).pegIn(SWAP_AMOUNT, TOKEN, _toAsciiString(adapter), payload, networkId);
         } else {
-            IPToken(TOKEN).redeem(SWAP_AMOUNT, payload, _toAsciiString(adapter), PNETWORK_REF_NETWORK_ID);
+            IPToken(TOKEN).redeem(SWAP_AMOUNT, payload, _toAsciiString(adapter), networkId);
         }
+        return bytes32(0);
     }
 
     function _toAsciiString(address x) internal pure returns (string memory) {
@@ -40,5 +63,10 @@ abstract contract PNetworkReporter is PNetworkBase {
             s[2 * i + 1] = _char(lo);
         }
         return string(s);
+    }
+
+    function _char(bytes1 b) internal pure returns (bytes1 c) {
+        if (uint8(b) < 10) return bytes1(uint8(b) + 0x30);
+        else return bytes1(uint8(b) + 0x57);
     }
 }
