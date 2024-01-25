@@ -44,7 +44,7 @@ contract Hashi is IHashi {
         uint256 threshold,
         IOracleAdapter[] calldata oracleAdapters
     ) external view returns (bool) {
-        if (oracleAdapters.length < threshold) return false;
+        if (threshold > oracleAdapters.length) revert InvalidThreshold(threshold, oracleAdapters.length);
 
         bytes32[] memory hashes = new bytes32[](oracleAdapters.length);
         for (uint256 i = 0; i < oracleAdapters.length; ) {
