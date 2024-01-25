@@ -7,6 +7,9 @@ import { Message } from "./IMessage.sol";
 import { IReporter } from "./IReporter.sol";
 import { IOracleAdapter } from "./IOracleAdapter.sol";
 
+/**
+ * @title IYaho
+ */
 interface IYaho is IMessageHashCalculator, IMessageIdCalculator {
     error NoMessagesGiven();
     error NoMessageIdsGiven();

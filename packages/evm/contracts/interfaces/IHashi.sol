@@ -7,6 +7,7 @@ import { IOracleAdapter } from "./IOracleAdapter.sol";
  * @title IHashi
  */
 interface IHashi {
+    error InvalidThreshold(uint256 threshold, uint256 maxThreshold);
     error NoOracleAdaptersGiven();
     error OracleDidNotReport(IOracleAdapter oracleAdapter);
     error OraclesDisagree(IOracleAdapter oracleOne, IOracleAdapter oracleTwo);

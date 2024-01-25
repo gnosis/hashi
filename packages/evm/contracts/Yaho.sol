@@ -69,7 +69,6 @@ contract Yaho is IYaho, MessageIdCalculator, MessageHashCalculator {
         bytes32[] memory messageHashes = new bytes32[](receivers.length);
         for (uint256 i = 0; i < receivers.length; ) {
             _checkReportersAndAdapters(thresholds[i], reporters, adapters);
-
             (messageIds[i], messageHashes[i]) = _dispatchMessage(
                 toChainId,
                 thresholds[i],
@@ -187,16 +186,15 @@ contract Yaho is IYaho, MessageIdCalculator, MessageHashCalculator {
 
         for (uint256 i = 0; i < reporters.length; ) {
             reportersReceipts[i] = reporters[i].dispatchMessages(toChainId, adapters[i], messageIds, messageHashes);
-
-            for (uint256 j = 0; j < messageIds.length; ) {
-                delete _pendingMessageHashes[messageIds[j]];
-                unchecked {
-                    ++j;
-                }
-            }
-
             unchecked {
                 ++i;
+            }
+        }
+
+        for (uint256 j = 0; j < messageIds.length; ) {
+            delete _pendingMessageHashes[messageIds[j]];
+            unchecked {
+                ++j;
             }
         }
 

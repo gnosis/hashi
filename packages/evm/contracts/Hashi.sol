@@ -44,7 +44,9 @@ contract Hashi is IHashi {
         uint256 threshold,
         IOracleAdapter[] calldata oracleAdapters
     ) external view returns (bool) {
-        if (oracleAdapters.length < threshold) return false;
+        if (oracleAdapters.length == 0) revert NoOracleAdaptersGiven();
+        if (threshold > oracleAdapters.length || threshold == 0)
+            revert InvalidThreshold(threshold, oracleAdapters.length);
 
         bytes32[] memory hashes = new bytes32[](oracleAdapters.length);
         for (uint256 i = 0; i < oracleAdapters.length; ) {
@@ -98,8 +100,11 @@ contract Hashi is IHashi {
     ) public view returns (bytes32[] memory) {
         if (oracleAdapters.length == 0) revert NoOracleAdaptersGiven();
         bytes32[] memory hashes = new bytes32[](oracleAdapters.length);
-        for (uint256 i = 0; i < oracleAdapters.length; i++) {
+        for (uint256 i = 0; i < oracleAdapters.length; ) {
             hashes[i] = getHashFromOracle(domain, id, oracleAdapters[i]);
+            unchecked {
+                ++i;
+            }
         }
         return hashes;
     }
@@ -114,9 +119,12 @@ contract Hashi is IHashi {
         bytes32[] memory hashes = getHashesFromOracles(domain, id, oracleAdapters);
         hash = hashes[0];
         if (hash == bytes32(0)) revert OracleDidNotReport(oracleAdapters[0]);
-        for (uint256 i = 1; i < hashes.length; i++) {
+        for (uint256 i = 1; i < hashes.length; ) {
             if (hashes[i] == bytes32(0)) revert OracleDidNotReport(oracleAdapters[i]);
             if (hash != hashes[i]) revert OraclesDisagree(oracleAdapters[i - 1], oracleAdapters[i]);
+            unchecked {
+                ++i;
+            }
         }
     }
 }
