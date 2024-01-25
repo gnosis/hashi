@@ -21,7 +21,7 @@ contract HeaderStorage is IHeaderStorage {
     /// @inheritdoc IHeaderStorage
     function storeBlockHeaders(uint256[] memory blockNumbers) public returns (bytes32[] memory) {
         bytes32[] memory blockHeaders = new bytes32[](blockNumbers.length);
-        for (uint256 i = 0; i < blockNumbers.length;) {
+        for (uint256 i = 0; i < blockNumbers.length; ) {
             blockHeaders[i] = storeBlockHeader(blockNumbers[i]);
             unchecked {
                 ++i;
