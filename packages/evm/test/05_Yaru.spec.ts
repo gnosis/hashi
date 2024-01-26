@@ -1,4 +1,3 @@
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address"
 import { expect } from "chai"
 import { Contract } from "ethers"
 import { ethers } from "hardhat"
@@ -10,7 +9,6 @@ let reporter1: Contract,
   reporter2: Contract,
   reporter3: Contract,
   reporter4: Contract,
-  owner: SignerWithAddress,
   yaho: Contract,
   yaru: Contract,
   hashi: Contract,
@@ -29,9 +27,6 @@ describe("Yaru", () => {
     const Reporter = await ethers.getContractFactory("MockReporter")
     const Adapter = await ethers.getContractFactory("MockOracleAdapter")
     const PingPong = await ethers.getContractFactory("PingPong")
-
-    const signers = await ethers.getSigners()
-    owner = signers[0]
 
     hashi = await Hashi.deploy()
     yaho = await Yaho.deploy()
@@ -124,7 +119,7 @@ describe("Yaru", () => {
       await adapter1.setHashes(Chains.Hardhat, [message.id], [hash])
       await adapter2.setHashes(Chains.Hardhat, [message.id], [hash])
       await yaru.executeMessages([message])
-      expect(yaru.executeMessages([message]))
+      await expect(yaru.executeMessages([message]))
         .to.be.revertedWithCustomError(yaru, "MessageIdAlreadyExecuted")
         .withArgs(message.id)
     })
@@ -144,7 +139,7 @@ describe("Yaru", () => {
       await adapter1.setHashes(Chains.Hardhat, [message.id], [hash])
       await adapter2.setHashes(Chains.Hardhat, [message.id], [hash])
       message.adapters = [adapter3.address as `0x${string}`, adapter4.address as `0x${string}`]
-      expect(yaru.executeMessages([message])).to.be.revertedWithCustomError(yaru, "ThresholdNotMet")
+      await expect(yaru.executeMessages([message])).to.be.revertedWithCustomError(yaru, "ThresholdNotMet")
     })
 
     for (let threshold = 1; threshold <= 4; threshold++) {

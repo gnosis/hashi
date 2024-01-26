@@ -10,7 +10,6 @@ import { Chains } from "./utils/constants"
 
 let reporter1: Contract,
   reporter2: Contract,
-  owner: SignerWithAddress,
   yaho: Contract,
   receiver1: SignerWithAddress,
   receiver2: SignerWithAddress,
@@ -23,7 +22,6 @@ describe("Yaho", () => {
     const Reporter = await ethers.getContractFactory("MockReporter")
 
     const signers = await ethers.getSigners()
-    owner = signers[0]
     receiver1 = await signers[1]
     receiver2 = await signers[2]
     adapter1 = await signers[3]

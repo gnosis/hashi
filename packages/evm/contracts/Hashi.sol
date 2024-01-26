@@ -52,7 +52,7 @@ contract Hashi is IHashi {
         for (uint256 i = 0; i < oracleAdapters.length; ) {
             try oracleAdapters[i].getHashFromOracle(domain, id) returns (bytes32 hash) {
                 hashes[i] = hash;
-            } catch {}
+            } catch {} // solhint-disable no-empty-blocks
             unchecked {
                 ++i;
             }

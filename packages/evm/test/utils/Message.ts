@@ -1,4 +1,3 @@
-import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs"
 import { ContractReceipt } from "ethers"
 
 type Configs = {
