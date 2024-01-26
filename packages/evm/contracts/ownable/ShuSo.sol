@@ -186,7 +186,7 @@ abstract contract ShuSo is OwnableUpgradeable {
         for (uint i = 0; i < _adapters.length; i++) {
             try _adapters[i].getHashFromOracle(domain, id) returns (bytes32 currentHash) {
                 hashes[i] = currentHash;
-            } catch {}
+            } catch {} // solhint-disable no-empty-blocks
         }
 
         // find a hash agreed on by a threshold of oracles

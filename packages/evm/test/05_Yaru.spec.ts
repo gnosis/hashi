@@ -122,7 +122,7 @@ describe("Yaru", () => {
       await adapter1.setHashes(Chains.Hardhat, [message.id], [hash])
       await adapter2.setHashes(Chains.Hardhat, [message.id], [hash])
       await yaru.executeMessages([message])
-      expect(yaru.executeMessages([message]))
+      await expect(yaru.executeMessages([message]))
         .to.be.revertedWithCustomError(yaru, "MessageIdAlreadyExecuted")
         .withArgs(message.id)
     })
@@ -142,7 +142,7 @@ describe("Yaru", () => {
       await adapter1.setHashes(Chains.Hardhat, [message.id], [hash])
       await adapter2.setHashes(Chains.Hardhat, [message.id], [hash])
       message.adapters = [adapter3.address as `0x${string}`, adapter4.address as `0x${string}`]
-      expect(yaru.executeMessages([message])).to.be.revertedWithCustomError(yaru, "ThresholdNotMet")
+      await expect(yaru.executeMessages([message])).to.be.revertedWithCustomError(yaru, "ThresholdNotMet")
     })
 
     for (let threshold = 1; threshold <= 4; threshold++) {

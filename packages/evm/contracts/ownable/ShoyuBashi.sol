@@ -5,7 +5,7 @@ import { Hashi, IOracleAdapter, ShuSo, OwnableUpgradeable } from "./ShuSo.sol";
 import { Domain } from "../interfaces/IDomain.sol";
 
 contract ShoyuBashi is ShuSo {
-    constructor(address _owner, address _hashi) ShuSo(_owner, _hashi) {}
+    constructor(address _owner, address _hashi) ShuSo(_owner, _hashi) {} // solhint-disable no-empty-blocks
 
     /// @dev Sets the address of the Hashi contract.
     /// @param _hashi Address of the hashi contract.
