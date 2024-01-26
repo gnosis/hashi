@@ -14,7 +14,7 @@ let reporter: Contract,
   fakeAdapter: SignerWithAddress,
   user: SignerWithAddress
 
-describe("Yaho", () => {
+describe("Reporter", () => {
   beforeEach(async () => {
     await network.provider.request({ method: "hardhat_reset", params: [] })
 
