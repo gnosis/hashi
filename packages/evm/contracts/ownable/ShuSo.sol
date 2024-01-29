@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity ^0.8.17;
 
-import { IHashi } from "../interfaces/IHashi.sol";
-import { IOracleAdapter } from "../interfaces/IOracleAdapter.sol";
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import { IOracleAdapter } from "../interfaces/IOracleAdapter.sol";
+import { IHashi } from "../interfaces/IHashi.sol";
 import { Domain } from "../interfaces/IDomain.sol";
 import { IShuSho } from "../interfaces/IShuSho.sol";
 
@@ -164,6 +164,7 @@ abstract contract ShuSo is IShuSho, OwnableUpgradeable {
      * @param domain - Uint256 identifier for the domain to query.
      * @param id - Uint256 identifier to query.
      * @return hash - Bytes32 hash agreed upon by a threshold of the oracles for the given domain.
+     * @notice If the threshold is set to 1, the function will return the hash of the first adapter in the list.
      * @notice Reverts if no threshold is not reached.
      * @notice Reverts if no oracles are set for the given domain.
      */
@@ -187,11 +188,10 @@ abstract contract ShuSo is IShuSho, OwnableUpgradeable {
             if (baseHash == bytes32(0)) continue;
 
             // increment num for each instance of the curent hash
-            uint256 num = 1;
+            uint256 num = 0;
             for (uint j = 0; j < hashes.length; j++) {
-                if (baseHash == hashes[j] && i != j) {
+                if (baseHash == hashes[j]) {
                     num++;
-                    // return current hash if num equals threshold
                     if (num == threshold) return hashes[i];
                 }
             }
