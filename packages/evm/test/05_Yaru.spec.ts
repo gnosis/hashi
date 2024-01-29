@@ -9,6 +9,7 @@ let reporter1: Contract,
   reporter2: Contract,
   reporter3: Contract,
   reporter4: Contract,
+  headerStorage: Contract,
   yaho: Contract,
   yaru: Contract,
   hashi: Contract,
@@ -27,14 +28,16 @@ describe("Yaru", () => {
     const Reporter = await ethers.getContractFactory("MockReporter")
     const Adapter = await ethers.getContractFactory("MockOracleAdapter")
     const PingPong = await ethers.getContractFactory("PingPong")
+    const HeaderStorage = await ethers.getContractFactory("HeaderStorage")
 
     hashi = await Hashi.deploy()
     yaho = await Yaho.deploy()
+    headerStorage = await HeaderStorage.deploy()
     yaru = await Yaru.deploy(hashi.address, yaho.address, Chains.Hardhat)
-    reporter1 = await Reporter.deploy(yaho.address)
-    reporter2 = await Reporter.deploy(yaho.address)
-    reporter3 = await Reporter.deploy(yaho.address)
-    reporter4 = await Reporter.deploy(yaho.address)
+    reporter1 = await Reporter.deploy(headerStorage.address, yaho.address)
+    reporter2 = await Reporter.deploy(headerStorage.address, yaho.address)
+    reporter3 = await Reporter.deploy(headerStorage.address, yaho.address)
+    reporter4 = await Reporter.deploy(headerStorage.address, yaho.address)
     adapter1 = await Adapter.deploy()
     adapter2 = await Adapter.deploy()
     adapter3 = await Adapter.deploy()

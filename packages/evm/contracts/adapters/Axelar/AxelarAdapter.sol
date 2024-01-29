@@ -1,30 +1,32 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity ^0.8.17;
 
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { AxelarExecutable } from "@axelar-network/axelar-gmp-sdk-solidity/contracts/executable/AxelarExecutable.sol";
-import { HeaderOracleAdapter } from "../HeaderOracleAdapter.sol";
+import { BlockHashOracleAdapter } from "../BlockHashOracleAdapter.sol";
 
-contract AxelarAdapter is HeaderOracleAdapter, AxelarExecutable {
+contract AxelarAdapter is BlockHashOracleAdapter, Ownable, AxelarExecutable {
     string public constant PROVIDER = "axelar";
-    string public AXELAR_REPORTER_CHAIN; // Immutable
-    bytes32 public immutable AXELAR_REPORTER_CHAIN_HASH;
-    string public AXELAR_REPORTER_ADDRESS; // Immutable
-    bytes32 public immutable AXELAR_REPORTER_ADDRESS_HASH;
+
+    mapping(bytes32 => bytes32) public enabledReporters;
+    mapping(bytes32 => uint256) public chainIds;
 
     error UnauthorizedAxelarReceive();
     error ExecutionWithTokenNotSupported();
 
-    constructor(
-        uint256 reporterChain,
-        address reporterAddress,
-        address axelarGateway,
-        string memory axelarReporterChain,
-        string memory axelarReporterAddress
-    ) HeaderOracleAdapter(reporterChain, reporterAddress) AxelarExecutable(axelarGateway) {
-        AXELAR_REPORTER_CHAIN = axelarReporterChain;
-        AXELAR_REPORTER_CHAIN_HASH = keccak256(bytes(axelarReporterChain));
-        AXELAR_REPORTER_ADDRESS = axelarReporterAddress;
-        AXELAR_REPORTER_ADDRESS_HASH = keccak256(bytes(axelarReporterAddress));
+    event ReporterSet(uint256 indexed chainId, string name, string indexed reporter);
+
+    constructor(address axelarGateway) AxelarExecutable(axelarGateway) {}
+
+    function setReporterByChain(
+        uint256 chainId,
+        string calldata chainName,
+        string calldata reporter
+    ) external onlyOwner {
+        bytes32 chainNameHash = keccak256(bytes(chainName));
+        enabledReporters[chainNameHash] = keccak256(bytes(reporter));
+        chainIds[chainNameHash] = chainId;
+        emit ReporterSet(chainId, chainName, reporter);
     }
 
     function _execute(
@@ -32,13 +34,14 @@ contract AxelarAdapter is HeaderOracleAdapter, AxelarExecutable {
         string calldata sourceAddress,
         bytes calldata payload
     ) internal override {
-        if (
-            keccak256(bytes(sourceChain)) != AXELAR_REPORTER_CHAIN_HASH ||
-            keccak256(bytes(sourceAddress)) != AXELAR_REPORTER_ADDRESS_HASH
-        ) {
+        bytes32 chainNameHash = keccak256(bytes(sourceChain));
+        bytes32 expectedSourceAddressHash = enabledReporters[chainNameHash];
+        uint256 sourceChainId = chainIds[chainNameHash];
+        if (expectedSourceAddressHash != keccak256(bytes(sourceAddress)) || sourceChainId == 0) {
             revert UnauthorizedAxelarReceive();
         }
-        _receivePayload(payload);
+        (uint256[] memory ids, bytes32[] memory hashes) = abi.decode(payload, (uint256[], bytes32[]));
+        _storeHashes(sourceChainId, ids, hashes);
     }
 
     function _executeWithToken(

@@ -1,37 +1,36 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity ^0.8.17;
 
-import { IWormhole, VM } from "./IWormhole.sol";
-import { OracleAdapter } from "../OracleAdapter.sol";
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { BlockHashOracleAdapter } from "../BlockHashOracleAdapter.sol";
+import { IWormhole, VM } from "./interfaces/IWormhole.sol";
 
-contract WormholeAdapter is OracleAdapter, BlockHashOracleAdapter {
-    IWormhole public immutable wormhole;
-    bytes32 public immutable reporter;
-    uint16 public immutable wormholeSourceChainId;
-    uint256 public immutable sourceChainId;
+contract WormholeAdapter is BlockHashOracleAdapter, Ownable {
+    IWormhole public immutable WORMHOLE;
 
-    error InvalidMessage(address emitter, VM vm, string reason);
-    error InvalidEmitterChainId(address emitter, uint16 chainId);
-    error InvalidReporter(address emitter, bytes32 reporter);
+    mapping(uint32 => bytes32) public enabledReporters;
+    mapping(uint32 => uint256) public chainIds;
 
-    constructor(IWormhole wormhole_, address reporter_, uint256 sourceChainId_, uint16 wormholeSourceChainId_) {
-        wormhole = wormhole_;
-        reporter = bytes32(uint256(uint160(reporter_)));
-        sourceChainId = sourceChainId_;
-        wormholeSourceChainId = wormholeSourceChainId_;
+    error InvalidMessage(VM vm, string reason);
+    error UnauthorizedWormholeReceive();
+
+    event ReporterSet(uint256 indexed chainId, uint16 indexed endpointId, address indexed reporter);
+
+    constructor(address wormhole) {
+        WORMHOLE = IWormhole(wormhole);
     }
 
-    /// @dev Stores the block header for a given block.
-    /// @param encodedVM Encoded data reflecting the content of the Wormhole Verified Action Approval.
+    function setReporterByChain(uint256 chainId, uint16 wormholeChainId, address reporter) external onlyOwner {
+        enabledReporters[wormholeChainId] = bytes32(uint256(uint160(reporter)));
+        chainIds[wormholeChainId] = wormholeChainId;
+        emit ReporterSet(chainId, wormholeChainId, reporter);
+    }
+
     function storeHashesByEncodedVM(bytes calldata encodedVM) external {
-        (VM memory vm, bool valid, string memory reason) = wormhole.parseAndVerifyVM(encodedVM);
-        if (!valid) revert InvalidMessage(address(this), vm, reason);
-        if (vm.emitterChainId != wormholeSourceChainId) revert InvalidEmitterChainId(address(this), vm.emitterChainId);
-        if (vm.emitterAddress != reporter) revert InvalidReporter(address(this), vm.emitterAddress);
-        (uint256[] memory ids, bytes32[] memory _hashes) = abi.decode(vm.payload, (uint256[], bytes32[]));
-        for (uint256 i = 0; i < ids.length; i++) {
-            _storeHash(sourceChainId, ids[i], _hashes[i]);
-        }
+        (VM memory vm, bool valid, string memory reason) = WORMHOLE.parseAndVerifyVM(encodedVM);
+        if (!valid) revert InvalidMessage(vm, reason);
+        if (enabledReporters[vm.emitterChainId] != vm.emitterAddress) revert UnauthorizedWormholeReceive();
+        (uint256[] memory ids, bytes32[] memory hashes) = abi.decode(vm.payload, (uint256[], bytes32[]));
+        _storeHashes(chainIds[vm.emitterChainId], ids, hashes);
     }
 }
