@@ -69,9 +69,7 @@ describe("ShoyuBashi", function () {
     })
     it("Emits HashiSet() event", async function () {
       const { shoyuBashi, wallet } = await setup()
-      await expect(shoyuBashi.setHashi(wallet.address))
-        .to.emit(shoyuBashi, "HashiSet")
-        .withArgs(wallet.address)
+      await expect(shoyuBashi.setHashi(wallet.address)).to.emit(shoyuBashi, "HashiSet").withArgs(wallet.address)
     })
   })
 
@@ -95,9 +93,7 @@ describe("ShoyuBashi", function () {
     })
     it("Emits HashiSet() event", async function () {
       const { shoyuBashi } = await setup()
-      await expect(shoyuBashi.setThreshold(DOMAIN_ID, 3))
-        .to.emit(shoyuBashi, "ThresholdSet")
-        .withArgs(DOMAIN_ID, 3)
+      await expect(shoyuBashi.setThreshold(DOMAIN_ID, 3)).to.emit(shoyuBashi, "ThresholdSet").withArgs(DOMAIN_ID, 3)
     })
   })
 
