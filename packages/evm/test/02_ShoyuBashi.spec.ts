@@ -69,9 +69,7 @@ describe("ShoyuBashi", function () {
     })
     it("Emits HashiSet() event", async function () {
       const { shoyuBashi, wallet } = await setup()
-      await expect(shoyuBashi.setHashi(wallet.address))
-        .to.emit(shoyuBashi, "HashiSet")
-        .withArgs(shoyuBashi.address, wallet.address)
+      await expect(shoyuBashi.setHashi(wallet.address)).to.emit(shoyuBashi, "HashiSet").withArgs(wallet.address)
     })
   })
 
@@ -95,9 +93,7 @@ describe("ShoyuBashi", function () {
     })
     it("Emits HashiSet() event", async function () {
       const { shoyuBashi } = await setup()
-      await expect(shoyuBashi.setThreshold(DOMAIN_ID, 3))
-        .to.emit(shoyuBashi, "ThresholdSet")
-        .withArgs(shoyuBashi.address, DOMAIN_ID, 3)
+      await expect(shoyuBashi.setThreshold(DOMAIN_ID, 3)).to.emit(shoyuBashi, "ThresholdSet").withArgs(DOMAIN_ID, 3)
     })
   })
 
@@ -155,7 +151,7 @@ describe("ShoyuBashi", function () {
       const { shoyuBashi } = await setup()
       await expect(shoyuBashi.enableOracleAdapters(DOMAIN_ID, [ADDRESS_TWO, ADDRESS_THREE]))
         .to.emit(shoyuBashi, "OracleAdaptersEnabled")
-        .withArgs(shoyuBashi.address, DOMAIN_ID, [ADDRESS_TWO, ADDRESS_THREE])
+        .withArgs(DOMAIN_ID, [ADDRESS_TWO, ADDRESS_THREE])
     })
   })
 
@@ -217,7 +213,7 @@ describe("ShoyuBashi", function () {
       await shoyuBashi.enableOracleAdapters(DOMAIN_ID, [ADDRESS_TWO, ADDRESS_THREE])
       await expect(shoyuBashi.disableOracleAdapters(DOMAIN_ID, [ADDRESS_THREE, ADDRESS_TWO]))
         .to.emit(shoyuBashi, "OracleAdaptersDisabled")
-        .withArgs(shoyuBashi.address, DOMAIN_ID, [ADDRESS_THREE, ADDRESS_TWO])
+        .withArgs(DOMAIN_ID, [ADDRESS_THREE, ADDRESS_TWO])
     })
   })
 

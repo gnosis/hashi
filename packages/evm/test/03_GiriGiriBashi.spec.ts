@@ -27,7 +27,7 @@ function compareAddresses(a: string, b: string): number {
   }
 }
 
-const setup = async () => {
+const setup = async (_configs?: any) => {
   const [wallet] = await ethers.getSigners()
   const Hashi = await ethers.getContractFactory("Hashi")
   const hashi = await Hashi.deploy()
@@ -53,7 +53,7 @@ const setup = async () => {
     [0, 1, 20, 21, 22],
     [HASH_ZERO, HASH_GOOD, HASH_DEAD, HASH_GOOD, HASH_GOOD],
   )
-  await giriGiriBashi.setThreshold(DOMAIN_ID, 2)
+  await giriGiriBashi.setThreshold(DOMAIN_ID, _configs?.threshold || 2)
   await giriGiriBashi.setChallengeRange(DOMAIN_ID, CHALLENGE_RANGE)
 
   const settings = {
@@ -65,14 +65,14 @@ const setup = async () => {
   }
 
   return {
-    wallet,
-    hashi,
-    GiriGiriBashi,
     giriGiriBashi,
+    GiriGiriBashi,
+    hashi,
     mockOracleAdapter,
     secondMockOracleAdapter,
-    thirdMockOracleAdapter,
     settings,
+    thirdMockOracleAdapter,
+    wallet,
   }
 }
 
@@ -107,7 +107,7 @@ describe("GiriGiriBashi", function () {
     it("Emits HashiSet() event", async function () {
       const { giriGiriBashi, hashi } = await setup()
       const tx = await giriGiriBashi.deployTransaction
-      await expect(tx).to.emit(giriGiriBashi, "HashiSet").withArgs(giriGiriBashi.address, hashi.address)
+      await expect(tx).to.emit(giriGiriBashi, "HashiSet").withArgs(hashi.address)
     })
   })
 
@@ -129,7 +129,7 @@ describe("GiriGiriBashi", function () {
       const { giriGiriBashi } = await setup()
       await expect(giriGiriBashi.setThreshold(DOMAIN_ID, 3))
         .to.emit(giriGiriBashi, "ThresholdSet")
-        .withArgs(giriGiriBashi.address, DOMAIN_ID, 3)
+        .withArgs(DOMAIN_ID, 3)
     })
   })
 
@@ -150,9 +150,9 @@ describe("GiriGiriBashi", function () {
     })
     it("Reverts if arrays are unequal lengths", async function () {
       const { giriGiriBashi, settings } = await setup()
-      await expect(giriGiriBashi.enableOracleAdapters(DOMAIN_ID, [ADDRESS_TWO], [settings, settings]))
-        .to.be.revertedWithCustomError(giriGiriBashi, "UnequalArrayLengths")
-        .withArgs(giriGiriBashi.address)
+      await expect(
+        giriGiriBashi.enableOracleAdapters(DOMAIN_ID, [ADDRESS_TWO], [settings, settings]),
+      ).to.be.revertedWithCustomError(giriGiriBashi, "UnequalArrayLengths")
     })
     it("Enables the given oracles", async function () {
       const { giriGiriBashi, settings } = await setup()
@@ -183,16 +183,17 @@ describe("GiriGiriBashi", function () {
       const { giriGiriBashi, settings } = await setup()
       await expect(giriGiriBashi.enableOracleAdapters(DOMAIN_ID, [ADDRESS_TWO, ADDRESS_THREE], [settings, settings]))
         .to.emit(giriGiriBashi, "OracleAdaptersEnabled")
-        .withArgs(giriGiriBashi.address, DOMAIN_ID, [ADDRESS_TWO, ADDRESS_THREE])
+        .withArgs(DOMAIN_ID, [ADDRESS_TWO, ADDRESS_THREE])
     })
   })
 
   describe("disableOracleAdapters()", function () {
     it("Reverts if a state of no confidence has not been established", async function () {
       const { giriGiriBashi } = await setup()
-      await expect(giriGiriBashi.disableOracleAdapters(DOMAIN_ID, [ADDRESS_TWO]))
-        .to.be.revertedWithCustomError(giriGiriBashi, "NoConfidenceRequired")
-        .withArgs(giriGiriBashi.address)
+      await expect(giriGiriBashi.disableOracleAdapters(DOMAIN_ID, [ADDRESS_TWO])).to.be.revertedWithCustomError(
+        giriGiriBashi,
+        "NoConfidenceRequired",
+      )
     })
     it("Disables the given oracles", async function () {
       const { giriGiriBashi, settings } = await setup()
@@ -220,19 +221,22 @@ describe("GiriGiriBashi", function () {
   })
 
   describe("getThresholdHash()", function () {
-    it("Updates head for given domain", async function () {
-      const { giriGiriBashi, mockOracleAdapter, secondMockOracleAdapter, settings } = await setup()
-      await giriGiriBashi.enableOracleAdapters(
-        DOMAIN_ID,
-        [mockOracleAdapter.address, secondMockOracleAdapter.address],
-        [settings, settings],
-      )
-      const oldHead = await giriGiriBashi.heads(DOMAIN_ID)
-      expect(await giriGiriBashi.callStatic.getThresholdHash(DOMAIN_ID, 1)).to.equal(HASH_GOOD)
-      await giriGiriBashi.getThresholdHash(DOMAIN_ID, 1)
-      const newHead = await giriGiriBashi.heads(DOMAIN_ID)
-      expect(newHead).not.to.equal(oldHead)
-    })
+    for (let threshold = 1; threshold <= 3; threshold++) {
+      it(`Updates head for given domain with ${threshold}/3`, async function () {
+        const { giriGiriBashi, mockOracleAdapter, secondMockOracleAdapter, thirdMockOracleAdapter, settings } =
+          await setup({ threshold })
+        await giriGiriBashi.enableOracleAdapters(
+          DOMAIN_ID,
+          [mockOracleAdapter.address, secondMockOracleAdapter.address, thirdMockOracleAdapter.address],
+          [settings, settings, settings],
+        )
+        const oldHead = await giriGiriBashi.heads(DOMAIN_ID)
+        expect(await giriGiriBashi.callStatic.getThresholdHash(DOMAIN_ID, 1)).to.equal(HASH_GOOD)
+        await giriGiriBashi.getThresholdHash(DOMAIN_ID, 1)
+        const newHead = await giriGiriBashi.heads(DOMAIN_ID)
+        expect(newHead).not.to.equal(oldHead)
+      })
+    }
   })
 
   describe("getHash()", function () {
@@ -261,7 +265,7 @@ describe("GiriGiriBashi", function () {
       const { giriGiriBashi, mockOracleAdapter } = await setup()
       await expect(giriGiriBashi.challengeOracleAdapter(DOMAIN_ID, 1, mockOracleAdapter.address))
         .to.be.revertedWithCustomError(giriGiriBashi, "AdapterNotEnabled")
-        .withArgs(giriGiriBashi.address, mockOracleAdapter.address)
+        .withArgs(mockOracleAdapter.address)
     })
     it("Reverts if value is less than minimum bond", async function () {
       const { giriGiriBashi, mockOracleAdapter, secondMockOracleAdapter, settings } = await setup()
@@ -272,7 +276,7 @@ describe("GiriGiriBashi", function () {
       )
       await expect(giriGiriBashi.challengeOracleAdapter(DOMAIN_ID, 1, mockOracleAdapter.address))
         .to.be.revertedWithCustomError(giriGiriBashi, "NotEnoughtValue")
-        .withArgs(giriGiriBashi.address, mockOracleAdapter.address, 0)
+        .withArgs(mockOracleAdapter.address, 0)
     })
     it("Reverts if adapter is already quarantined", async function () {
       const { giriGiriBashi, mockOracleAdapter, secondMockOracleAdapter, settings } = await setup()
@@ -300,7 +304,7 @@ describe("GiriGiriBashi", function () {
         }),
       )
         .to.be.revertedWithCustomError(giriGiriBashi, "AlreadyQuarantined")
-        .withArgs(giriGiriBashi.address, mockOracleAdapter.address)
+        .withArgs(mockOracleAdapter.address)
     })
     it("Reverts if duplicate challenge exists", async function () {
       const { giriGiriBashi, mockOracleAdapter, secondMockOracleAdapter, settings } = await setup()
@@ -336,7 +340,7 @@ describe("GiriGiriBashi", function () {
         giriGiriBashi.callStatic.challengeOracleAdapter(DOMAIN_ID, 0, mockOracleAdapter.address, { value: BOND }),
       )
         .to.be.revertedWithCustomError(giriGiriBashi, "OutOfRange")
-        .withArgs(giriGiriBashi.address, mockOracleAdapter.address, 0)
+        .withArgs(mockOracleAdapter.address, 0)
 
       // revert on block too far in the future
       const outOfRangeBlock = head + CHALLENGE_RANGE + 1
@@ -346,7 +350,7 @@ describe("GiriGiriBashi", function () {
         }),
       )
         .to.be.revertedWithCustomError(giriGiriBashi, "OutOfRange")
-        .withArgs(giriGiriBashi.address, mockOracleAdapter.address, outOfRangeBlock)
+        .withArgs(mockOracleAdapter.address, outOfRangeBlock)
 
       // revert on block too deep for adapter
       const tooDeepBlock = 1
@@ -356,7 +360,7 @@ describe("GiriGiriBashi", function () {
         }),
       )
         .to.be.revertedWithCustomError(giriGiriBashi, "OutOfRange")
-        .withArgs(giriGiriBashi.address, mockOracleAdapter.address, tooDeepBlock)
+        .withArgs(mockOracleAdapter.address, tooDeepBlock)
 
       // make sure it can actually be successful / doesn't always revert
       expect(
@@ -493,7 +497,7 @@ describe("GiriGiriBashi", function () {
         ]),
       )
         .to.be.revertedWithCustomError(hashi, "OraclesDisagree")
-        .withArgs(giriGiriBashi.address, mockOracleAdapter.address, secondMockOracleAdapter.address)
+        .withArgs(mockOracleAdapter.address, secondMockOracleAdapter.address)
     })
     it("Keeps bond if canonical hash matches hash reported by challenged adapter", async function () {
       const { giriGiriBashi, mockOracleAdapter, secondMockOracleAdapter, thirdMockOracleAdapter, settings } =
@@ -599,16 +603,7 @@ describe("GiriGiriBashi", function () {
         ),
       )
         .to.emit(giriGiriBashi, "ChallengeResolved")
-        .withArgs(
-          giriGiriBashi.address,
-          challengeId,
-          DOMAIN_ID,
-          challengeBlock,
-          mockOracleAdapter.address,
-          wallet.address,
-          BOND,
-          true,
-        )
+        .withArgs(challengeId, DOMAIN_ID, challengeBlock, mockOracleAdapter.address, wallet.address, BOND, true)
     })
   })
 
@@ -624,7 +619,7 @@ describe("GiriGiriBashi", function () {
       await giriGiriBashi.enableOracleAdapters(DOMAIN_ID, adapters, [settings, settings, settings])
       await expect(giriGiriBashi.callStatic.declareNoConfidence(DOMAIN_ID, 20, [mockOracleAdapter.address]))
         .to.be.revertedWithCustomError(giriGiriBashi, "CannotProveNoConfidence")
-        .withArgs(giriGiriBashi.address, DOMAIN_ID, 20, [mockOracleAdapter.address])
+        .withArgs(DOMAIN_ID, 20, [mockOracleAdapter.address])
     })
     it("Reverts if any of the provided adapters agree", async function () {
       const { giriGiriBashi, mockOracleAdapter, secondMockOracleAdapter, thirdMockOracleAdapter, settings } =
@@ -638,7 +633,7 @@ describe("GiriGiriBashi", function () {
       await giriGiriBashi.enableOracleAdapters(DOMAIN_ID, adapters, [settings, settings, settings])
       await expect(giriGiriBashi.callStatic.declareNoConfidence(DOMAIN_ID, 22, adapters))
         .to.be.revertedWithCustomError(giriGiriBashi, "AdaptersAgreed")
-        .withArgs(giriGiriBashi.address, adaptersThatAgree[0], adaptersThatAgree[1])
+        .withArgs(adaptersThatAgree[0], adaptersThatAgree[1])
     })
     it("Clears state for domain", async function () {
       const { giriGiriBashi, mockOracleAdapter, secondMockOracleAdapter, thirdMockOracleAdapter, settings } =
@@ -666,7 +661,7 @@ describe("GiriGiriBashi", function () {
       await giriGiriBashi.enableOracleAdapters(DOMAIN_ID, adapters, [settings, settings, settings])
       await expect(giriGiriBashi.declareNoConfidence(DOMAIN_ID, 20, adapters))
         .to.emit(giriGiriBashi, "NoConfidenceDeclareed")
-        .withArgs(giriGiriBashi.address, DOMAIN_ID)
+        .withArgs(DOMAIN_ID)
     })
   })
 
@@ -687,7 +682,7 @@ describe("GiriGiriBashi", function () {
       const { giriGiriBashi } = await setup()
       await expect(giriGiriBashi.callStatic.setChallengeRange(DOMAIN_ID, CHALLENGE_RANGE))
         .to.be.revertedWithCustomError(giriGiriBashi, "ChallengeRangeAlreadySet")
-        .withArgs(giriGiriBashi.address, DOMAIN_ID)
+        .withArgs(DOMAIN_ID)
     })
     it("Sets challenge range for given domain", async function () {
       const { giriGiriBashi } = await setup()
@@ -699,7 +694,7 @@ describe("GiriGiriBashi", function () {
       const { giriGiriBashi } = await setup()
       await expect(giriGiriBashi.setChallengeRange(2, CHALLENGE_RANGE))
         .to.emit(giriGiriBashi, "ChallegenRangeUpdated")
-        .withArgs(giriGiriBashi.address, 2, CHALLENGE_RANGE)
+        .withArgs(2, CHALLENGE_RANGE)
     })
   })
 

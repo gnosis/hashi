@@ -18,6 +18,7 @@ interface IHashi {
      * @param id - ID for which to return hash.
      * @param threshold - Threshold to use.
      * @param oracleAdapters - Array of addresses for the oracle adapters to query.
+     * @notice If the threshold is 1, it will always return true.
      * @return result A boolean indicating if a threshold for a given message has been reached.
      */
     function checkHashWithThresholdFromOracles(
