@@ -4,7 +4,7 @@
 // logic to handle ETHPNT<->PNT fungibility, as well as custom logic to handle GALA tokens after
 // they upgraded from v1 to v2.
 
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";

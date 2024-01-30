@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: LGPL-3.0-only
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.20;
 
 import { ILightClient, TelepathyStorage } from "./interfaces/ITelepathy.sol";
 import { SSZ } from "./libraries/SimpleSerialize.sol";
