@@ -5,9 +5,16 @@ pragma solidity ^0.8.17;
  * @title IHeaderStorage
  */
 interface IHeaderStorage {
-    error HeaderOutOfRange(address emitter, uint256 blockNumber);
+    error HeaderOutOfRange(uint256 blockNumber);
 
     event HeaderStored(uint256 indexed blockNumber, bytes32 indexed blockHeader);
+
+    /**
+     * @dev Retrieves the stored block header for a specific block number.
+     * @param blockNumber - The block number as a uint256 value.
+     * @return The block header as a bytes32 value.
+     */
+    function headers(uint256 blockNumber) external view returns (bytes32);
 
     /**
      * @dev Stores and returns the header for the given block.

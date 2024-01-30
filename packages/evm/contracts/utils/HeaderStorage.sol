@@ -11,7 +11,7 @@ contract HeaderStorage is IHeaderStorage {
         bytes32 blockHeader = headers[blockNumber];
         if (blockHeader == 0) {
             blockHeader = blockhash(blockNumber);
-            if (blockHeader == 0) revert HeaderOutOfRange(address(this), blockNumber);
+            if (blockHeader == 0) revert HeaderOutOfRange(blockNumber);
             headers[blockNumber] = blockHeader;
             emit HeaderStored(blockNumber, blockHeader);
         }
