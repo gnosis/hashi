@@ -2,11 +2,11 @@ import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
 import { task, types } from "hardhat/config"
 import type { TaskArguments } from "hardhat/types"
 
-import { verify } from "."
-import type { AMBAdapter } from "../../types/contracts/adapters/AMB/AMBAdapter"
-import type { AMBHeaderReporter } from "../../types/contracts/adapters/AMB/AMBHeaderReporter"
-import type { AMBAdapter__factory } from "../../types/factories/contracts/adapters/AMB/AMBAdapter__factory"
-import { AMBHeaderReporter__factory } from "../../types/factories/contracts/adapters/AMB/AMBHeaderReporter__factory"
+import { verify } from ".."
+import type { AMBAdapter } from "../../../types/contracts/adapters/AMB/AMBAdapter"
+import type { AMBHeaderReporter } from "../../../types/contracts/adapters/AMB/AMBHeaderReporter"
+import type { AMBAdapter__factory } from "../../../types/factories/contracts/adapters/AMB/AMBAdapter__factory"
+import { AMBHeaderReporter__factory } from "../../../types/factories/contracts/adapters/AMB/AMBHeaderReporter__factory"
 
 // Deploy on destination chain
 task("deploy:AMB:Adapter")

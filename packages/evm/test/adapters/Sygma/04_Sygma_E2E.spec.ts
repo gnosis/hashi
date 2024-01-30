@@ -38,8 +38,8 @@ const baseSetup = async () => {
   const sygmaAdapter = await SygmaAdapter.deploy(sygmaBridge.address)
 
   // deploy Sygma Message Relayer
-  const SygmaMessageRelayer = await ethers.getContractFactory("SygmaMessageRelayer")
-  const sygmaMessageRelayer = await SygmaMessageRelayer.deploy(
+  const SygmaMessageRelay = await ethers.getContractFactory("SygmaMessageRelay")
+  const sygmaMessageRelay = await SygmaMessageRelay.deploy(
     sygmaBridge.address,
     yaho.address,
     resourceID,
@@ -47,7 +47,7 @@ const baseSetup = async () => {
     sygmaAdapter.address,
   )
 
-  await sygmaAdapter.setReporter(sygmaMessageRelayer.address, CHAIN_ID, true)
+  await sygmaAdapter.setReporter(sygmaMessageRelay.address, CHAIN_ID, true)
 
   // deploy Yaru
   const Yaru = await ethers.getContractFactory("Yaru")
@@ -64,7 +64,7 @@ const baseSetup = async () => {
   return {
     avatar,
     sygmaBridge,
-    sygmaMessageRelayer,
+    sygmaMessageRelay,
     sygmaAdapter,
     wallet,
     hashi,
@@ -92,11 +92,10 @@ const setupTestWithTestAvatar = async () => {
   return { ...base, Module, module, network }
 }
 
-describe("SygmaMessageRelayer End-to-End", function () {
+describe("SygmaMessageRelay End-to-End", function () {
   describe("executeTransaction()", function () {
     it("executes a transaction", async () => {
-      const { pingPong, yaho, sygmaMessageRelayer, sygmaAdapter, module, wallet, yaru } =
-        await setupTestWithTestAvatar()
+      const { pingPong, yaho, sygmaMessageRelay, sygmaAdapter, module, wallet, yaru } = await setupTestWithTestAvatar()
       const calldata = await pingPong.interface.encodeFunctionData("ping", [])
       const tx = await module.interface.encodeFunctionData("executeTransaction", [pingPong.address, 0, calldata, 0])
       const message = {
@@ -107,7 +106,7 @@ describe("SygmaMessageRelayer End-to-End", function () {
       const pingCount = await pingPong.count()
 
       // dispatch message
-      await yaho.dispatchMessagesToAdapters([message], [sygmaMessageRelayer.address], [sygmaAdapter.address])
+      await yaho.dispatchMessagesToAdapters([message], [sygmaMessageRelay.address], [sygmaAdapter.address])
       // execute messages
       await yaru.executeMessages([message], [ID_ZERO], [wallet.address], [sygmaAdapter.address])
 

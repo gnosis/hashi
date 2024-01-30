@@ -12,6 +12,7 @@ contract Yaru is IMessageExecutor, MessageHashCalculator {
     uint256 public immutable chainId;
     mapping(uint256 => bool) public executed;
     address public sender;
+    IOracleAdapter[] private _adapters;
 
     error ReentranceNotAllowed(address);
     error UnequalArrayLengths(address emitter);
@@ -43,6 +44,7 @@ contract Yaru is IMessageExecutor, MessageHashCalculator {
         if (sender != address(0)) revert ReentranceNotAllowed(address(0));
         if (messages.length != senders.length || messages.length != messageIds.length)
             revert UnequalArrayLengths(address(this));
+        for (uint256 i = 0; i < oracleAdapters.length; i++) _adapters.push(oracleAdapters[i]);
         bytes[] memory returnDatas = new bytes[](messages.length);
         for (uint256 i = 0; i < messages.length; i++) {
             uint256 id = messageIds[i];
@@ -65,6 +67,12 @@ contract Yaru is IMessageExecutor, MessageHashCalculator {
             returnDatas[i] = returnData;
             emit MessageIdExecuted(message.toChainId, bytes32(id));
         }
+        delete _adapters;
         return returnDatas;
+    }
+
+    /// @dev Returns the current array of adapters.
+    function adapters() external view returns (IOracleAdapter[] memory) {
+        return _adapters;
     }
 }

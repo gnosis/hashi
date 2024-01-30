@@ -26,7 +26,7 @@ contract SygmaReporter {
     ) internal returns (uint64 depositNonce, bytes memory handlerResponse) {
         bytes memory depositData = abi.encodePacked(
             // uint256 maxFee
-            uint256(0),
+            uint256(950000),
             // uint16 len(executeFuncSignature)
             uint16(4),
             // bytes executeFuncSignature

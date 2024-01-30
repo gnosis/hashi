@@ -5,7 +5,7 @@ import { IMessageRelay } from "../../interfaces/IMessageRelay.sol";
 import { SygmaReporter } from "./SygmaReporter.sol";
 import { Yaho } from "../../Yaho.sol";
 
-contract SygmaMessageRelayer is SygmaReporter, IMessageRelay {
+contract SygmaMessageRelay is SygmaReporter, IMessageRelay {
     Yaho public immutable _yaho;
 
     event MessageRelayed(address indexed emitter, uint256 indexed messageId);
