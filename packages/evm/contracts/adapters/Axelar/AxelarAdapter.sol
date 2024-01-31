@@ -3,9 +3,9 @@ pragma solidity ^0.8.20;
 
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { AxelarExecutable } from "@axelar-network/axelar-gmp-sdk-solidity/contracts/executable/AxelarExecutable.sol";
-import { BlockHashOracleAdapter } from "../BlockHashOracleAdapter.sol";
+import { BlockHashAdapter } from "../BlockHashAdapter.sol";
 
-contract AxelarAdapter is BlockHashOracleAdapter, Ownable, AxelarExecutable {
+contract AxelarAdapter is BlockHashAdapter, Ownable, AxelarExecutable {
     string public constant PROVIDER = "axelar";
 
     mapping(bytes32 => bytes32) public enabledReporters;

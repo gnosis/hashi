@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 import { Reporter } from "../Reporter.sol";
 import { AMBAdapter } from "./AMBAdapter.sol";
-import { IOracleAdapter } from "../../interfaces/IOracleAdapter.sol";
+import { IAdapter } from "../../interfaces/IAdapter.sol";
 import { IAMB } from "./IAMB.sol";
 
 contract AMBReporter is Reporter {

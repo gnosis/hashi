@@ -4,9 +4,9 @@ pragma solidity ^0.8.20;
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { CCIPReceiver } from "@chainlink/contracts-ccip/src/v0.8/ccip/applications/CCIPReceiver.sol";
 import { Client } from "@chainlink/contracts-ccip/src/v0.8/ccip/libraries/Client.sol";
-import { BlockHashOracleAdapter } from "../BlockHashOracleAdapter.sol";
+import { BlockHashAdapter } from "../BlockHashAdapter.sol";
 
-contract CCIPAdapter is BlockHashOracleAdapter, Ownable, CCIPReceiver {
+contract CCIPAdapter is BlockHashAdapter, Ownable, CCIPReceiver {
     string public constant PROVIDER = "ccip";
 
     mapping(uint64 => address) public enabledReporters;

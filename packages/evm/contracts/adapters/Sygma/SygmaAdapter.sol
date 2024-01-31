@@ -2,9 +2,9 @@
 pragma solidity ^0.8.20;
 
 import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
-import "../BlockHashOracleAdapter.sol";
+import "../BlockHashAdapter.sol";
 
-contract SygmaAdapter is AccessControl, BlockHashOracleAdapter {
+contract SygmaAdapter is AccessControl, BlockHashAdapter {
     string public constant PROVIDER = "sygma";
 
     struct Reporter {

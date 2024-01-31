@@ -2,9 +2,9 @@
 pragma solidity ^0.8.20;
 
 import { ICrossDomainMessenger } from "./interfaces/ICrossDomainMessenger.sol";
-import { BlockHashOracleAdapter } from "../BlockHashOracleAdapter.sol";
+import { BlockHashAdapter } from "../BlockHashAdapter.sol";
 
-contract L2CrossDomainMessengerAdapter is BlockHashOracleAdapter {
+contract L2CrossDomainMessengerAdapter is BlockHashAdapter {
     string public constant PROVIDER = "optimism";
 
     ICrossDomainMessenger public immutable L2_CROSS_DOMAIN_MESSENGER;

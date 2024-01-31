@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 
 import { Reporter } from "../Reporter.sol";
-import { IOracleAdapter } from "../../interfaces/IOracleAdapter.sol";
+import { IAdapter } from "../../interfaces/IAdapter.sol";
 import { ICrossDomainMessenger } from "./interfaces/ICrossDomainMessenger.sol";
 
 contract L1CrossDomainMessengerReporter is Reporter {

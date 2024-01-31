@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import { IYaru } from "./interfaces/IYaru.sol";
-import { IHashi, IOracleAdapter } from "./interfaces/IHashi.sol";
+import { IHashi, IAdapter } from "./interfaces/IHashi.sol";
 import { Message } from "./interfaces/IMessage.sol";
 import { MessageIdCalculator } from "./utils/MessageIdCalculator.sol";
 import { MessageHashCalculator } from "./utils/MessageHashCalculator.sol";
@@ -37,7 +37,7 @@ contract Yaru is IYaru, MessageIdCalculator, MessageHashCalculator, ReentrancyGu
             executed[messageId] = true;
 
             if (
-                !IHashi(HASHI).checkHashWithThresholdFromOracles(
+                !IHashi(HASHI).checkHashWithThresholdFromAdapters(
                     SOURCE_CHAIN_ID,
                     messageId,
                     message.threshold,

@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity ^0.8.20;
 
-import { IOracleAdapter } from "../interfaces/IOracleAdapter.sol";
+import { IAdapter } from "../interfaces/IAdapter.sol";
 
-abstract contract OracleAdapter is IOracleAdapter {
+abstract contract Adapter is IAdapter {
     mapping(uint256 => mapping(uint256 => bytes32)) private _hashes;
 
-    /// @inheritdoc IOracleAdapter
-    function getHashFromOracle(uint256 domain, uint256 id) public view returns (bytes32) {
+    /// @inheritdoc IAdapter
+    function getHash(uint256 domain, uint256 id) public view returns (bytes32) {
         return _hashes[domain][id];
     }
 

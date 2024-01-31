@@ -2,9 +2,9 @@
 pragma solidity ^0.8.20;
 
 import { IAMB } from "./IAMB.sol";
-import { BlockHashOracleAdapter } from "../BlockHashOracleAdapter.sol";
+import { BlockHashAdapter } from "../BlockHashAdapter.sol";
 
-contract AMBAdapter is BlockHashOracleAdapter {
+contract AMBAdapter is BlockHashAdapter {
     string public constant PROVIDER = "amb";
 
     IAMB public immutable AMB;

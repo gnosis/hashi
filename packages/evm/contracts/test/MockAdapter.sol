@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity ^0.8.20;
 
-import { OracleAdapter } from "../adapters/OracleAdapter.sol";
-import { BlockHashOracleAdapter } from "../adapters/BlockHashOracleAdapter.sol";
+import { Adapter } from "../adapters/Adapter.sol";
+import { BlockHashAdapter } from "../adapters/BlockHashAdapter.sol";
 
-contract MockOracleAdapter is OracleAdapter, BlockHashOracleAdapter {
+contract MockAdapter is Adapter, BlockHashAdapter {
     error LengthMismatch();
 
     function setHashes(uint256 domain, uint256[] memory ids, bytes32[] memory hashes) external {

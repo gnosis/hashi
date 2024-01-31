@@ -47,8 +47,8 @@ const getBlock = async (blockNumber: number) => {
 const setup = async () => {
   await network.provider.request({ method: "hardhat_reset", params: [] })
   const [wallet] = await ethers.getSigners()
-  const OracleAdapter = await ethers.getContractFactory("MockOracleAdapter")
-  const oracleAdapter = await OracleAdapter.deploy()
+  const Adapter = await ethers.getContractFactory("MockAdapter")
+  const adapter = await Adapter.deploy()
   await mine(120)
   const reportedBlockNumbers = [100, 110]
   const unreportedBlockNumbers = [109, 108, 107]
@@ -59,10 +59,10 @@ const setup = async () => {
     .filter((block) => reportedBlockNumbers.includes(block.blockNumber))
     .map((block) => block.hash)
 
-  await oracleAdapter.setHashes(CHAIN_ID, reportedBlockNumbers, reportedBlockHashes)
+  await adapter.setHashes(CHAIN_ID, reportedBlockNumbers, reportedBlockHashes)
   return {
     wallet,
-    oracleAdapter,
+    adapter,
     reportedBlockNumbers,
     reportedBlockHashes,
     unreportedBlockNumbers,
@@ -70,67 +70,67 @@ const setup = async () => {
   }
 }
 
-describe("OracleAdapter", function () {
+describe("Adapter", function () {
   describe("Deploy", function () {
     it("Successfully deploys contract", async function () {
-      const { oracleAdapter } = await setup()
-      expect(await oracleAdapter.deployed())
+      const { adapter } = await setup()
+      expect(await adapter.deployed())
     })
   })
 
   describe("proveAncestralBlockHashes()", function () {
     it("Adds ancestral block hashes of proven blocks", async function () {
-      const { oracleAdapter, blocks } = await setup()
+      const { adapter, blocks } = await setup()
       const blockHeaders = blocks.map((block) => blockRLP(block))
 
       // All blocks should have been proven and their ancestral headers stored
-      const tx = oracleAdapter.proveAncestralBlockHashes(CHAIN_ID, blockHeaders)
+      const tx = adapter.proveAncestralBlockHashes(CHAIN_ID, blockHeaders)
       for (const block of blocks) {
         await expect(tx)
-          .to.emit(oracleAdapter, "HashStored")
+          .to.emit(adapter, "HashStored")
           .withArgs(block.blockNumber - 1, block.parentHash)
       }
     })
 
     it("Reverts if given unknown blocks", async function () {
-      const { oracleAdapter, blocks, unreportedBlockNumbers } = await setup()
+      const { adapter, blocks, unreportedBlockNumbers } = await setup()
       const unreportedBlockNumber = unreportedBlockNumbers[0]
       const unreportedBlock = blocks.find((block) => block.blockNumber === unreportedBlockNumber)
       const blockHeaders = [blockRLP(unreportedBlock)]
 
-      await expect(oracleAdapter.proveAncestralBlockHashes(CHAIN_ID, blockHeaders))
-        .to.revertedWithCustomError(oracleAdapter, "ConflictingBlockHeader")
+      await expect(adapter.proveAncestralBlockHashes(CHAIN_ID, blockHeaders))
+        .to.revertedWithCustomError(adapter, "ConflictingBlockHeader")
         .withArgs(unreportedBlockNumber, unreportedBlock.hash, EMPTY_HASH)
     })
 
     it("Reverts if block header is invalid RLP encoding", async function () {
-      const { oracleAdapter } = await setup()
+      const { adapter } = await setup()
       const invalidRLP = ["0xa0000000"]
 
       // Invalid block header RLP
-      await expect(oracleAdapter.proveAncestralBlockHashes(CHAIN_ID, invalidRLP)).to.revertedWithCustomError(
-        oracleAdapter,
+      await expect(adapter.proveAncestralBlockHashes(CHAIN_ID, invalidRLP)).to.revertedWithCustomError(
+        adapter,
         "InvalidBlockHeaderRLP",
       )
     })
 
     it("Reverts if block proof doesn't match valid block header lengths", async function () {
-      const { oracleAdapter, blocks } = await setup()
+      const { adapter, blocks } = await setup()
       const blockHeaderContents = RLP.decode(blockRLP(blocks[0]))
       const blockHeaderTooShortContents = blockHeaderContents.slice(0, 14)
       const blockHeaderTooShort = RLP.encode(blockHeaderTooShortContents)
 
       // Block header RLP contains too few elements
-      await expect(oracleAdapter.proveAncestralBlockHashes(CHAIN_ID, [blockHeaderTooShort]))
-        .to.revertedWithCustomError(oracleAdapter, "InvalidBlockHeaderLength")
+      await expect(adapter.proveAncestralBlockHashes(CHAIN_ID, [blockHeaderTooShort]))
+        .to.revertedWithCustomError(adapter, "InvalidBlockHeaderLength")
         .withArgs(blockHeaderTooShortContents.length)
 
-      const blockHeaderTooLongContents = blockHeaderContents.concat([oracleAdapter.address, oracleAdapter.address])
+      const blockHeaderTooLongContents = blockHeaderContents.concat([adapter.address, adapter.address])
       const blockHeaderTooLong = RLP.encode(blockHeaderTooLongContents)
 
       // Block header RLP contains too many elements
-      await expect(oracleAdapter.proveAncestralBlockHashes(CHAIN_ID, [blockHeaderTooLong]))
-        .to.revertedWithCustomError(oracleAdapter, "InvalidBlockHeaderLength")
+      await expect(adapter.proveAncestralBlockHashes(CHAIN_ID, [blockHeaderTooLong]))
+        .to.revertedWithCustomError(adapter, "InvalidBlockHeaderLength")
         .withArgs(blockHeaderTooLongContents.length)
     })
   })

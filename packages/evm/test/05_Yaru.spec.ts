@@ -26,7 +26,7 @@ describe("Yaru", () => {
     const Yaho = await ethers.getContractFactory("Yaho")
     const Hashi = await ethers.getContractFactory("Hashi")
     const Reporter = await ethers.getContractFactory("MockReporter")
-    const Adapter = await ethers.getContractFactory("MockOracleAdapter")
+    const Adapter = await ethers.getContractFactory("MockAdapter")
     const PingPong = await ethers.getContractFactory("PingPong")
     const HeaderStorage = await ethers.getContractFactory("HeaderStorage")
 

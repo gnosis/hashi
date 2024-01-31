@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 
 import { IReporter } from "./IReporter.sol";
-import { IOracleAdapter } from "./IOracleAdapter.sol";
+import { IAdapter } from "./IAdapter.sol";
 
 struct Message {
     bytes32 salt;
@@ -12,5 +12,5 @@ struct Message {
     address receiver;
     bytes data;
     IReporter[] reporters;
-    IOracleAdapter[] adapters;
+    IAdapter[] adapters;
 }

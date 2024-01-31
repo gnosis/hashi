@@ -3,9 +3,9 @@ pragma solidity ^0.8.20;
 
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { ILayerZeroReceiver } from "./interfaces/ILayerZeroReceiver.sol";
-import { BlockHashOracleAdapter } from "../BlockHashOracleAdapter.sol";
+import { BlockHashAdapter } from "../BlockHashAdapter.sol";
 
-contract LayerZeroAdapter is BlockHashOracleAdapter, Ownable, ILayerZeroReceiver {
+contract LayerZeroAdapter is BlockHashAdapter, Ownable, ILayerZeroReceiver {
     string public constant PROVIDER = "layer-zero";
     address public immutable LAYER_ZERO_ENDPOINT;
 

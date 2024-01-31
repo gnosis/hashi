@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 
 import { Reporter } from "../adapters/Reporter.sol";
-import { IOracleAdapter } from "../interfaces/IOracleAdapter.sol";
+import { IAdapter } from "../interfaces/IAdapter.sol";
 
 contract MockReporter is Reporter {
     constructor(address headerStorage, address yaho) Reporter(headerStorage, yaho) {}

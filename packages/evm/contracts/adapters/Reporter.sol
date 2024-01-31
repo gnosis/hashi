@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 import { IHeaderStorage } from "../interfaces/IHeaderStorage.sol";
 import { IReporter } from "../interfaces/IReporter.sol";
-import { IOracleAdapter } from "../interfaces/IOracleAdapter.sol";
+import { IAdapter } from "../interfaces/IAdapter.sol";
 
 abstract contract Reporter is IReporter {
     address public immutable HEADER_STORAGE;
@@ -22,7 +22,7 @@ abstract contract Reporter is IReporter {
     /// @inheritdoc IReporter
     function dispatchBlocks(
         uint256 toChainId,
-        IOracleAdapter adapter,
+        IAdapter adapter,
         uint256[] memory blockNumbers
     ) external payable returns (bytes32) {
         bytes32[] memory blockHeaders = IHeaderStorage(HEADER_STORAGE).storeBlockHeaders(blockNumbers);
@@ -38,7 +38,7 @@ abstract contract Reporter is IReporter {
     /// @inheritdoc IReporter
     function dispatchMessages(
         uint256 toChainId,
-        IOracleAdapter adapter,
+        IAdapter adapter,
         uint256[] memory messageIds,
         bytes32[] memory messageHashes
     ) external payable onlyYaho returns (bytes32) {
