@@ -31,6 +31,7 @@ const blockRLP = (block) => {
     block.mixHash,
     block.nonce,
     block.baseFeePerGas,
+    block.withdrawalsRoot,
   ]
   return RLP.encode(values.map(emptyHexlify))
 }

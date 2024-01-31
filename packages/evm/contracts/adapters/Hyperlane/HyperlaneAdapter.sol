@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: LGPL-3.0-only
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.20;
 
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { IMessageRecipient } from "@hyperlane-xyz/core/contracts/interfaces/IMessageRecipient.sol";
