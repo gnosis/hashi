@@ -4,7 +4,6 @@ pragma solidity ^0.8.20;
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import { IAdapter } from "../interfaces/IAdapter.sol";
 import { IHashi } from "../interfaces/IHashi.sol";
-import { Domain } from "../interfaces/IDomain.sol";
 import { IShuSho } from "../interfaces/IShuSho.sol";
 
 abstract contract ShuSo is IShuSho, OwnableUpgradeable {

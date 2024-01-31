@@ -8,6 +8,11 @@ import { IAdapter } from "./IAdapter.sol";
  * @title IShuSho
  */
 interface IShuSho {
+    struct Domain {
+        uint256 threshold;
+        uint256 count;
+    }
+
     struct Link {
         IAdapter previous;
         IAdapter next;
