@@ -10,39 +10,30 @@ import { IShuSho } from "./IShuSho.sol";
  */
 interface IShoyuBashi is IShuSho {
     /**
-     * @dev Sets the threshold of adapters required for a given domain.
-     * @param domain - Uint256 identifier for the domain for which to set the threshold.
-     * @param threshold - Uint256 threshold to set for the given domain.
+     * @dev Disables the given adapters for a given domain.
+     * @param domain - Uint256 identifier for the domain for which to set adapters.
+     * @param adapters - Array of adapter addresses.
      * @notice Only callable by the owner of this contract.
-     * @notice Reverts if the threshold is already set to the given value.
+     * @notice Reverts if adapters are out of order or contain duplicates.
      */
-    function setThreshold(uint256 domain, uint256 threshold) external;
+    function disableAdapters(uint256 domain, IAdapter[] memory adapters) external;
 
     /**
      * @dev Enables the given adapters for a given domain.
      * @param domain - Uint256 identifier for the domain for which to set adapters.
      * @param adapters - Array of adapter addresses.
-     * @notice Reverts if adapters are out of order or contain duplicates.
      * @notice Only callable by the owner of this contract.
+     * @notice Reverts if adapters are out of order or contain duplicates.
      */
     function enableAdapters(uint256 domain, IAdapter[] memory adapters) external;
-
-    /**
-     * @dev Disables the given adapters for a given domain.
-     * @param domain - Uint256 identifier for the domain for which to set adapters.
-     * @param adapters - Array of adapter addresses.
-     * @notice Reverts if adapters are out of order or contain duplicates.
-     * @notice Only callable by the owner of this contract.
-     */
-    function disableAdapters(uint256 domain, IAdapter[] memory adapters) external;
 
     /**
      * @dev Returns the hash unanimously agreed upon by ALL of the enabled adapters.
      * @param domain - Uint256 identifier for the domain to query.
      * @param id - Uint256 identifier to query.
      * @return Bytes32 hash agreed upon by the adapters for the given domain.
-     * @notice Reverts if adapters disagree.
      * @notice Revert if the adapters do not yet have the hash for the given ID.
+     * @notice Reverts if adapters disagree.
      * @notice Reverts if no adapters are set for the given domain.
      */
     function getUnanimousHash(uint256 domain, uint256 id) external view returns (bytes32);
@@ -70,4 +61,13 @@ interface IShoyuBashi is IShuSho {
      * @notice Reverts if no adapters are set for the given domain.
      */
     function getHash(uint256 domain, uint256 id, IAdapter[] memory adapters) external view returns (bytes32);
+
+    /**
+     * @dev Sets the threshold of adapters required for a given domain.
+     * @param domain - Uint256 identifier for the domain for which to set the threshold.
+     * @param threshold - Uint256 threshold to set for the given domain.
+     * @notice Only callable by the owner of this contract.
+     * @notice Reverts if the threshold is already set to the given value.
+     */
+    function setThreshold(uint256 domain, uint256 threshold) external;
 }

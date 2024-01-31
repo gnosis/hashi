@@ -7,10 +7,10 @@ import { IAdapter } from "./IAdapter.sol";
  * @title IHashi
  */
 interface IHashi {
+    error AdaptersDisagree(IAdapter adapterOne, IAdapter adapterTwo);
+    error HashNotAvailableInAdapter(IAdapter adapter);
     error InvalidThreshold(uint256 threshold, uint256 maxThreshold);
     error NoAdaptersGiven();
-    error HashNotAvailableInAdapter(IAdapter adapter);
-    error AdaptersDisagree(IAdapter adapterOne, IAdapter adapterTwo);
 
     /**
      * @dev Checks whether the threshold is reached for a message given a set of adapters.

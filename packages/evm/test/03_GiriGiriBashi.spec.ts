@@ -271,7 +271,7 @@ describe("GiriGiriBashi", function () {
         [settings, settings],
       )
       await expect(giriGiriBashi.challengeAdapter(DOMAIN_ID, 1, mockAdapter.address))
-        .to.be.revertedWithCustomError(giriGiriBashi, "NotEnoughtValue")
+        .to.be.revertedWithCustomError(giriGiriBashi, "NotEnoughValue")
         .withArgs(mockAdapter.address, 0)
     })
     it("Reverts if adapter is already quarantined", async function () {
@@ -606,12 +606,12 @@ describe("GiriGiriBashi", function () {
       expect(domain.threshold).to.equal(ethers.constants.MaxUint256)
       expect(challengeRange).to.equal(0)
     })
-    it("Emits NoConfidenceDeclareed() event", async function () {
+    it("Emits NoConfidenceDeclared() event", async function () {
       const { giriGiriBashi, mockAdapter, secondMockAdapter, thirdMockAdapter, settings } = await setup()
       const adapters = [mockAdapter.address, secondMockAdapter.address, thirdMockAdapter.address].sort(compareAddresses)
       await giriGiriBashi.enableAdapters(DOMAIN_ID, adapters, [settings, settings, settings])
       await expect(giriGiriBashi.declareNoConfidence(DOMAIN_ID, 20, adapters))
-        .to.emit(giriGiriBashi, "NoConfidenceDeclareed")
+        .to.emit(giriGiriBashi, "NoConfidenceDeclared")
         .withArgs(DOMAIN_ID)
     })
   })
@@ -641,15 +641,15 @@ describe("GiriGiriBashi", function () {
       const challengeRange = await giriGiriBashi.challengeRanges(2)
       expect(challengeRange).to.equal(CHALLENGE_RANGE)
     })
-    it("Emits the ChallegenRangeUpdated event", async function () {
+    it("Emits the ChallengeRangeUpdated event", async function () {
       const { giriGiriBashi } = await setup()
       await expect(giriGiriBashi.setChallengeRange(2, CHALLENGE_RANGE))
-        .to.emit(giriGiriBashi, "ChallegenRangeUpdated")
+        .to.emit(giriGiriBashi, "ChallengeRangeUpdated")
         .withArgs(2, CHALLENGE_RANGE)
     })
   })
 
-  describe("replaceQuaratinedAdapters()", function () {
+  describe("replaceQuarantinedAdapters()", function () {
     it("Reverts if given arrays are unequal length", async function () {
       const { giriGiriBashi, mockAdapter, secondMockAdapter, settings } = await setup()
       await giriGiriBashi.enableAdapters(
@@ -658,7 +658,7 @@ describe("GiriGiriBashi", function () {
         [settings, settings],
       )
       await expect(
-        giriGiriBashi.replaceQuaratinedAdapters(
+        giriGiriBashi.replaceQuarantinedAdapters(
           DOMAIN_ID,
           [mockAdapter.address, secondMockAdapter.address],
           [ADDRESS_ZERO],
@@ -666,7 +666,7 @@ describe("GiriGiriBashi", function () {
         ),
       ).to.be.revertedWithCustomError(giriGiriBashi, "UnequalArrayLengths")
       await expect(
-        giriGiriBashi.replaceQuaratinedAdapters(
+        giriGiriBashi.replaceQuarantinedAdapters(
           DOMAIN_ID,
           [mockAdapter.address],
           [ADDRESS_ZERO, ADDRESS_ZERO],
@@ -674,7 +674,7 @@ describe("GiriGiriBashi", function () {
         ),
       ).to.be.revertedWithCustomError(giriGiriBashi, "UnequalArrayLengths")
       await expect(
-        giriGiriBashi.replaceQuaratinedAdapters(
+        giriGiriBashi.replaceQuarantinedAdapters(
           DOMAIN_ID,
           [mockAdapter.address, secondMockAdapter.address],
           [ADDRESS_ZERO, ADDRESS_ZERO],
@@ -690,7 +690,7 @@ describe("GiriGiriBashi", function () {
         [settings, settings],
       )
       await expect(
-        giriGiriBashi.replaceQuaratinedAdapters(
+        giriGiriBashi.replaceQuarantinedAdapters(
           DOMAIN_ID,
           [mockAdapter.address, secondMockAdapter.address],
           [ADDRESS_ZERO, ADDRESS_ZERO],
@@ -717,7 +717,9 @@ describe("GiriGiriBashi", function () {
         mockAdapter.address,
         [secondMockAdapter.address, thirdMockAdapter.address].sort(compareAddresses),
       )
-      expect(await giriGiriBashi.replaceQuaratinedAdapters(DOMAIN_ID, [mockAdapter.address], [ADDRESS_TWO], [settings]))
+      expect(
+        await giriGiriBashi.replaceQuarantinedAdapters(DOMAIN_ID, [mockAdapter.address], [ADDRESS_TWO], [settings]),
+      )
       const adapterSettings = await giriGiriBashi.settings(ADDRESS_TWO)
       expect(adapterSettings.quarantined).to.deep.equal(settings.quarantined)
       expect(adapterSettings.minimumBond).to.deep.equal(settings.minimumBond)

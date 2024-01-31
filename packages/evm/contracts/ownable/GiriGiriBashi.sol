@@ -46,13 +46,13 @@ contract GiriGiriBashi is IGiriGiriBashi, ShuSo {
     function setChallengeRange(uint256 domain, uint256 range) public {
         if (challengeRanges[domain] != 0) revert ChallengeRangeAlreadySet(domain);
         challengeRanges[domain] = range;
-        emit ChallegenRangeUpdated(domain, range);
+        emit ChallengeRangeUpdated(domain, range);
     }
 
     /// @inheritdoc IGiriGiriBashi
     function challengeAdapter(uint256 domain, uint256 id, IAdapter adapter) public payable {
         if (adapters[domain][adapter].previous == IAdapter(address(0))) revert AdapterNotEnabled(adapter);
-        if (msg.value < settings[adapter].minimumBond) revert NotEnoughtValue(adapter, msg.value);
+        if (msg.value < settings[adapter].minimumBond) revert NotEnoughValue(adapter, msg.value);
         if (settings[adapter].quarantined) revert AlreadyQuarantined(adapter);
 
         bytes32 challengeId = getChallengeId(domain, id, adapter);
@@ -156,11 +156,11 @@ contract GiriGiriBashi is IGiriGiriBashi, ShuSo {
         domains[domain].threshold = type(uint256).max;
         delete challengeRanges[domain];
 
-        emit NoConfidenceDeclareed(domain);
+        emit NoConfidenceDeclared(domain);
     }
 
     /// @inheritdoc IGiriGiriBashi
-    function replaceQuaratinedAdapters(
+    function replaceQuarantinedAdapters(
         uint256 domain,
         IAdapter[] memory currentAdapters,
         IAdapter[] memory newAdapters,

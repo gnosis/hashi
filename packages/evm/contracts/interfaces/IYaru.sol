@@ -9,9 +9,9 @@ import { IMessageIdCalculator } from "./IMessageIdCalculator.sol";
  * @title IYaru
  */
 interface IYaru is IMessageHashCalculator, IMessageIdCalculator {
+    error CallFailed();
     error InvalidToChainId(uint256 chainId, uint256 expectedChainId);
     error MessageIdAlreadyExecuted(uint256 messageId);
-    error CallFailed();
     error ThresholdNotMet();
 
     /**

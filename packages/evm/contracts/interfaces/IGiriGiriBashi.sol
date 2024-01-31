@@ -1,41 +1,41 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity ^0.8.20;
 
-import { IHashi } from "./IHashi.sol";
 import { IAdapter } from "./IAdapter.sol";
+import { IHashi } from "./IHashi.sol";
 import { IShuSho } from "./IShuSho.sol";
 
 /**
  * @title IGiriGiriBashi
  */
 interface IGiriGiriBashi is IShuSho {
-    struct Settings {
-        bool quarantined; // whether or not the adapter has has been quarantined.
-        uint256 minimumBond; // amount that must be bonded alongside a challenge.
-        uint256 startId; // earliest id that the adapter could have stored.
-        uint256 idDepth; // how far behind the current head can this adapter safely report. 0 equals infinite.
-        uint256 timeout; // grace period in which the adapter must report on an in range id after being challenged.
-    }
-
     struct Challenge {
         address payable challenger; // account that raised the challenge.
         uint256 timestamp; // timestamp when the challenge was created.
         uint256 bond; // bond paid by the challenger.
     }
 
-    error DuplicateChallenge(bytes32 challengeId, uint256 domain, uint256 id, IAdapter adapter);
-    error OutOfRange(IAdapter adapter, uint256 id);
-    error AlreadyQuarantined(IAdapter adapter);
-    error NotEnoughtValue(IAdapter adapter, uint256 value);
-    error ChallengeNotFound(bytes32 challengeId, uint256 domain, uint256 id, IAdapter adapter);
+    struct Settings {
+        bool quarantined; // whether or not the adapter has been quarantined.
+        uint256 minimumBond; // amount that must be bonded alongside a challenge.
+        uint256 startId; // earliest id that the adapter could have stored.
+        uint256 idDepth; // how far behind the current head can this adapter safely report. 0 equals infinite.
+        uint256 timeout; // grace period in which the adapter must report on an in-range id after being challenged.
+    }
+
     error AdapterHasNotYetTimedOut(IAdapter adapter);
-    error UnequalArrayLengths();
     error AdapterNotQuarantined(IAdapter adapter);
+    error AdaptersAgreed(IAdapter adapter1, IAdapter adapter2);
+    error AlreadyQuarantined(IAdapter adapter);
     error CannotProveNoConfidence(uint256 domain, uint256 id, IAdapter[] adapters);
-    error AdaptersAgreed(IAdapter, IAdapter);
-    error NoConfidenceRequired();
-    error CountMustBeZero(uint256 domain);
+    error ChallengeNotFound(bytes32 challengeId, uint256 domain, uint256 id, IAdapter adapter);
     error ChallengeRangeAlreadySet(uint256 domain);
+    error CountMustBeZero(uint256 domain);
+    error DuplicateChallenge(bytes32 challengeId, uint256 domain, uint256 id, IAdapter adapter);
+    error NoConfidenceRequired();
+    error NotEnoughValue(IAdapter adapter, uint256 value);
+    error OutOfRange(IAdapter adapter, uint256 id);
+    error UnequalArrayLengths();
 
     /**
      * @dev Emitted when the bond recipient address is set.
@@ -55,7 +55,7 @@ interface IGiriGiriBashi is IShuSho {
      * @param domain - The domain associated with the updated challenge range.
      * @param range - The new challenge range as a Uint256 identifier.
      */
-    event ChallegenRangeUpdated(uint256 domain, uint256 range);
+    event ChallengeRangeUpdated(uint256 domain, uint256 range);
 
     /**
      * @dev Emitted when settings are initialized for a specific domain and adapter.
@@ -109,7 +109,7 @@ interface IGiriGiriBashi is IShuSho {
      * @dev Emitted when a declaration of no confidence is made for a specific domain.
      * @param domain - The domain associated with the declaration.
      */
-    event NoConfidenceDeclareed(uint256 domain);
+    event NoConfidenceDeclared(uint256 domain);
 
     /**
      * @dev Sets the threshold for a specific domain.
@@ -134,7 +134,7 @@ interface IGiriGiriBashi is IShuSho {
     /**
      * @dev Challenges the adapter to provide a response. If the adapter fails, it can be quarantined.
      * @param domain - The Uint256 identifier for the domain.
-     * @param  id - The Uint256 identifier for the challenge.
+     * @param id - The Uint256 identifier for the challenge.
      * @param adapter - The address of the adapter to challenge.
      * @notice Caller must pay a minimum bond to issue the challenge. This bond should be high enough to cover the gas costs for successfully completing the challenge.
      */
@@ -156,7 +156,7 @@ interface IGiriGiriBashi is IShuSho {
     ) external returns (bool);
 
     /**
-     * @dev show that enough adapters disagree that they could not make a threshold if the remainder all agree with one.
+     * @dev Show that enough adapters disagree that they could not make a threshold if the remainder all agree with one.
      * @param domain - The Uint256 identifier for the domain.
      * @param id - The Uint256 identifier.
      * @param adapters - An array of adapter instances.
@@ -170,7 +170,7 @@ interface IGiriGiriBashi is IShuSho {
      * @param newAdapters - An array of new adapter instances to replace the current ones.
      * @param settings - An array of settings corresponding to the new adapters.
      */
-    function replaceQuaratinedAdapters(
+    function replaceQuarantinedAdapters(
         uint256 domain,
         IAdapter[] memory currentAdapters,
         IAdapter[] memory newAdapters,
@@ -210,7 +210,7 @@ interface IGiriGiriBashi is IShuSho {
      * @notice Revert if the adapters do not yet have the hash for the given ID.
      * @notice Reverts if no adapters are set for the given domain.
      */
-    function getUnanimousHash(uint256 domain, uint256 id) external returns (bytes32 hash);
+    function getUnanimousHash(uint256 domain, uint256 id) external returns (bytes32);
 
     /**
      * @dev Returns the hash agreed upon by a threshold of the enabled adapters.
@@ -220,7 +220,7 @@ interface IGiriGiriBashi is IShuSho {
      * @notice Reverts if no threshold is not reached.
      * @notice Reverts if no adapters are set for the given domain.
      */
-    function getThresholdHash(uint256 domain, uint256 id) external returns (bytes32 hash);
+    function getThresholdHash(uint256 domain, uint256 id) external returns (bytes32);
 
     /**
      * @dev Returns the hash unanimously agreed upon by all of the given adapters.
@@ -228,11 +228,11 @@ interface IGiriGiriBashi is IShuSho {
      * @param adapters - Array of adapter addresses to query.
      * @param id - Uint256 identifier to query.
      * @return hash - Bytes32 hash agreed upon by the adapters for the given domain.
-     * @notice adapters must be in numerical order from smallest to largest and contain no duplicates.
+     * @notice Adapters must be in numerical order from smallest to largest and contain no duplicates.
      * @notice Reverts if adapters are out of order or contain duplicates.
      * @notice Reverts if adapters disagree.
      * @notice Revert if the adapters do not yet have the hash for the given ID.
      * @notice Reverts if no adapters are set for the given domain.
      */
-    function getHash(uint256 domain, uint256 id, IAdapter[] memory adapters) external returns (bytes32 hash);
+    function getHash(uint256 domain, uint256 id, IAdapter[] memory adapters) external returns (bytes32);
 }

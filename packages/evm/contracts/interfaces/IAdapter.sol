@@ -5,9 +5,9 @@ pragma solidity ^0.8.20;
  * @title IAdapter
  */
 interface IAdapter {
+    error ConflictingBlockHeader(uint256 blockNumber, bytes32 blockHash, bytes32 storedBlockHash);
     error InvalidBlockHeaderLength(uint256 length);
     error InvalidBlockHeaderRLP();
-    error ConflictingBlockHeader(uint256 blockNumber, bytes32 blockHash, bytes32 storedBlockHash);
 
     /**
      * @dev Emitted when a hash is stored.
