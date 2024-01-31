@@ -44,28 +44,6 @@ interface IGiriGiriBashi is IShuSho {
     event BondRecipientSet(address payable bondRecipient);
 
     /**
-     * @dev Emitted when a new head is updated.
-     * @param domain - The domain associated with the new head.
-     * @param head - The new head as a Uint256 identifier.
-     */
-    event NewHead(uint256 domain, uint256 head);
-
-    /**
-     * @dev Emitted when the challenge range is updated.
-     * @param domain - The domain associated with the updated challenge range.
-     * @param range - The new challenge range as a Uint256 identifier.
-     */
-    event ChallengeRangeUpdated(uint256 domain, uint256 range);
-
-    /**
-     * @dev Emitted when settings are initialized for a specific domain and adapter.
-     * @param domain - The domain associated with the initialized settings.
-     * @param adapter - The adapter address associated with the initialized settings.
-     * @param settings - The initialized settings object.
-     */
-    event SettingsInitialized(uint256 domain, IAdapter adapter, Settings settings);
-
-    /**
      * @dev Emitted when a challenge is created.
      * @param challengeId - The unique identifier for the challenge.
      * @param domain - The domain associated with the challenge.
@@ -84,6 +62,13 @@ interface IGiriGiriBashi is IShuSho {
         uint256 timestamp,
         uint256 bond
     );
+
+    /**
+     * @dev Emitted when the challenge range is updated.
+     * @param domain - The domain associated with the updated challenge range.
+     * @param range - The new challenge range as a Uint256 identifier.
+     */
+    event ChallengeRangeUpdated(uint256 domain, uint256 range);
 
     /**
      * @dev Emitted when a challenge is resolved.
@@ -106,30 +91,25 @@ interface IGiriGiriBashi is IShuSho {
     );
 
     /**
+     * @dev Emitted when a new head is updated.
+     * @param domain - The domain associated with the new head.
+     * @param head - The new head as a Uint256 identifier.
+     */
+    event NewHead(uint256 domain, uint256 head);
+
+    /**
      * @dev Emitted when a declaration of no confidence is made for a specific domain.
      * @param domain - The domain associated with the declaration.
      */
     event NoConfidenceDeclared(uint256 domain);
 
     /**
-     * @dev Sets the threshold for a specific domain.
-     * @param domain - The Uint256 identifier for the domain.
-     * @param threshold - The Uint256 threshold to set for the given domain.
+     * @dev Emitted when settings are initialized for a specific domain and adapter.
+     * @param domain - The domain associated with the initialized settings.
+     * @param adapter - The adapter address associated with the initialized settings.
+     * @param settings - The initialized settings object.
      */
-    function setThreshold(uint256 domain, uint256 threshold) external;
-
-    /**
-     * @dev Sets the bond recipient address for payments.
-     * @param bondRecipient - The address where bond payments should be sent.
-     */
-    function setBondRecipient(address payable bondRecipient) external;
-
-    /**
-     * @dev Sets the challenge range for a specific domain.
-     * @param domain - The Uint256 identifier for the domain.
-     * @param range - The Uint256 range to set for the given domain.
-     */
-    function setChallengeRange(uint256 domain, uint256 range) external;
+    event SettingsInitialized(uint256 domain, IAdapter adapter, Settings settings);
 
     /**
      * @dev Challenges the adapter to provide a response. If the adapter fails, it can be quarantined.
@@ -141,41 +121,12 @@ interface IGiriGiriBashi is IShuSho {
     function challengeAdapter(uint256 domain, uint256 id, IAdapter adapter) external payable;
 
     /**
-     * @dev Resolves a challenge by comparing results from a specific adapter with others.
-     * @param domain - The Uint256 identifier for the domain.
-     * @param id - The Uint256 identifier.
-     * @param adapter - The adapter instance for comparison.
-     * @param adapters - An array of adapter instances for comparison.
-     * @return A boolean indicating the success of the challenge resolution.
-     */
-    function resolveChallenge(
-        uint256 domain,
-        uint256 id,
-        IAdapter adapter,
-        IAdapter[] memory adapters
-    ) external returns (bool);
-
-    /**
      * @dev Show that enough adapters disagree that they could not make a threshold if the remainder all agree with one.
      * @param domain - The Uint256 identifier for the domain.
      * @param id - The Uint256 identifier.
      * @param adapters - An array of adapter instances.
      */
     function declareNoConfidence(uint256 domain, uint256 id, IAdapter[] memory adapters) external;
-
-    /**
-     * @dev Replaces the quarantined adapters for a given domain with new adapters and settings.
-     * @param domain - The Uint256 identifier for the domain.
-     * @param currentAdapters - An array of current adapter instances to be replaced.
-     * @param newAdapters - An array of new adapter instances to replace the current ones.
-     * @param settings - An array of settings corresponding to the new adapters.
-     */
-    function replaceQuarantinedAdapters(
-        uint256 domain,
-        IAdapter[] memory currentAdapters,
-        IAdapter[] memory newAdapters,
-        Settings[] memory settings
-    ) external;
 
     /**
      * @dev Disables a set of adapters for a given domain.
@@ -202,6 +153,16 @@ interface IGiriGiriBashi is IShuSho {
     function getChallengeId(uint256 domain, uint256 id, IAdapter adapter) external pure returns (bytes32);
 
     /**
+     * @dev Returns the hash agreed upon by a threshold of the enabled adapters.
+     * @param domain - Uint256 identifier for the domain to query.
+     * @param id - Uint256 identifier to query.
+     * @return hash - Bytes32 hash agreed upon by a threshold of the adapters for the given domain.
+     * @notice Reverts if no threshold is not reached.
+     * @notice Reverts if no adapters are set for the given domain.
+     */
+    function getThresholdHash(uint256 domain, uint256 id) external returns (bytes32);
+
+    /**
      * @dev Returns the hash unanimously agreed upon by ALL of the enabled adapters.
      * @param domain - Uint256 identifier for the domain to query.
      * @param id - Uint256 identifier to query.
@@ -211,16 +172,6 @@ interface IGiriGiriBashi is IShuSho {
      * @notice Reverts if no adapters are set for the given domain.
      */
     function getUnanimousHash(uint256 domain, uint256 id) external returns (bytes32);
-
-    /**
-     * @dev Returns the hash agreed upon by a threshold of the enabled adapters.
-     * @param domain - Uint256 identifier for the domain to query.
-     * @param id - Uint256 identifier to query.
-     * @return hash - Bytes32 hash agreed upon by a threshold of the adapters for the given domain.
-     * @notice Reverts if no threshold is not reached.
-     * @notice Reverts if no adapters are set for the given domain.
-     */
-    function getThresholdHash(uint256 domain, uint256 id) external returns (bytes32);
 
     /**
      * @dev Returns the hash unanimously agreed upon by all of the given adapters.
@@ -235,4 +186,53 @@ interface IGiriGiriBashi is IShuSho {
      * @notice Reverts if no adapters are set for the given domain.
      */
     function getHash(uint256 domain, uint256 id, IAdapter[] memory adapters) external returns (bytes32);
+
+    /**
+     * @dev Replaces the quarantined adapters for a given domain with new adapters and settings.
+     * @param domain - The Uint256 identifier for the domain.
+     * @param currentAdapters - An array of current adapter instances to be replaced.
+     * @param newAdapters - An array of new adapter instances to replace the current ones.
+     * @param settings - An array of settings corresponding to the new adapters.
+     */
+    function replaceQuarantinedAdapters(
+        uint256 domain,
+        IAdapter[] memory currentAdapters,
+        IAdapter[] memory newAdapters,
+        Settings[] memory settings
+    ) external;
+
+    /**
+     * @dev Resolves a challenge by comparing results from a specific adapter with others.
+     * @param domain - The Uint256 identifier for the domain.
+     * @param id - The Uint256 identifier.
+     * @param adapter - The adapter instance for comparison.
+     * @param adapters - An array of adapter instances for comparison.
+     * @return A boolean indicating the success of the challenge resolution.
+     */
+    function resolveChallenge(
+        uint256 domain,
+        uint256 id,
+        IAdapter adapter,
+        IAdapter[] memory adapters
+    ) external returns (bool);
+
+    /**
+     * @dev Sets the bond recipient address for payments.
+     * @param bondRecipient - The address where bond payments should be sent.
+     */
+    function setBondRecipient(address payable bondRecipient) external;
+
+    /**
+     * @dev Sets the challenge range for a specific domain.
+     * @param domain - The Uint256 identifier for the domain.
+     * @param range - The Uint256 range to set for the given domain.
+     */
+    function setChallengeRange(uint256 domain, uint256 range) external;
+
+    /**
+     * @dev Sets the threshold for a specific domain.
+     * @param domain - The Uint256 identifier for the domain.
+     * @param threshold - The Uint256 threshold to set for the given domain.
+     */
+    function setThreshold(uint256 domain, uint256 threshold) external;
 }

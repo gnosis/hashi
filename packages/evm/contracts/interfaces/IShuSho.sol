@@ -29,6 +29,20 @@ interface IShuSho {
     error ThresholdNotMet();
 
     /**
+     * @dev Emitted when adapters are disabled for a specific domain.
+     * @param domain - The domain associated with the disabled adapters.
+     * @param adapters - An array of disabled adapter addresses associated with this event.
+     */
+    event AdaptersDisabled(uint256 indexed domain, IAdapter[] adapters);
+
+    /**
+     * @dev Emitted when adapters are enabled for a specific domain.
+     * @param domain - The domain associated with the enabled adapters.
+     * @param adapters - An array of enabled adapter addresses associated with this event.
+     */
+    event AdaptersEnabled(uint256 indexed domain, IAdapter[] adapters);
+
+    /**
      * @dev Emitted when the address of the IHashi contract is set.
      * @param hashi - The address of the IHashi contract associated with this event.
      */
@@ -40,20 +54,6 @@ interface IShuSho {
      * @param hashi - The address of the IHashi contract associated with this event.
      */
     event Init(address indexed owner, IHashi indexed hashi);
-
-    /**
-     * @dev Emitted when adapters are enabled for a specific domain.
-     * @param domain - The domain associated with the enabled adapters.
-     * @param adapters - An array of enabled adapter addresses associated with this event.
-     */
-    event AdaptersEnabled(uint256 indexed domain, IAdapter[] adapters);
-
-    /**
-     * @dev Emitted when adapters are disabled for a specific domain.
-     * @param domain - The domain associated with the disabled adapters.
-     * @param adapters - An array of disabled adapter addresses associated with this event.
-     */
-    event AdaptersDisabled(uint256 indexed domain, IAdapter[] adapters);
 
     /**
      * @dev Emitted when the threshold is set for a specific domain.

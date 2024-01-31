@@ -27,28 +27,6 @@ contract GiriGiriBashi is IGiriGiriBashi, ShuSo {
         _;
     }
 
-    function setHashi(IHashi _hashi) public override onlyInitializing {
-        _setHashi(_hashi);
-    }
-
-    /// @inheritdoc IGiriGiriBashi
-    function setThreshold(uint256 domain, uint256 threshold) public zeroCount(domain) {
-        _setThreshold(domain, threshold);
-    }
-
-    /// @inheritdoc IGiriGiriBashi
-    function setBondRecipient(address payable _bondRecipient) public onlyOwner {
-        bondRecipient = _bondRecipient;
-        emit BondRecipientSet(_bondRecipient);
-    }
-
-    /// @inheritdoc IGiriGiriBashi
-    function setChallengeRange(uint256 domain, uint256 range) public {
-        if (challengeRanges[domain] != 0) revert ChallengeRangeAlreadySet(domain);
-        challengeRanges[domain] = range;
-        emit ChallengeRangeUpdated(domain, range);
-    }
-
     /// @inheritdoc IGiriGiriBashi
     function challengeAdapter(uint256 domain, uint256 id, IAdapter adapter) public payable {
         if (adapters[domain][adapter].previous == IAdapter(address(0))) revert AdapterNotEnabled(adapter);
@@ -77,6 +55,85 @@ contract GiriGiriBashi is IGiriGiriBashi, ShuSo {
         challenge.bond = msg.value;
 
         emit ChallengeCreated(challengeId, domain, id, adapter, msg.sender, block.timestamp, msg.value);
+    }
+
+    /// @inheritdoc IGiriGiriBashi
+    function enableAdapters(
+        uint256 domain,
+        IAdapter[] memory _adapters,
+        Settings[] memory _settings
+    ) public zeroCount(domain) {
+        _enableAdapters(domain, _adapters);
+        initSettings(domain, _adapters, _settings);
+    }
+
+    /// @inheritdoc IGiriGiriBashi
+    function declareNoConfidence(uint256 domain, uint256 id, IAdapter[] memory _adapters) public {
+        checkAdapterOrderAndValidity(domain, _adapters);
+        (uint256 threshold, uint256 count) = getThresholdAndCount(domain);
+
+        // check that there are enough adapters to prove no confidence
+        uint256 confidence = (count - _adapters.length) + 1;
+        if (confidence >= threshold) revert CannotProveNoConfidence(domain, id, _adapters);
+
+        bytes32[] memory hashes = new bytes32[](_adapters.length);
+        for (uint i = 0; i < _adapters.length; i++) hashes[i] = _adapters[i].getHash(domain, id);
+
+        // prove that each member of _adapters disagrees
+        for (uint i = 0; i < hashes.length; i++)
+            for (uint j = 0; j < hashes.length; j++)
+                if (hashes[i] == hashes[j] && i != j) revert AdaptersAgreed(_adapters[i], _adapters[j]);
+
+        domains[domain].threshold = type(uint256).max;
+        delete challengeRanges[domain];
+
+        emit NoConfidenceDeclared(domain);
+    }
+
+    /// @inheritdoc IGiriGiriBashi
+    function disableAdapters(uint256 domain, IAdapter[] memory _adapters) public noConfidence(domain) {
+        _disableAdapters(domain, _adapters);
+        if (domains[domain].count == 0) domains[domain].threshold = 0;
+    }
+
+    /// @inheritdoc IGiriGiriBashi
+    function getChallengeId(uint256 domain, uint256 id, IAdapter adapter) public pure returns (bytes32 challengeId) {
+        challengeId = keccak256(abi.encodePacked(domain, id, adapter));
+    }
+
+    /// @inheritdoc IGiriGiriBashi
+    function getThresholdHash(uint256 domain, uint256 id) public returns (bytes32 hash) {
+        hash = _getThresholdHash(domain, id);
+        updateHead(domain, id);
+    }
+
+    /// @inheritdoc IGiriGiriBashi
+    function getUnanimousHash(uint256 domain, uint256 id) public returns (bytes32 hash) {
+        hash = _getUnanimousHash(domain, id);
+        updateHead(domain, id);
+    }
+
+    /// @inheritdoc IGiriGiriBashi
+    function getHash(uint256 domain, uint256 id, IAdapter[] memory _adapters) public returns (bytes32 hash) {
+        hash = _getHash(domain, id, _adapters);
+        updateHead(domain, id);
+    }
+
+    /// @inheritdoc IGiriGiriBashi
+    function replaceQuarantinedAdapters(
+        uint256 domain,
+        IAdapter[] memory currentAdapters,
+        IAdapter[] memory newAdapters,
+        Settings[] memory _settings
+    ) public onlyOwner {
+        if (currentAdapters.length != newAdapters.length || currentAdapters.length != _settings.length)
+            revert UnequalArrayLengths();
+        for (uint i = 0; i < currentAdapters.length; i++) {
+            if (!settings[currentAdapters[i]].quarantined) revert AdapterNotQuarantined(currentAdapters[i]);
+        }
+        _disableAdapters(domain, currentAdapters);
+        _enableAdapters(domain, newAdapters);
+        initSettings(domain, newAdapters, _settings);
     }
 
     /// @inheritdoc IGiriGiriBashi
@@ -137,82 +194,25 @@ contract GiriGiriBashi is IGiriGiriBashi, ShuSo {
     }
 
     /// @inheritdoc IGiriGiriBashi
-    function declareNoConfidence(uint256 domain, uint256 id, IAdapter[] memory _adapters) public {
-        checkAdapterOrderAndValidity(domain, _adapters);
-        (uint256 threshold, uint256 count) = getThresholdAndCount(domain);
-
-        // check that there are enough adapters to prove no confidence
-        uint256 confidence = (count - _adapters.length) + 1;
-        if (confidence >= threshold) revert CannotProveNoConfidence(domain, id, _adapters);
-
-        bytes32[] memory hashes = new bytes32[](_adapters.length);
-        for (uint i = 0; i < _adapters.length; i++) hashes[i] = _adapters[i].getHash(domain, id);
-
-        // prove that each member of _adapters disagrees
-        for (uint i = 0; i < hashes.length; i++)
-            for (uint j = 0; j < hashes.length; j++)
-                if (hashes[i] == hashes[j] && i != j) revert AdaptersAgreed(_adapters[i], _adapters[j]);
-
-        domains[domain].threshold = type(uint256).max;
-        delete challengeRanges[domain];
-
-        emit NoConfidenceDeclared(domain);
+    function setBondRecipient(address payable _bondRecipient) public onlyOwner {
+        bondRecipient = _bondRecipient;
+        emit BondRecipientSet(_bondRecipient);
     }
 
     /// @inheritdoc IGiriGiriBashi
-    function replaceQuarantinedAdapters(
-        uint256 domain,
-        IAdapter[] memory currentAdapters,
-        IAdapter[] memory newAdapters,
-        Settings[] memory _settings
-    ) public onlyOwner {
-        if (currentAdapters.length != newAdapters.length || currentAdapters.length != _settings.length)
-            revert UnequalArrayLengths();
-        for (uint i = 0; i < currentAdapters.length; i++) {
-            if (!settings[currentAdapters[i]].quarantined) revert AdapterNotQuarantined(currentAdapters[i]);
-        }
-        _disableAdapters(domain, currentAdapters);
-        _enableAdapters(domain, newAdapters);
-        initSettings(domain, newAdapters, _settings);
+    function setChallengeRange(uint256 domain, uint256 range) public {
+        if (challengeRanges[domain] != 0) revert ChallengeRangeAlreadySet(domain);
+        challengeRanges[domain] = range;
+        emit ChallengeRangeUpdated(domain, range);
+    }
+
+    function setHashi(IHashi _hashi) public override onlyInitializing {
+        _setHashi(_hashi);
     }
 
     /// @inheritdoc IGiriGiriBashi
-    function disableAdapters(uint256 domain, IAdapter[] memory _adapters) public noConfidence(domain) {
-        _disableAdapters(domain, _adapters);
-        if (domains[domain].count == 0) domains[domain].threshold = 0;
-    }
-
-    /// @inheritdoc IGiriGiriBashi
-    function enableAdapters(
-        uint256 domain,
-        IAdapter[] memory _adapters,
-        Settings[] memory _settings
-    ) public zeroCount(domain) {
-        _enableAdapters(domain, _adapters);
-        initSettings(domain, _adapters, _settings);
-    }
-
-    /// @inheritdoc IGiriGiriBashi
-    function getChallengeId(uint256 domain, uint256 id, IAdapter adapter) public pure returns (bytes32 challengeId) {
-        challengeId = keccak256(abi.encodePacked(domain, id, adapter));
-    }
-
-    /// @inheritdoc IGiriGiriBashi
-    function getUnanimousHash(uint256 domain, uint256 id) public returns (bytes32 hash) {
-        hash = _getUnanimousHash(domain, id);
-        updateHead(domain, id);
-    }
-
-    /// @inheritdoc IGiriGiriBashi
-    function getThresholdHash(uint256 domain, uint256 id) public returns (bytes32 hash) {
-        hash = _getThresholdHash(domain, id);
-        updateHead(domain, id);
-    }
-
-    /// @inheritdoc IGiriGiriBashi
-    function getHash(uint256 domain, uint256 id, IAdapter[] memory _adapters) public returns (bytes32 hash) {
-        hash = _getHash(domain, id, _adapters);
-        updateHead(domain, id);
+    function setThreshold(uint256 domain, uint256 threshold) public zeroCount(domain) {
+        _setThreshold(domain, threshold);
     }
 
     function initSettings(uint256 domain, IAdapter[] memory _adapters, Settings[] memory _settings) private {
