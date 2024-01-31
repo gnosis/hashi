@@ -26,30 +26,61 @@ abstract contract ShuSo is IShuSho, OwnableUpgradeable {
         emit Init(_owner, _hashi);
     }
 
+    /// @inheritdoc IShuSho
+    function checkAdapterOrderAndValidity(uint256 domain, IAdapter[] memory _adapters) public view {
+        for (uint256 i = 0; i < _adapters.length; i++) {
+            IAdapter adapter = _adapters[i];
+            if (i > 0 && adapter <= _adapters[i - 1]) revert DuplicateOrOutOfOrderAdapters(adapter, _adapters[i - 1]);
+            if (adapters[domain][adapter].next == IAdapter(address(0))) revert InvalidAdapter(adapter);
+        }
+    }
+
+    /// @inheritdoc IShuSho
+    function getAdapters(uint256 domain) public view returns (IAdapter[] memory) {
+        IAdapter[] memory _adapters = new IAdapter[](domains[domain].count);
+        IAdapter currentAdapter = adapters[domain][LIST_END].next;
+        for (uint256 i = 0; i < _adapters.length; i++) {
+            _adapters[i] = currentAdapter;
+            currentAdapter = adapters[domain][currentAdapter].next;
+        }
+        return _adapters;
+    }
+
+    /// @inheritdoc IShuSho
+    function getThresholdAndCount(uint256 domain_) public view returns (uint256, uint256) {
+        Domain storage domain = domains[domain_];
+        uint256 threshold = domain.threshold;
+        uint256 count = domain.count;
+        if (threshold == 0) threshold = count;
+        return (threshold, count);
+    }
+
     function setHashi(IHashi _hashi) public virtual;
 
     /**
-     * @dev Sets the address of the IHashi contract.
-     * @param _hashi - Address of the hashi contract.
+     * @dev Disables the given adapters for a given domain.
+     * @param domain - Uint256 identifier for the domain for which to set adapters.
+     * @param _adapters - Array of adapter addresses.
+     * @notice Reverts if _adapters are out of order or contain duplicates.
      * @notice Only callable by the owner of this contract.
      */
-    function _setHashi(IHashi _hashi) internal onlyOwner {
-        if (hashi == _hashi) revert DuplicateHashiAddress(_hashi);
-        hashi = _hashi;
-        emit HashiSet(hashi);
-    }
-
-    /**
-     * @dev Sets the threshold of adapters required for a given domain.
-     * @param domain - Uint256 identifier for the domain for which to set the threshold.
-     * @param threshold - Uint256 threshold to set for the given domain.
-     * @notice Only callable by the owner of this contract.
-     * @notice Reverts if threshold is already set to the given value.
-     */
-    function _setThreshold(uint256 domain, uint256 threshold) internal onlyOwner {
-        if (domains[domain].threshold == threshold) revert DuplicateThreashold(threshold);
-        domains[domain].threshold = threshold;
-        emit ThresholdSet(domain, threshold);
+    function _disableAdapters(uint256 domain, IAdapter[] memory _adapters) internal onlyOwner {
+        if (domains[domain].count == 0) revert NoAdaptersEnabled(domain);
+        if (_adapters.length == 0) revert NoAdaptersGiven();
+        for (uint256 i = 0; i < _adapters.length; i++) {
+            IAdapter adapter = _adapters[i];
+            if (adapter == IAdapter(address(0)) || adapter == LIST_END) revert InvalidAdapter(adapter);
+            Link memory current = adapters[domain][adapter];
+            if (current.next == IAdapter(address(0))) revert AdapterNotEnabled(adapter);
+            IAdapter next = current.next;
+            IAdapter previous = current.previous;
+            adapters[domain][next].previous = previous;
+            adapters[domain][previous].next = next;
+            delete adapters[domain][adapter].next;
+            delete adapters[domain][adapter].previous;
+            domains[domain].count--;
+        }
+        emit AdaptersDisabled(domain, _adapters);
     }
 
     /**
@@ -80,82 +111,24 @@ abstract contract ShuSo is IShuSho, OwnableUpgradeable {
     }
 
     /**
-     * @dev Disables the given adapters for a given domain.
-     * @param domain - Uint256 identifier for the domain for which to set adapters.
-     * @param _adapters - Array of adapter addresses.
-     * @notice Reverts if _adapters are out of order or contain duplicates.
-     * @notice Only callable by the owner of this contract.
-     */
-    function _disableAdapters(uint256 domain, IAdapter[] memory _adapters) internal onlyOwner {
-        if (domains[domain].count == 0) revert NoAdaptersEnabled(domain);
-        if (_adapters.length == 0) revert NoAdaptersGiven();
-        for (uint256 i = 0; i < _adapters.length; i++) {
-            IAdapter adapter = _adapters[i];
-            if (adapter == IAdapter(address(0)) || adapter == LIST_END) revert InvalidAdapter(adapter);
-            Link memory current = adapters[domain][adapter];
-            if (current.next == IAdapter(address(0))) revert AdapterNotEnabled(adapter);
-            IAdapter next = current.next;
-            IAdapter previous = current.previous;
-            adapters[domain][next].previous = previous;
-            adapters[domain][previous].next = next;
-            delete adapters[domain][adapter].next;
-            delete adapters[domain][adapter].previous;
-            domains[domain].count--;
-        }
-        emit AdaptersDisabled(domain, _adapters);
-    }
-
-    /**
-     * @dev Returns an array of enabled adapters for a given domain.
-     * @param domain - Uint256 identifier for the domain for which to list adapters.
-     */
-    function getAdapters(uint256 domain) public view returns (IAdapter[] memory) {
-        IAdapter[] memory _adapters = new IAdapter[](domains[domain].count);
-        IAdapter currentAdapter = adapters[domain][LIST_END].next;
-        for (uint256 i = 0; i < _adapters.length; i++) {
-            _adapters[i] = currentAdapter;
-            currentAdapter = adapters[domain][currentAdapter].next;
-        }
-        return _adapters;
-    }
-
-    /**
-     * @dev Returns the threshold and count for a given domain.
-     * @param domain - Uint256 identifier for the domain.
-     * @return threshold - Uint256 adapters threshold for the given domain.
-     * @return count - Uint256 adapters count for the given domain.
-     * @notice If the threshold for a domain has not been set, or is explicitly set to 0, this function will return a threshold equal to the adapters count for the given domain.
-     */
-    function getThresholdAndCount(uint256 domain) public view returns (uint256 threshold, uint256 count) {
-        threshold = domains[domain].threshold;
-        count = domains[domain].count;
-        if (threshold == 0) threshold = count;
-    }
-
-    /// @inheritdoc IShuSho
-    function checkAdapterOrderAndValidity(uint256 domain, IAdapter[] memory _adapters) public view {
-        for (uint256 i = 0; i < _adapters.length; i++) {
-            IAdapter adapter = _adapters[i];
-            if (i > 0 && adapter <= _adapters[i - 1]) revert DuplicateOrOutOfOrderAdapters(adapter, _adapters[i - 1]);
-            if (adapters[domain][adapter].next == IAdapter(address(0))) revert InvalidAdapter(adapter);
-        }
-    }
-
-    /**
-     * @dev Returns the hash unanimously agreed upon by ALL of the enabled adapters.
+     * @dev Returns the hash unanimously agreed upon by all of the given adapters.
      * @param domain - Uint256 identifier for the domain to query.
      * @param id - Uint256 identifier to query.
+     * @param _adapters - Array of adapter addresses to query.
      * @return hash - Bytes32 hash agreed upon by the adapters for the given domain.
+     * @notice _adapters must be in numerical order from smallest to largest and contain no duplicates.
+     * @notice Reverts if _adapters are out of order or contain duplicates.
      * @notice Reverts if adapters disagree.
      * @notice Revert if the adapters do not yet have the hash for the given ID.
      * @notice Reverts if no adapters are set for the given domain.
      */
-    function _getUnanimousHash(uint256 domain, uint256 id) internal view returns (bytes32 hash) {
-        IAdapter[] memory _adapters = getAdapters(domain);
+    function _getHash(uint256 domain, uint256 id, IAdapter[] memory _adapters) internal view returns (bytes32) {
         (uint256 threshold, uint256 count) = getThresholdAndCount(domain);
+        if (_adapters.length == 0) revert NoAdaptersGiven();
         if (count == 0) revert NoAdaptersEnabled(domain);
         if (_adapters.length < threshold) revert ThresholdNotMet();
-        hash = hashi.getHash(domain, id, _adapters);
+        checkAdapterOrderAndValidity(domain, _adapters);
+        return hashi.getHash(domain, id, _adapters);
     }
 
     /**
@@ -173,7 +146,6 @@ abstract contract ShuSo is IShuSho, OwnableUpgradeable {
         if (count == 0) revert NoAdaptersEnabled(domain);
         if (_adapters.length < threshold) revert ThresholdNotMet();
 
-        // get hashes
         bytes32[] memory hashes = new bytes32[](_adapters.length);
         for (uint i = 0; i < _adapters.length; i++) {
             try _adapters[i].getHash(domain, id) returns (bytes32 currentHash) {
@@ -181,12 +153,10 @@ abstract contract ShuSo is IShuSho, OwnableUpgradeable {
             } catch {} // solhint-disable no-empty-blocks
         }
 
-        // find a hash agreed on by a threshold of adapters
         for (uint i = 0; i < hashes.length; i++) {
             bytes32 baseHash = hashes[i];
             if (baseHash == bytes32(0)) continue;
 
-            // increment num for each instance of the current hash
             uint256 num = 0;
             for (uint j = 0; j < hashes.length; j++) {
                 if (baseHash == hashes[j]) {
@@ -199,23 +169,43 @@ abstract contract ShuSo is IShuSho, OwnableUpgradeable {
     }
 
     /**
-     * @dev Returns the hash unanimously agreed upon by all of the given adapters.
+     * @dev Returns the hash unanimously agreed upon by ALL of the enabled adapters.
      * @param domain - Uint256 identifier for the domain to query.
      * @param id - Uint256 identifier to query.
-     * @param _adapters - Array of adapter addresses to query.
      * @return hash - Bytes32 hash agreed upon by the adapters for the given domain.
-     * @notice _adapters must be in numerical order from smallest to largest and contain no duplicates.
-     * @notice Reverts if _adapters are out of order or contain duplicates.
      * @notice Reverts if adapters disagree.
      * @notice Revert if the adapters do not yet have the hash for the given ID.
      * @notice Reverts if no adapters are set for the given domain.
      */
-    function _getHash(uint256 domain, uint256 id, IAdapter[] memory _adapters) internal view returns (bytes32 hash) {
+    function _getUnanimousHash(uint256 domain, uint256 id) internal view returns (bytes32 hash) {
+        IAdapter[] memory _adapters = getAdapters(domain);
         (uint256 threshold, uint256 count) = getThresholdAndCount(domain);
-        if (_adapters.length == 0) revert NoAdaptersGiven();
         if (count == 0) revert NoAdaptersEnabled(domain);
         if (_adapters.length < threshold) revert ThresholdNotMet();
-        checkAdapterOrderAndValidity(domain, _adapters);
-        hash = hashi.getHash(domain, id, _adapters);
+        return hashi.getHash(domain, id, _adapters);
+    }
+
+    /**
+     * @dev Sets the address of the IHashi contract.
+     * @param _hashi - Address of the hashi contract.
+     * @notice Only callable by the owner of this contract.
+     */
+    function _setHashi(IHashi _hashi) internal onlyOwner {
+        if (hashi == _hashi) revert DuplicateHashiAddress(_hashi);
+        hashi = _hashi;
+        emit HashiSet(hashi);
+    }
+
+    /**
+     * @dev Sets the threshold of adapters required for a given domain.
+     * @param domain - Uint256 identifier for the domain for which to set the threshold.
+     * @param threshold - Uint256 threshold to set for the given domain.
+     * @notice Only callable by the owner of this contract.
+     * @notice Reverts if threshold is already set to the given value.
+     */
+    function _setThreshold(uint256 domain, uint256 threshold) internal onlyOwner {
+        if (domains[domain].threshold == threshold) revert DuplicateThreashold(threshold);
+        domains[domain].threshold = threshold;
+        emit ThresholdSet(domain, threshold);
     }
 }

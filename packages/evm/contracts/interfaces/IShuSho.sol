@@ -68,4 +68,20 @@ interface IShuSho {
      * @param _adapters - An array of adapter instances.
      */
     function checkAdapterOrderAndValidity(uint256 domain, IAdapter[] memory _adapters) external view;
+
+    /**
+     * @dev Returns an array of enabled adapters for a given domain.
+     * @param domain - Uint256 identifier for the domain for which to list adapters.
+     * @return adapters - The adapters for a given domain.
+     */
+    function getAdapters(uint256 domain) external view returns (IAdapter[] memory);
+
+    /**
+     * @dev Returns the threshold and count for a given domain.
+     * @param domain - Uint256 identifier for the domain.
+     * @return threshold - Uint256 adapters threshold for the given domain.
+     * @return count - Uint256 adapters count for the given domain.
+     * @notice If the threshold for a domain has not been set, or is explicitly set to 0, this function will return a threshold equal to the adapters count for the given domain.
+     */
+    function getThresholdAndCount(uint256 domain) external view returns (uint256, uint256);
 }
