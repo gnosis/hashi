@@ -9,7 +9,12 @@ interface IAdapter {
     error InvalidBlockHeaderRLP();
     error ConflictingBlockHeader(uint256 blockNumber, bytes32 blockHash, bytes32 storedBlockHash);
 
-    event HashStored(uint256 indexed id, bytes32 indexed hashes);
+    /**
+     * @dev Emitted when a hash is stored.
+     * @param id - The ID of the stored hash.
+     * @param hash - The stored hash as bytes32 values.
+     */
+    event HashStored(uint256 indexed id, bytes32 indexed hash);
 
     /**
      * @dev Returns the hash for a given ID.

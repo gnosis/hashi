@@ -20,6 +20,11 @@ interface IYaho is IMessageHashCalculator, IMessageIdCalculator {
     error InvalidMessage(Message message);
     error InvalidThreshold(uint256 threshold, uint256 maxThreshold);
 
+    /**
+     * @dev Emitted when a message is dispatched with its associated message ID and message struct.
+     * @param messageId - The message ID associated with the dispatched message.
+     * @param message - The message struct associated with this event.
+     */
     event MessageDispatched(uint256 indexed messageId, Message message);
 
     /**

@@ -7,6 +7,11 @@ pragma solidity ^0.8.20;
 interface IHeaderStorage {
     error HeaderOutOfRange(uint256 blockNumber);
 
+    /**
+     * @dev Emitted when a block header is stored.
+     * @param blockNumber - The block number associated with the stored header.
+     * @param blockHeader - The stored block header as a bytes32 value.
+     */
     event HeaderStored(uint256 indexed blockNumber, bytes32 indexed blockHeader);
 
     /**

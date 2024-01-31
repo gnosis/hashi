@@ -23,30 +23,6 @@ interface IGiriGiriBashi is IShuSho {
         uint256 bond; // bond paid by the challenger.
     }
 
-    event BondRecipientSet(address payable bondRecipient);
-    event NewHead(uint256 domain, uint256 head);
-    event ChallegenRangeUpdated(uint256 domain, uint256 range);
-    event SettingsInitialized(uint256 domain, IAdapter adapter, Settings settings);
-    event ChallengeCreated(
-        bytes32 challengeId,
-        uint256 indexed domain,
-        uint256 id,
-        IAdapter indexed adapter,
-        address indexed challenger,
-        uint256 timestamp,
-        uint256 bond
-    );
-    event ChallengeResolved(
-        bytes32 challengeId,
-        uint256 indexed domain,
-        uint256 id,
-        IAdapter indexed adapter,
-        address indexed challenger,
-        uint256 bond,
-        bool challengeSuccessful
-    );
-    event NoConfidenceDeclareed(uint256 domain);
-
     error DuplicateChallenge(bytes32 challengeId, uint256 domain, uint256 id, IAdapter adapter);
     error OutOfRange(IAdapter adapter, uint256 id);
     error AlreadyQuarantined(IAdapter adapter);
@@ -60,6 +36,80 @@ interface IGiriGiriBashi is IShuSho {
     error NoConfidenceRequired();
     error CountMustBeZero(uint256 domain);
     error ChallengeRangeAlreadySet(uint256 domain);
+
+    /**
+     * @dev Emitted when the bond recipient address is set.
+     * @param bondRecipient - The new bond recipient address as an Ethereum address.
+     */
+    event BondRecipientSet(address payable bondRecipient);
+
+    /**
+     * @dev Emitted when a new head is updated.
+     * @param domain - The domain associated with the new head.
+     * @param head - The new head as a Uint256 identifier.
+     */
+    event NewHead(uint256 domain, uint256 head);
+
+    /**
+     * @dev Emitted when the challenge range is updated.
+     * @param domain - The domain associated with the updated challenge range.
+     * @param range - The new challenge range as a Uint256 identifier.
+     */
+    event ChallegenRangeUpdated(uint256 domain, uint256 range);
+
+    /**
+     * @dev Emitted when settings are initialized for a specific domain and adapter.
+     * @param domain - The domain associated with the initialized settings.
+     * @param adapter - The adapter address associated with the initialized settings.
+     * @param settings - The initialized settings object.
+     */
+    event SettingsInitialized(uint256 domain, IAdapter adapter, Settings settings);
+
+    /**
+     * @dev Emitted when a challenge is created.
+     * @param challengeId - The unique identifier for the challenge.
+     * @param domain - The domain associated with the challenge.
+     * @param id - The identifier associated with the challenge.
+     * @param adapter - The adapter address associated with the challenge.
+     * @param challenger - The address of the challenger.
+     * @param timestamp - The timestamp when the challenge was created.
+     * @param bond - The bond amount associated with the challenge.
+     */
+    event ChallengeCreated(
+        bytes32 challengeId,
+        uint256 indexed domain,
+        uint256 id,
+        IAdapter indexed adapter,
+        address indexed challenger,
+        uint256 timestamp,
+        uint256 bond
+    );
+
+    /**
+     * @dev Emitted when a challenge is resolved.
+     * @param challengeId - The unique identifier for the resolved challenge.
+     * @param domain - The domain associated with the resolved challenge.
+     * @param id - The identifier associated with the resolved challenge.
+     * @param adapter - The adapter address associated with the resolved challenge.
+     * @param challenger - The address of the challenger.
+     * @param bond - The bond amount associated with the resolved challenge.
+     * @param challengeSuccessful - A boolean indicating whether the challenge was successful.
+     */
+    event ChallengeResolved(
+        bytes32 challengeId,
+        uint256 indexed domain,
+        uint256 id,
+        IAdapter indexed adapter,
+        address indexed challenger,
+        uint256 bond,
+        bool challengeSuccessful
+    );
+
+    /**
+     * @dev Emitted when a declaration of no confidence is made for a specific domain.
+     * @param domain - The domain associated with the declaration.
+     */
+    event NoConfidenceDeclareed(uint256 domain);
 
     /**
      * @dev Sets the threshold for a specific domain.

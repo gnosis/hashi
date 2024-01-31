@@ -4,20 +4,35 @@ pragma solidity ^0.8.20;
 import { IAdapter } from "./IAdapter.sol";
 
 interface IReporter {
+    error NotYaho(address sender, address expectedYaho);
+
+    /**
+     * @dev Emitted when a block is dispatched to another chain.
+     * @param toChainId - The target chain's identifier associated with the dispatched block.
+     * @param adapter - The adapter address associated with the dispatched block.
+     * @param blockNumber - The block number associated with the dispatched block.
+     * @param blockHeader - The dispatched block header as a bytes32 value.
+     */
     event BlockDispatched(
         uint256 indexed toChainId,
         IAdapter adapter,
         uint256 indexed blockNumber,
         bytes32 blockHeader
     );
+
+    /**
+     * @dev Emitted when a message is dispatched to another chain.
+     * @param toChainId - The target chain's identifier associated with the dispatched message.
+     * @param adapter - The adapter address associated with the dispatched message.
+     * @param messageId - The message identifier associated with the dispatched message.
+     * @param messageHash - The dispatched message hash as a bytes32 value.
+     */
     event MessageDispatched(
         uint256 indexed toChainId,
         IAdapter adapter,
         uint256 indexed messageId,
         bytes32 messageHash
     );
-
-    error NotYaho(address sender, address expectedYaho);
 
     /**
      * @dev Dispatches blocks to a given adapter on the target chaib.

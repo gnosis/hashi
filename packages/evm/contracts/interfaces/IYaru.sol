@@ -14,6 +14,11 @@ interface IYaru is IMessageHashCalculator, IMessageIdCalculator {
     error CallFailed();
     error ThresholdNotMet();
 
+    /**
+     * @dev Emitted when a message is executed with its associated message ID and message object.
+     * @param messageId - The message ID associated with the executed message.
+     * @param message - The message object associated with this event.
+     */
     event MessageExecuted(uint256 indexed messageId, Message message);
 
     /**
