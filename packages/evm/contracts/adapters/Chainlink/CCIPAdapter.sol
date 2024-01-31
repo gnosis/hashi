@@ -16,7 +16,7 @@ contract CCIPAdapter is BlockHashAdapter, Ownable, CCIPReceiver {
 
     event ReporterSet(uint256 indexed chainId, uint64 indexed chainSelector, address indexed reporter);
 
-    constructor(address ccipRouter) CCIPReceiver(ccipRouter) {}
+    constructor(address ccipRouter) CCIPReceiver(ccipRouter) {} // solhint-disable no-empty-blocks
 
     function setReporterByChain(uint256 chainId, uint64 chainSelector, address reporter) external onlyOwner {
         enabledReporters[chainSelector] = reporter;

@@ -16,7 +16,7 @@ contract AxelarAdapter is BlockHashAdapter, Ownable, AxelarExecutable {
 
     event ReporterSet(uint256 indexed chainId, string name, string indexed reporter);
 
-    constructor(address axelarGateway) AxelarExecutable(axelarGateway) {}
+    constructor(address axelarGateway) AxelarExecutable(axelarGateway) {} // solhint-disable no-empty-blocks
 
     function setReporterByChain(
         uint256 chainId,
