@@ -93,7 +93,6 @@ interface IYaho is IMessageHashCalculator, IMessageIdCalculator {
 
     /**
      * @dev Relays an array of messages to their respective adapters. In order to be able to aggregate messages within the reporter, it's mandatory that all messages have the same targetChainId, reporters and adapters.
-     *
      * @param messages - An array of `Message` structures to be relayed to the adapters.
      * @return result An array of bytes32 arrays, where each element is the result of dispatching a respective all messages to the corresponding Reporter.
      */
