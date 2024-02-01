@@ -3,9 +3,9 @@ pragma solidity ^0.8.20;
 
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { ZetaReceiver, ZetaInterfaces } from "./interfaces/ZetaInterfaces.sol";
-import { BlockHashOracleAdapter } from "../BlockHashOracleAdapter.sol";
+import { BlockHashAdapter } from "../BlockHashAdapter.sol";
 
-contract ZetaAdapter is BlockHashOracleAdapter, Ownable, ZetaReceiver {
+contract ZetaAdapter is BlockHashAdapter, Ownable, ZetaReceiver {
     string public constant PROVIDER = "zeta";
     address public immutable ZETA_CONNECTOR;
 

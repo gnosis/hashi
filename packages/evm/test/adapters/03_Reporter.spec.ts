@@ -32,38 +32,38 @@ describe("Reporter", () => {
 
   describe("dispatchBlocks", () => {
     it("should be able to dispatch 2 blocks", async () => {
-      const toChainId = Chains.Gnosis
+      const targetChainId = Chains.Gnosis
       const blockNumbers = [998, 999]
       await mine(1000)
-      await expect(reporter.dispatchBlocks(toChainId, fakeAdapter.address, blockNumbers))
+      await expect(reporter.dispatchBlocks(targetChainId, fakeAdapter.address, blockNumbers))
         .to.emit(reporter, "BlockDispatched")
-        .withArgs(toChainId, fakeAdapter.address, blockNumbers[0], anyValue)
+        .withArgs(targetChainId, fakeAdapter.address, blockNumbers[0], anyValue)
         .and.to.emit(reporter, "BlockDispatched")
-        .withArgs(toChainId, fakeAdapter.address, blockNumbers[1], anyValue)
+        .withArgs(targetChainId, fakeAdapter.address, blockNumbers[1], anyValue)
     })
   })
 
   describe("dispatchMessages", () => {
     it("should not be able to call dispatchMessages if it's not yaho", async () => {
-      const toChainId = Chains.Gnosis
+      const targetChainId = Chains.Gnosis
       const messageIds = [1, 2]
       const messageHashes = [toBytes32(1), toBytes32(2)]
-      await expect(reporter.dispatchMessages(toChainId, fakeAdapter.address, messageIds, messageHashes))
+      await expect(reporter.dispatchMessages(targetChainId, fakeAdapter.address, messageIds, messageHashes))
         .to.be.revertedWithCustomError(reporter, "NotYaho")
         .withArgs(user.address, fakeYaho.address)
     })
 
     it("should be able to dispatch 2 messages", async () => {
-      const toChainId = Chains.Gnosis
+      const targetChainId = Chains.Gnosis
       const messageIds = [1, 2]
       const messageHashes = [toBytes32(1), toBytes32(2)]
       await expect(
-        reporter.connect(fakeYaho).dispatchMessages(toChainId, fakeAdapter.address, messageIds, messageHashes),
+        reporter.connect(fakeYaho).dispatchMessages(targetChainId, fakeAdapter.address, messageIds, messageHashes),
       )
         .to.emit(reporter, "MessageDispatched")
-        .withArgs(toChainId, fakeAdapter.address, messageIds[0], messageHashes[0])
+        .withArgs(targetChainId, fakeAdapter.address, messageIds[0], messageHashes[0])
         .and.to.emit(reporter, "MessageDispatched")
-        .withArgs(toChainId, fakeAdapter.address, messageIds[1], messageHashes[1])
+        .withArgs(targetChainId, fakeAdapter.address, messageIds[1], messageHashes[1])
     })
   })
 })

@@ -32,15 +32,15 @@ contract SygmaReporter is Reporter, Ownable {
     }
 
     function _dispatch(
-        uint256 toChainId,
+        uint256 targetChainId,
         address adapter,
         uint256[] memory ids,
         bytes32[] memory hashes
     ) internal override returns (bytes32) {
-        uint8 domainId = domainIds[toChainId];
-        if (domainId == 0) revert DomainIdNotAvailable();
-        bytes32 resourceId = resourceIds[toChainId];
-        if (resourceId == bytes32(0)) revert ResourceIdNotAvailable();
+        uint8 targetDomainId = domainIds[targetChainId];
+        if (targetDomainId == 0) revert DomainIdNotAvailable();
+        bytes32 targetResourceId = resourceIds[targetChainId];
+        if (targetResourceId == bytes32(0)) revert ResourceIdNotAvailable();
         bytes memory depositData = abi.encodePacked(
             // uint256 maxFee
             uint256(950000),
@@ -60,8 +60,8 @@ contract SygmaReporter is Reporter, Ownable {
             prepareDepositData(ids, hashes)
         );
         (uint64 nonce, bytes memory handlerResponse) = BRIDGE.deposit{ value: msg.value }(
-            domainId,
-            resourceId,
+            targetDomainId,
+            targetResourceId,
             depositData,
             "" // feeData
         );

@@ -4,9 +4,9 @@ pragma solidity ^0.8.20;
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { IERC777Recipient } from "@openzeppelin/contracts/interfaces/IERC777Recipient.sol";
 import { IERC1820RegistryUpgradeable } from "@openzeppelin/contracts-upgradeable/interfaces/IERC1820RegistryUpgradeable.sol";
-import { BlockHashOracleAdapter } from "../BlockHashOracleAdapter.sol";
+import { BlockHashAdapter } from "../BlockHashAdapter.sol";
 
-contract PNetworkAdapter is BlockHashOracleAdapter, Ownable {
+contract PNetworkAdapter is BlockHashAdapter, Ownable {
     string public constant PROVIDER = "pnetwork";
 
     address public immutable VAULT;

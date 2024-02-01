@@ -25,18 +25,18 @@ contract LayerZeroReporter is Reporter, Ownable {
     }
 
     function _dispatch(
-        uint256 toChainId,
+        uint256 targetChainId,
         address adapter,
         uint256[] memory ids,
         bytes32[] memory hashes
     ) internal override returns (bytes32) {
-        uint16 endpointId = endpointIds[toChainId];
-        if (endpointId == 0) revert EndpointIdNotAvailable();
+        uint16 targetEndpointId = endpointIds[targetChainId];
+        if (targetEndpointId == 0) revert EndpointIdNotAvailable();
         bytes memory payload = abi.encode(ids, hashes);
         bytes memory path = abi.encodePacked(adapter, address(this));
         // solhint-disable-next-line check-send-result
         LAYER_ZERO_ENDPOINT.send{ value: msg.value }(
-            endpointId,
+            targetEndpointId,
             path,
             payload,
             payable(msg.sender), // _refundAddress: refund address

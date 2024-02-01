@@ -2,10 +2,10 @@
 pragma solidity ^0.8.20;
 
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
-import { BlockHashOracleAdapter } from "../BlockHashOracleAdapter.sol";
+import { BlockHashAdapter } from "../BlockHashAdapter.sol";
 import { IWormhole, VM } from "./interfaces/IWormhole.sol";
 
-contract WormholeAdapter is BlockHashOracleAdapter, Ownable {
+contract WormholeAdapter is BlockHashAdapter, Ownable {
     IWormhole public immutable WORMHOLE;
 
     mapping(uint32 => bytes32) public enabledReporters;

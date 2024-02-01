@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 
 import { Reporter } from "../Reporter.sol";
-import { IOracleAdapter } from "../../interfaces/IOracleAdapter.sol";
+import { IAdapter } from "../../interfaces/IAdapter.sol";
 import { IWormhole } from "./interfaces/IWormhole.sol";
 
 contract WormholeReporter is Reporter {

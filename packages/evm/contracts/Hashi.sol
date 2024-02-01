@@ -33,24 +33,23 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity ^0.8.20;
 
-import { IOracleAdapter } from "./interfaces/IOracleAdapter.sol";
+import { IAdapter } from "./interfaces/IAdapter.sol";
 import { IHashi } from "./interfaces/IHashi.sol";
 
 contract Hashi is IHashi {
     /// @inheritdoc IHashi
-    function checkHashWithThresholdFromOracles(
+    function checkHashWithThresholdFromAdapters(
         uint256 domain,
         uint256 id,
         uint256 threshold,
-        IOracleAdapter[] calldata oracleAdapters
+        IAdapter[] calldata adapters
     ) external view returns (bool) {
-        if (oracleAdapters.length == 0) revert NoOracleAdaptersGiven();
-        if (threshold > oracleAdapters.length || threshold == 0)
-            revert InvalidThreshold(threshold, oracleAdapters.length);
+        if (adapters.length == 0) revert NoAdaptersGiven();
+        if (threshold > adapters.length || threshold == 0) revert InvalidThreshold(threshold, adapters.length);
 
-        bytes32[] memory hashes = new bytes32[](oracleAdapters.length);
-        for (uint256 i = 0; i < oracleAdapters.length; ) {
-            try oracleAdapters[i].getHashFromOracle(domain, id) returns (bytes32 hash) {
+        bytes32[] memory hashes = new bytes32[](adapters.length);
+        for (uint256 i = 0; i < adapters.length; ) {
+            try adapters[i].getHash(domain, id) returns (bytes32 hash) {
                 hashes[i] = hash;
             } catch {} // solhint-disable no-empty-blocks
             unchecked {
@@ -88,20 +87,20 @@ contract Hashi is IHashi {
     }
 
     /// @inheritdoc IHashi
-    function getHashFromOracle(uint256 domain, uint256 id, IOracleAdapter oracleAdapter) public view returns (bytes32) {
-        return oracleAdapter.getHashFromOracle(domain, id);
+    function getHashFromAdapter(uint256 domain, uint256 id, IAdapter adapter) public view returns (bytes32) {
+        return adapter.getHash(domain, id);
     }
 
     /// @inheritdoc IHashi
-    function getHashesFromOracles(
+    function getHashesFromAdapters(
         uint256 domain,
         uint256 id,
-        IOracleAdapter[] calldata oracleAdapters
+        IAdapter[] calldata adapters
     ) public view returns (bytes32[] memory) {
-        if (oracleAdapters.length == 0) revert NoOracleAdaptersGiven();
-        bytes32[] memory hashes = new bytes32[](oracleAdapters.length);
-        for (uint256 i = 0; i < oracleAdapters.length; ) {
-            hashes[i] = getHashFromOracle(domain, id, oracleAdapters[i]);
+        if (adapters.length == 0) revert NoAdaptersGiven();
+        bytes32[] memory hashes = new bytes32[](adapters.length);
+        for (uint256 i = 0; i < adapters.length; ) {
+            hashes[i] = getHashFromAdapter(domain, id, adapters[i]);
             unchecked {
                 ++i;
             }
@@ -110,18 +109,14 @@ contract Hashi is IHashi {
     }
 
     /// @inheritdoc IHashi
-    function getHash(
-        uint256 domain,
-        uint256 id,
-        IOracleAdapter[] calldata oracleAdapters
-    ) external view returns (bytes32 hash) {
-        if (oracleAdapters.length == 0) revert NoOracleAdaptersGiven();
-        bytes32[] memory hashes = getHashesFromOracles(domain, id, oracleAdapters);
+    function getHash(uint256 domain, uint256 id, IAdapter[] calldata adapters) external view returns (bytes32 hash) {
+        if (adapters.length == 0) revert NoAdaptersGiven();
+        bytes32[] memory hashes = getHashesFromAdapters(domain, id, adapters);
         hash = hashes[0];
-        if (hash == bytes32(0)) revert OracleDidNotReport(oracleAdapters[0]);
+        if (hash == bytes32(0)) revert HashNotAvailableInAdapter(adapters[0]);
         for (uint256 i = 1; i < hashes.length; ) {
-            if (hashes[i] == bytes32(0)) revert OracleDidNotReport(oracleAdapters[i]);
-            if (hash != hashes[i]) revert OraclesDisagree(oracleAdapters[i - 1], oracleAdapters[i]);
+            if (hashes[i] == bytes32(0)) revert HashNotAvailableInAdapter(adapters[i]);
+            if (hash != hashes[i]) revert AdaptersDisagree(adapters[i - 1], adapters[i]);
             unchecked {
                 ++i;
             }

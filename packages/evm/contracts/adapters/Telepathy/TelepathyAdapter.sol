@@ -3,9 +3,9 @@ pragma solidity ^0.8.20;
 
 import { ILightClient, TelepathyStorage } from "./interfaces/ITelepathy.sol";
 import { SSZ } from "./libraries/SimpleSerialize.sol";
-import { BlockHashOracleAdapter } from "../BlockHashOracleAdapter.sol";
+import { BlockHashAdapter } from "../BlockHashAdapter.sol";
 
-contract TelepathyAdapter is BlockHashOracleAdapter {
+contract TelepathyAdapter is BlockHashAdapter {
     error NoLightClientOnChain(uint32 chainId);
     error InconsistentLightClient(address lightClient);
     error BlockHeaderNotAvailable(uint256 slot);

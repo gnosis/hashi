@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 
 import { ShuSo } from "./ShuSo.sol";
-import { IOracleAdapter } from "../interfaces/IOracleAdapter.sol";
+import { IAdapter } from "../interfaces/IAdapter.sol";
 import { IHashi } from "../interfaces/IHashi.sol";
 import { IGiriGiriBashi } from "../interfaces/IGiriGiriBashi.sol";
 
@@ -10,7 +10,7 @@ contract GiriGiriBashi is IGiriGiriBashi, ShuSo {
     address payable public bondRecipient; // address that bonds from unsuccessful challenges should be sent to.
     mapping(uint256 => uint256) public heads; // highest Id reported.
     mapping(uint256 => uint256) public challengeRanges; // how far beyond the current highestId can a challenged.
-    mapping(IOracleAdapter => Settings) public settings;
+    mapping(IAdapter => Settings) public settings;
     mapping(bytes32 => Challenge) public challenges; // current challenges.
 
     constructor(address _owner, address _hashi, address payable _bondRecipient) ShuSo(_owner, _hashi) {
@@ -27,32 +27,10 @@ contract GiriGiriBashi is IGiriGiriBashi, ShuSo {
         _;
     }
 
-    function setHashi(IHashi _hashi) public override onlyInitializing {
-        _setHashi(_hashi);
-    }
-
     /// @inheritdoc IGiriGiriBashi
-    function setThreshold(uint256 domain, uint256 threshold) public zeroCount(domain) {
-        _setThreshold(domain, threshold);
-    }
-
-    /// @inheritdoc IGiriGiriBashi
-    function setBondRecipient(address payable _bondRecipient) public onlyOwner {
-        bondRecipient = _bondRecipient;
-        emit BondRecipientSet(_bondRecipient);
-    }
-
-    /// @inheritdoc IGiriGiriBashi
-    function setChallengeRange(uint256 domain, uint256 range) public {
-        if (challengeRanges[domain] != 0) revert ChallengeRangeAlreadySet(domain);
-        challengeRanges[domain] = range;
-        emit ChallegenRangeUpdated(domain, range);
-    }
-
-    /// @inheritdoc IGiriGiriBashi
-    function challengeOracleAdapter(uint256 domain, uint256 id, IOracleAdapter adapter) public payable {
-        if (adapters[domain][adapter].previous == IOracleAdapter(address(0))) revert AdapterNotEnabled(adapter);
-        if (msg.value < settings[adapter].minimumBond) revert NotEnoughtValue(adapter, msg.value);
+    function challengeAdapter(uint256 domain, uint256 id, IAdapter adapter) public payable {
+        if (adapters[domain][adapter].previous == IAdapter(address(0))) revert AdapterNotEnabled(adapter);
+        if (msg.value < settings[adapter].minimumBond) revert NotEnoughValue(adapter, msg.value);
         if (settings[adapter].quarantined) revert AlreadyQuarantined(adapter);
 
         bytes32 challengeId = getChallengeId(domain, id, adapter);
@@ -80,28 +58,104 @@ contract GiriGiriBashi is IGiriGiriBashi, ShuSo {
     }
 
     /// @inheritdoc IGiriGiriBashi
+    function enableAdapters(
+        uint256 domain,
+        IAdapter[] memory _adapters,
+        Settings[] memory _settings
+    ) public zeroCount(domain) {
+        _enableAdapters(domain, _adapters);
+        initSettings(domain, _adapters, _settings);
+    }
+
+    /// @inheritdoc IGiriGiriBashi
+    function declareNoConfidence(uint256 domain, uint256 id, IAdapter[] memory _adapters) public {
+        checkAdapterOrderAndValidity(domain, _adapters);
+        (uint256 threshold, uint256 count) = getThresholdAndCount(domain);
+
+        // check that there are enough adapters to prove no confidence
+        uint256 confidence = (count - _adapters.length) + 1;
+        if (confidence >= threshold) revert CannotProveNoConfidence(domain, id, _adapters);
+
+        bytes32[] memory hashes = new bytes32[](_adapters.length);
+        for (uint i = 0; i < _adapters.length; i++) hashes[i] = _adapters[i].getHash(domain, id);
+
+        // prove that each member of _adapters disagrees
+        for (uint i = 0; i < hashes.length; i++)
+            for (uint j = 0; j < hashes.length; j++)
+                if (hashes[i] == hashes[j] && i != j) revert AdaptersAgreed(_adapters[i], _adapters[j]);
+
+        domains[domain].threshold = type(uint256).max;
+        delete challengeRanges[domain];
+
+        emit NoConfidenceDeclared(domain);
+    }
+
+    /// @inheritdoc IGiriGiriBashi
+    function disableAdapters(uint256 domain, IAdapter[] memory _adapters) public noConfidence(domain) {
+        _disableAdapters(domain, _adapters);
+        if (domains[domain].count == 0) domains[domain].threshold = 0;
+    }
+
+    /// @inheritdoc IGiriGiriBashi
+    function getChallengeId(uint256 domain, uint256 id, IAdapter adapter) public pure returns (bytes32 challengeId) {
+        challengeId = keccak256(abi.encodePacked(domain, id, adapter));
+    }
+
+    /// @inheritdoc IGiriGiriBashi
+    function getThresholdHash(uint256 domain, uint256 id) public returns (bytes32 hash) {
+        hash = _getThresholdHash(domain, id);
+        updateHead(domain, id);
+    }
+
+    /// @inheritdoc IGiriGiriBashi
+    function getUnanimousHash(uint256 domain, uint256 id) public returns (bytes32 hash) {
+        hash = _getUnanimousHash(domain, id);
+        updateHead(domain, id);
+    }
+
+    /// @inheritdoc IGiriGiriBashi
+    function getHash(uint256 domain, uint256 id, IAdapter[] memory _adapters) public returns (bytes32 hash) {
+        hash = _getHash(domain, id, _adapters);
+        updateHead(domain, id);
+    }
+
+    /// @inheritdoc IGiriGiriBashi
+    function replaceQuarantinedAdapters(
+        uint256 domain,
+        IAdapter[] memory currentAdapters,
+        IAdapter[] memory newAdapters,
+        Settings[] memory _settings
+    ) public onlyOwner {
+        if (currentAdapters.length != newAdapters.length || currentAdapters.length != _settings.length)
+            revert UnequalArrayLengths();
+        for (uint i = 0; i < currentAdapters.length; i++) {
+            if (!settings[currentAdapters[i]].quarantined) revert AdapterNotQuarantined(currentAdapters[i]);
+        }
+        _disableAdapters(domain, currentAdapters);
+        _enableAdapters(domain, newAdapters);
+        initSettings(domain, newAdapters, _settings);
+    }
+
+    /// @inheritdoc IGiriGiriBashi
     function resolveChallenge(
         uint256 domain,
         uint256 id,
-        IOracleAdapter adapter,
-        IOracleAdapter[] memory _adapters
+        IAdapter adapter,
+        IAdapter[] memory _adapters
     ) public returns (bool success) {
         // check if challenge exists, revert if false
         bytes32 challengeId = getChallengeId(domain, id, adapter);
         if (challenges[challengeId].challenger == address(0))
             revert ChallengeNotFound(challengeId, domain, id, adapter);
 
-        // check if oracle has reported
         Challenge storage challenge = challenges[challengeId];
         Settings storage adapterSettings = settings[adapter];
-        bytes32 reportedHash = adapter.getHashFromOracle(domain, id);
+        bytes32 storedHash = adapter.getHash(domain, id);
 
-        // if no hash reported
-        if (reportedHash == bytes32(0)) {
+        if (storedHash == bytes32(0)) {
             // check block.timestamp is greater than challenge.timestamp + adapterSettings.timeout, revert if false.
             if (block.timestamp < challenge.timestamp + adapterSettings.timeout)
                 revert AdapterHasNotYetTimedOut(adapter);
-            // quaratine oracle adapter.
             adapterSettings.quarantined = true;
             // send bond to challenger
             challenge.challenger.transfer(challenge.bond);
@@ -110,22 +164,21 @@ contract GiriGiriBashi is IGiriGiriBashi, ShuSo {
             // if _adapters + 1 equals threshold && _adapters + adapter report the same header
             if (_adapters.length + 1 == domains[domain].threshold) {
                 bytes32 canonicalHash = hashi.getHash(domain, id, _adapters);
-                if (canonicalHash == reportedHash) {
+                if (canonicalHash == storedHash) {
                     // return bond to recipient
                     bondRecipient.transfer(challenge.bond);
                     success = false;
                 } else {
-                    revert IHashi.OraclesDisagree(adapter, _adapters[0]);
+                    revert IHashi.AdaptersDisagree(adapter, _adapters[0]);
                 }
             } else {
                 // check if _adapters report the same header as adapter
                 bytes32 canonicalHash = getHash(domain, id, _adapters);
-                if (canonicalHash == reportedHash) {
-                    // if reported headers match send bond to recipient.
+                if (canonicalHash == storedHash) {
                     bondRecipient.transfer(challenge.bond);
                     success = false;
                 } else {
-                    // quaratine oracle
+                    // quaratine adapter
                     adapterSettings.quarantined = true;
                     // return bond to challenger
                     challenge.challenger.transfer(challenge.bond);
@@ -141,92 +194,31 @@ contract GiriGiriBashi is IGiriGiriBashi, ShuSo {
     }
 
     /// @inheritdoc IGiriGiriBashi
-    function declareNoConfidence(uint256 domain, uint256 id, IOracleAdapter[] memory _adapters) public {
-        checkAdapterOrderAndValidity(domain, _adapters);
-        (uint256 threshold, uint256 count) = getThresholdAndCount(domain);
-
-        // check that there are enough adapters to prove no confidence
-        uint256 confidence = (count - _adapters.length) + 1;
-        if (confidence >= threshold) revert CannotProveNoConfidence(domain, id, _adapters);
-
-        bytes32[] memory hashes = new bytes32[](_adapters.length);
-        for (uint i = 0; i < _adapters.length; i++) hashes[i] = _adapters[i].getHashFromOracle(domain, id);
-
-        // prove that each member of _adapters disagrees
-        for (uint i = 0; i < hashes.length; i++)
-            for (uint j = 0; j < hashes.length; j++)
-                if (hashes[i] == hashes[j] && i != j) revert AdaptersAgreed(_adapters[i], _adapters[j]);
-
-        domains[domain].threshold = type(uint256).max;
-        delete challengeRanges[domain];
-
-        emit NoConfidenceDeclareed(domain);
+    function setBondRecipient(address payable _bondRecipient) public onlyOwner {
+        bondRecipient = _bondRecipient;
+        emit BondRecipientSet(_bondRecipient);
     }
 
     /// @inheritdoc IGiriGiriBashi
-    function replaceQuaratinedOrcales(
-        uint256 domain,
-        IOracleAdapter[] memory currentAdapters,
-        IOracleAdapter[] memory newAdapters,
-        Settings[] memory _settings
-    ) public onlyOwner {
-        if (currentAdapters.length != newAdapters.length || currentAdapters.length != _settings.length)
-            revert UnequalArrayLengths();
-        for (uint i = 0; i < currentAdapters.length; i++) {
-            if (!settings[currentAdapters[i]].quarantined) revert AdapterNotQuarantined(currentAdapters[i]);
-        }
-        _disableOracleAdapters(domain, currentAdapters);
-        _enableOracleAdapters(domain, newAdapters);
-        initSettings(domain, newAdapters, _settings);
+    function setChallengeRange(uint256 domain, uint256 range) public {
+        if (challengeRanges[domain] != 0) revert ChallengeRangeAlreadySet(domain);
+        challengeRanges[domain] = range;
+        emit ChallengeRangeUpdated(domain, range);
+    }
+
+    function setHashi(IHashi _hashi) public override onlyInitializing {
+        _setHashi(_hashi);
     }
 
     /// @inheritdoc IGiriGiriBashi
-    function disableOracleAdapters(uint256 domain, IOracleAdapter[] memory _adapters) public noConfidence(domain) {
-        _disableOracleAdapters(domain, _adapters);
-        if (domains[domain].count == 0) domains[domain].threshold = 0;
+    function setThreshold(uint256 domain, uint256 threshold) public zeroCount(domain) {
+        _setThreshold(domain, threshold);
     }
 
-    /// @inheritdoc IGiriGiriBashi
-    function enableOracleAdapters(
-        uint256 domain,
-        IOracleAdapter[] memory _adapters,
-        Settings[] memory _settings
-    ) public zeroCount(domain) {
-        _enableOracleAdapters(domain, _adapters);
-        initSettings(domain, _adapters, _settings);
-    }
-
-    /// @inheritdoc IGiriGiriBashi
-    function getChallengeId(
-        uint256 domain,
-        uint256 id,
-        IOracleAdapter adapter
-    ) public pure returns (bytes32 challengeId) {
-        challengeId = keccak256(abi.encodePacked(domain, id, adapter));
-    }
-
-    /// @inheritdoc IGiriGiriBashi
-    function getUnanimousHash(uint256 domain, uint256 id) public returns (bytes32 hash) {
-        hash = _getUnanimousHash(domain, id);
-        updateHead(domain, id);
-    }
-
-    /// @inheritdoc IGiriGiriBashi
-    function getThresholdHash(uint256 domain, uint256 id) public returns (bytes32 hash) {
-        hash = _getThresholdHash(domain, id);
-        updateHead(domain, id);
-    }
-
-    /// @inheritdoc IGiriGiriBashi
-    function getHash(uint256 domain, uint256 id, IOracleAdapter[] memory _adapters) public returns (bytes32 hash) {
-        hash = _getHash(domain, id, _adapters);
-        updateHead(domain, id);
-    }
-
-    function initSettings(uint256 domain, IOracleAdapter[] memory _adapters, Settings[] memory _settings) private {
+    function initSettings(uint256 domain, IAdapter[] memory _adapters, Settings[] memory _settings) private {
         if (_adapters.length != _settings.length) revert UnequalArrayLengths();
         for (uint i = 0; i < _adapters.length; i++) {
-            IOracleAdapter adapter = _adapters[i];
+            IAdapter adapter = _adapters[i];
             settings[adapter].quarantined = false;
             settings[adapter].minimumBond = _settings[i].minimumBond;
             settings[adapter].startId = _settings[i].startId;

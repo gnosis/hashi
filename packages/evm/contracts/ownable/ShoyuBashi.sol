@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 
 import { ShuSo } from "./ShuSo.sol";
-import { IOracleAdapter } from "../interfaces/IOracleAdapter.sol";
+import { IAdapter } from "../interfaces/IAdapter.sol";
 import { IHashi } from "../interfaces/IHashi.sol";
 import { IShoyuBashi } from "../interfaces/IShoyuBashi.sol";
 
@@ -19,13 +19,13 @@ contract ShoyuBashi is IShoyuBashi, ShuSo {
     }
 
     /// @inheritdoc IShoyuBashi
-    function enableOracleAdapters(uint256 domain, IOracleAdapter[] memory _adapters) public {
-        _enableOracleAdapters(domain, _adapters);
+    function enableAdapters(uint256 domain, IAdapter[] memory _adapters) public {
+        _enableAdapters(domain, _adapters);
     }
 
     /// @inheritdoc IShoyuBashi
-    function disableOracleAdapters(uint256 domain, IOracleAdapter[] memory _adapters) public {
-        _disableOracleAdapters(domain, _adapters);
+    function disableAdapters(uint256 domain, IAdapter[] memory _adapters) public {
+        _disableAdapters(domain, _adapters);
     }
 
     /// @inheritdoc IShoyuBashi
@@ -39,7 +39,7 @@ contract ShoyuBashi is IShoyuBashi, ShuSo {
     }
 
     /// @inheritdoc IShoyuBashi
-    function getHash(uint256 domain, uint256 id, IOracleAdapter[] memory _adapters) public view returns (bytes32) {
+    function getHash(uint256 domain, uint256 id, IAdapter[] memory _adapters) public view returns (bytes32) {
         return _getHash(domain, id, _adapters);
     }
 }

@@ -4,9 +4,9 @@ pragma solidity ^0.8.20;
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { IMessageRecipient } from "@hyperlane-xyz/core/contracts/interfaces/IMessageRecipient.sol";
 import { IInterchainSecurityModule } from "@hyperlane-xyz/core/contracts/interfaces/IInterchainSecurityModule.sol";
-import { BlockHashOracleAdapter } from "../BlockHashOracleAdapter.sol";
+import { BlockHashAdapter } from "../BlockHashAdapter.sol";
 
-contract HyperlaneAdapter is BlockHashOracleAdapter, Ownable, IMessageRecipient {
+contract HyperlaneAdapter is BlockHashAdapter, Ownable, IMessageRecipient {
     string public constant PROVIDER = "hyperlane";
 
     address public immutable HYPERLANE_MAILBOX;

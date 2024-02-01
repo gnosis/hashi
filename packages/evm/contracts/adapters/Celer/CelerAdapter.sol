@@ -3,9 +3,9 @@ pragma solidity ^0.8.20;
 
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { IMessageReceiverApp } from "./interfaces/IMessageReceiverApp.sol";
-import { BlockHashOracleAdapter } from "../BlockHashOracleAdapter.sol";
+import { BlockHashAdapter } from "../BlockHashAdapter.sol";
 
-contract CelerAdapter is BlockHashOracleAdapter, Ownable, IMessageReceiverApp {
+contract CelerAdapter is BlockHashAdapter, Ownable, IMessageReceiverApp {
     string public constant PROVIDER = "celer";
     address public immutable CELER_BUS;
 

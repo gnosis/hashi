@@ -3,9 +3,9 @@ pragma solidity ^0.8.20;
 
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { IXReceiver } from "@connext/interfaces/core/IXReceiver.sol";
-import { BlockHashOracleAdapter } from "../BlockHashOracleAdapter.sol";
+import { BlockHashAdapter } from "../BlockHashAdapter.sol";
 
-contract ConnextAdapter is BlockHashOracleAdapter, Ownable, IXReceiver {
+contract ConnextAdapter is BlockHashAdapter, Ownable, IXReceiver {
     string public constant PROVIDER = "connext";
     address public immutable CONNEXT;
 
