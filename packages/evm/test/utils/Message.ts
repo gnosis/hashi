@@ -6,7 +6,7 @@ type Configs = {
   threshold: number
   id: string
   receiver: `0x${string}`
-  toChainId: number
+  targetChainId: number
   salt: string
   reporters: `0x${string}`[]
   adapters: `0x${string}`[]
@@ -18,15 +18,15 @@ class Message {
   public threshold: number
   public id: string
   public receiver: `0x${string}`
-  public toChainId: number
+  public targetChainId: number
   public salt: string
   public reporters: `0x${string}`[]
   public adapters: `0x${string}`[]
 
-  constructor({ data, sender, threshold, id, receiver, toChainId, salt, reporters, adapters }: Configs) {
+  constructor({ data, sender, threshold, id, receiver, targetChainId, salt, reporters, adapters }: Configs) {
     this.id = id
     this.sender = sender
-    this.toChainId = toChainId
+    this.targetChainId = targetChainId
     this.receiver = receiver
     this.data = data
     this.salt = salt
@@ -43,7 +43,7 @@ class Message {
   serialize() {
     return [
       this.salt,
-      this.toChainId,
+      this.targetChainId,
       this.threshold,
       this.sender,
       this.receiver,

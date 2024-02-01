@@ -27,13 +27,13 @@ contract CCIPReporter is Reporter, Ownable {
     }
 
     function _dispatch(
-        uint256 toChainId,
+        uint256 targetChainId,
         address adapter,
         uint256[] memory ids,
         bytes32[] memory hashes
     ) internal override returns (bytes32) {
-        uint64 chainSelector = chainSelectors[toChainId];
-        if (chainSelector == 0) revert ChainSelectorNotAvailable();
+        uint64 targetChainSelector = chainSelectors[targetChainId];
+        if (targetChainSelector == 0) revert ChainSelectorNotAvailable();
         bytes memory payload = abi.encode(ids, hashes);
         Client.EVM2AnyMessage memory message = Client.EVM2AnyMessage({
             receiver: abi.encode(adapter),
@@ -42,7 +42,7 @@ contract CCIPReporter is Reporter, Ownable {
             extraArgs: Client._argsToBytes(Client.EVMExtraArgsV1({ gasLimit: 200_000, strict: false })),
             feeToken: address(0) // Pay fees with native
         });
-        CCIP_ROUTER.ccipSend{ value: msg.value }(chainSelector, message);
+        CCIP_ROUTER.ccipSend{ value: msg.value }(targetChainSelector, message);
         return bytes32(0);
     }
 }

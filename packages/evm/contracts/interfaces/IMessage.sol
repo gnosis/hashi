@@ -6,7 +6,7 @@ import { IAdapter } from "./IAdapter.sol";
 
 struct Message {
     bytes32 salt;
-    uint256 toChainId;
+    uint256 targetChainId;
     uint256 threshold;
     address sender;
     address receiver;

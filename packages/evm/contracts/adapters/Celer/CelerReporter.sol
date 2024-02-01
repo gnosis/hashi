@@ -13,13 +13,13 @@ contract CelerReporter is Reporter {
     }
 
     function _dispatch(
-        uint256 toChainId,
+        uint256 targetChainId,
         address adapter,
         uint256[] memory ids,
         bytes32[] memory hashes
     ) internal override returns (bytes32) {
         bytes memory payload = abi.encode(ids, hashes);
-        CELER_BUS.sendMessage{ value: msg.value }(adapter, toChainId, payload);
+        CELER_BUS.sendMessage{ value: msg.value }(adapter, targetChainId, payload);
         return bytes32(0);
     }
 }

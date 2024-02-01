@@ -26,16 +26,16 @@ contract ConnextReporter is Reporter, Ownable {
     }
 
     function _dispatch(
-        uint256 toChainId,
+        uint256 targetChainId,
         address adapter,
         uint256[] memory ids,
         bytes32[] memory hashes
     ) internal override returns (bytes32) {
-        uint32 domainId = domainIds[toChainId];
-        if (domainId == 0) revert DomainIdNotAvailable();
+        uint32 targetDomainId = domainIds[targetChainId];
+        if (targetDomainId == 0) revert DomainIdNotAvailable();
         bytes memory payload = abi.encode(ids, hashes);
         bytes32 transferId = CONNEXT.xcall{ value: msg.value }(
-            domainId, // _destination: Domain ID of the destination chain
+            targetDomainId, // _destination: Domain ID of the destination chain
             adapter, // _to: address of the target contract
             address(0), // _asset: use address zero for 0-value transfers
             msg.sender, // _delegate: address that can revert or forceLocal on destination

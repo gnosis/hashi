@@ -28,15 +28,15 @@ contract HyperlaneReporter is Reporter, Ownable {
     }
 
     function _dispatch(
-        uint256 toChainId,
+        uint256 targetChainId,
         address adapter,
         uint256[] memory ids,
         bytes32[] memory hashes
     ) internal override returns (bytes32) {
-        uint32 destinationDomain = domains[toChainId];
-        if (destinationDomain == 0) revert DomainNotAvailable();
+        uint32 targetDomain = domains[targetChainId];
+        if (targetDomain == 0) revert DomainNotAvailable();
         bytes memory payload = abi.encode(ids, hashes);
-        HYPERLANE_MAILBOX.dispatch{ value: msg.value }(destinationDomain, adapter.addressToBytes32(), payload);
+        HYPERLANE_MAILBOX.dispatch{ value: msg.value }(targetDomain, adapter.addressToBytes32(), payload);
 
         return bytes32(0);
     }

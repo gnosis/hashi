@@ -13,7 +13,7 @@ contract Yaho is IYaho, MessageIdCalculator, MessageHashCalculator {
 
     /// @inheritdoc IYaho
     function dispatchMessage(
-        uint256 toChainId,
+        uint256 targetChainId,
         uint256 threshold,
         address receiver,
         bytes calldata data,
@@ -21,13 +21,13 @@ contract Yaho is IYaho, MessageIdCalculator, MessageHashCalculator {
         IAdapter[] calldata adapters
     ) external returns (uint256) {
         _checkReportersAndAdapters(threshold, reporters, adapters);
-        (uint256 messageId, ) = _dispatchMessage(toChainId, threshold, receiver, data, reporters, adapters);
+        (uint256 messageId, ) = _dispatchMessage(targetChainId, threshold, receiver, data, reporters, adapters);
         return messageId;
     }
 
     /// @inheritdoc IYaho
     function dispatchMessageToAdapters(
-        uint256 toChainId,
+        uint256 targetChainId,
         uint256 threshold,
         address receiver,
         bytes calldata data,
@@ -36,7 +36,7 @@ contract Yaho is IYaho, MessageIdCalculator, MessageHashCalculator {
     ) external payable returns (uint256, bytes32[] memory) {
         _checkReportersAndAdapters(threshold, reporters, adapters);
         (uint256 messageId, bytes32 messageHash) = _dispatchMessage(
-            toChainId,
+            targetChainId,
             threshold,
             receiver,
             data,
@@ -44,7 +44,7 @@ contract Yaho is IYaho, MessageIdCalculator, MessageHashCalculator {
             adapters
         );
         bytes32[] memory reportersReceipts = _dispatchMessageToAdapters(
-            toChainId,
+            targetChainId,
             messageId,
             messageHash,
             reporters,
@@ -55,7 +55,7 @@ contract Yaho is IYaho, MessageIdCalculator, MessageHashCalculator {
 
     /// @inheritdoc IYaho
     function dispatchMessagesToAdapters(
-        uint256 toChainId,
+        uint256 targetChainId,
         uint256[] calldata thresholds,
         address[] calldata receivers,
         bytes[] calldata data,
@@ -70,7 +70,7 @@ contract Yaho is IYaho, MessageIdCalculator, MessageHashCalculator {
         for (uint256 i = 0; i < receivers.length; ) {
             _checkReportersAndAdapters(thresholds[i], reporters, adapters);
             (messageIds[i], messageHashes[i]) = _dispatchMessage(
-                toChainId,
+                targetChainId,
                 thresholds[i],
                 receivers[i],
                 data[i],
@@ -83,7 +83,7 @@ contract Yaho is IYaho, MessageIdCalculator, MessageHashCalculator {
         }
 
         bytes32[] memory reportersReceipts = new bytes32[](reporters.length);
-        reportersReceipts = _dispatchMessagesToAdapters(toChainId, messageIds, messageHashes, reporters, adapters);
+        reportersReceipts = _dispatchMessagesToAdapters(targetChainId, messageIds, messageHashes, reporters, adapters);
         return (messageIds, reportersReceipts);
     }
 
@@ -97,7 +97,7 @@ contract Yaho is IYaho, MessageIdCalculator, MessageHashCalculator {
         if (messages.length == 0) revert NoMessagesGiven();
 
         bytes32 expectedParams = keccak256(
-            abi.encode(messages[0].toChainId, messages[0].reporters, messages[0].adapters)
+            abi.encode(messages[0].targetChainId, messages[0].reporters, messages[0].adapters)
         );
 
         bytes32[] memory messageHashes = new bytes32[](messages.length);
@@ -105,7 +105,8 @@ contract Yaho is IYaho, MessageIdCalculator, MessageHashCalculator {
         for (uint256 i = 0; i < messages.length; i++) {
             Message memory message = messages[i];
             if (
-                i > 0 && expectedParams != keccak256(abi.encode(message.toChainId, message.reporters, message.adapters))
+                i > 0 &&
+                expectedParams != keccak256(abi.encode(message.targetChainId, message.reporters, message.adapters))
             ) revert InvalidMessage(message);
             uint256 messageId = calculateMessageId(block.chainid, address(this), calculateMessageHash(message));
             bytes32 messageHash = _pendingMessageHashes[messageId];
@@ -116,7 +117,7 @@ contract Yaho is IYaho, MessageIdCalculator, MessageHashCalculator {
 
         return
             _dispatchMessagesToAdapters(
-                messages[0].toChainId,
+                messages[0].targetChainId,
                 messageIds,
                 messageHashes,
                 messages[0].reporters,
@@ -136,7 +137,7 @@ contract Yaho is IYaho, MessageIdCalculator, MessageHashCalculator {
     }
 
     function _dispatchMessage(
-        uint256 toChainId,
+        uint256 targetChainId,
         uint256 threshold,
         address receiver,
         bytes calldata data,
@@ -146,7 +147,7 @@ contract Yaho is IYaho, MessageIdCalculator, MessageHashCalculator {
         address sender = msg.sender;
         Message memory message = Message(
             keccak256(abi.encode(blockhash(block.number - 1), gasleft())),
-            toChainId,
+            targetChainId,
             threshold,
             sender,
             receiver,
@@ -162,7 +163,7 @@ contract Yaho is IYaho, MessageIdCalculator, MessageHashCalculator {
     }
 
     function _dispatchMessageToAdapters(
-        uint256 toChainId,
+        uint256 targetChainId,
         uint256 messageId,
         bytes32 messageHash,
         IReporter[] memory reporters,
@@ -172,11 +173,11 @@ contract Yaho is IYaho, MessageIdCalculator, MessageHashCalculator {
         bytes32[] memory messageHashes = new bytes32[](1);
         messageIds[0] = messageId;
         messageHashes[0] = messageHash;
-        return _dispatchMessagesToAdapters(toChainId, messageIds, messageHashes, reporters, adapters);
+        return _dispatchMessagesToAdapters(targetChainId, messageIds, messageHashes, reporters, adapters);
     }
 
     function _dispatchMessagesToAdapters(
-        uint256 toChainId,
+        uint256 targetChainId,
         uint256[] memory messageIds,
         bytes32[] memory messageHashes,
         IReporter[] memory reporters,
@@ -185,7 +186,7 @@ contract Yaho is IYaho, MessageIdCalculator, MessageHashCalculator {
         bytes32[] memory reportersReceipts = new bytes32[](reporters.length);
 
         for (uint256 i = 0; i < reporters.length; ) {
-            reportersReceipts[i] = reporters[i].dispatchMessages(toChainId, adapters[i], messageIds, messageHashes);
+            reportersReceipts[i] = reporters[i].dispatchMessages(targetChainId, adapters[i], messageIds, messageHashes);
             unchecked {
                 ++i;
             }

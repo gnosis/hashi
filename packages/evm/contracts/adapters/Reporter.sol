@@ -21,38 +21,38 @@ abstract contract Reporter is IReporter {
 
     /// @inheritdoc IReporter
     function dispatchBlocks(
-        uint256 toChainId,
+        uint256 targetChainId,
         IAdapter adapter,
         uint256[] memory blockNumbers
     ) external payable returns (bytes32) {
         bytes32[] memory blockHeaders = IHeaderStorage(HEADER_STORAGE).storeBlockHeaders(blockNumbers);
         for (uint256 i = 0; i < blockNumbers.length; ) {
-            emit BlockDispatched(toChainId, adapter, blockNumbers[i], blockHeaders[i]);
+            emit BlockDispatched(targetChainId, adapter, blockNumbers[i], blockHeaders[i]);
             unchecked {
                 ++i;
             }
         }
-        return _dispatch(toChainId, address(adapter), blockNumbers, blockHeaders);
+        return _dispatch(targetChainId, address(adapter), blockNumbers, blockHeaders);
     }
 
     /// @inheritdoc IReporter
     function dispatchMessages(
-        uint256 toChainId,
+        uint256 targetChainId,
         IAdapter adapter,
         uint256[] memory messageIds,
         bytes32[] memory messageHashes
     ) external payable onlyYaho returns (bytes32) {
         for (uint256 i = 0; i < messageIds.length; ) {
-            emit MessageDispatched(toChainId, adapter, messageIds[i], messageHashes[i]);
+            emit MessageDispatched(targetChainId, adapter, messageIds[i], messageHashes[i]);
             unchecked {
                 ++i;
             }
         }
-        return _dispatch(toChainId, address(adapter), messageIds, messageHashes);
+        return _dispatch(targetChainId, address(adapter), messageIds, messageHashes);
     }
 
     function _dispatch(
-        uint256 toChainId,
+        uint256 targetChainId,
         address adapter,
         uint256[] memory messageIds,
         bytes32[] memory messageHashes

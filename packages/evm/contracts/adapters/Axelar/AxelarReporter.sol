@@ -37,13 +37,13 @@ contract AxelarReporter is Reporter, Ownable {
     }
 
     function _dispatch(
-        uint256 toChainId,
+        uint256 targetChainId,
         address adapter,
         uint256[] memory ids,
         bytes32[] memory hashes
     ) internal override returns (bytes32) {
-        string memory chainName = chainNames[toChainId];
-        if (keccak256(abi.encode(chainName)) == NULL_STRING) revert ChainIdNotSupported(toChainId);
+        string memory targetChainName = chainNames[targetChainId];
+        if (keccak256(abi.encode(targetChainName)) == NULL_STRING) revert ChainIdNotSupported(targetChainId);
 
         string memory sAdapter = uint256(uint160(adapter)).toHexString(20);
         bytes memory payload = abi.encode(ids, hashes);
@@ -51,14 +51,14 @@ contract AxelarReporter is Reporter, Ownable {
         if (msg.value > 0) {
             AXELAR_GAS_SERVICE.payNativeGasForContractCall{ value: msg.value }(
                 address(this),
-                chainName,
+                targetChainName,
                 sAdapter,
                 payload,
                 msg.sender
             );
         }
 
-        AXELAR_GATEWAY.callContract(chainName, sAdapter, payload);
+        AXELAR_GATEWAY.callContract(targetChainName, sAdapter, payload);
         return bytes32(0);
     }
 }

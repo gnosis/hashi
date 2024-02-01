@@ -27,7 +27,7 @@ contract ZetaReporter is Reporter, Ownable {
     }
 
     function _dispatch(
-        uint256 toChainId,
+        uint256 targetChainId,
         address adapter,
         uint256[] memory ids,
         bytes32[] memory hashes
@@ -39,7 +39,7 @@ contract ZetaReporter is Reporter, Ownable {
         // solhint-disable-next-line check-send-result
         ZETA_CONNECTOR.send(
             ZetaInterfaces.SendInput({
-                destinationChainId: toChainId,
+                destinationChainId: targetChainId,
                 destinationAddress: abi.encodePacked(adapter),
                 destinationGasLimit: 200_000,
                 message: payload,

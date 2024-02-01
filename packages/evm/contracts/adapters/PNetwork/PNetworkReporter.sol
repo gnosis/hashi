@@ -36,19 +36,19 @@ contract PNetworkReporter is Reporter, Ownable {
     }
 
     function _dispatch(
-        uint256 toChainId,
+        uint256 targetChainId,
         address adapter,
         uint256[] memory ids,
         bytes32[] memory hashes
     ) internal override returns (bytes32) {
-        bytes4 networkId = networkIds[toChainId];
-        if (networkId == 0) revert NetworkIdNotAvailable();
+        bytes4 targetNetworkId = networkIds[targetChainId];
+        if (targetNetworkId == 0) revert NetworkIdNotAvailable();
         bytes memory payload = abi.encode(ids, hashes);
         if (VAULT != address(0)) {
             IERC20(TOKEN).approve(VAULT, SWAP_AMOUNT);
-            IErc20Vault(VAULT).pegIn(SWAP_AMOUNT, TOKEN, _toAsciiString(adapter), payload, networkId);
+            IErc20Vault(VAULT).pegIn(SWAP_AMOUNT, TOKEN, _toAsciiString(adapter), payload, targetNetworkId);
         } else {
-            IPToken(TOKEN).redeem(SWAP_AMOUNT, payload, _toAsciiString(adapter), networkId);
+            IPToken(TOKEN).redeem(SWAP_AMOUNT, payload, _toAsciiString(adapter), targetNetworkId);
         }
         return bytes32(0);
     }
