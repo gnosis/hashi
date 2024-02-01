@@ -5,8 +5,10 @@ import type { TaskArguments } from "hardhat/types"
 import { verify } from ".."
 import type { AMBAdapter } from "../../../types/contracts/adapters/AMB/AMBAdapter"
 import type { AMBHeaderReporter } from "../../../types/contracts/adapters/AMB/AMBHeaderReporter"
+import type { AMBMessageRelay } from "../../../types/contracts/adapters/AMB/AMBMessageRelayer.sol"
 import type { AMBAdapter__factory } from "../../../types/factories/contracts/adapters/AMB/AMBAdapter__factory"
 import { AMBHeaderReporter__factory } from "../../../types/factories/contracts/adapters/AMB/AMBHeaderReporter__factory"
+import type { AMBMessageRelay__factory } from "../../../types/factories/contracts/adapters/AMB/AMBMessageRelayer.sol/AMBMessageRelay__factory"
 
 // Deploy on destination chain
 task("deploy:AMB:Adapter")
@@ -40,11 +42,30 @@ task("deploy:AMB:HeaderReporter")
     const ambHeaderReporterFactory: AMBHeaderReporter__factory = <AMBHeaderReporter__factory>(
       await hre.ethers.getContractFactory("AMBHeaderReporter")
     )
-    const constructorArguments = [taskArguments.amb, taskArguments.reporter, taskArguments.chainId] as const
+    const constructorArguments = [taskArguments.amb, taskArguments.reporter] as const
     const ambHeaderReporter: AMBHeaderReporter = <AMBHeaderReporter>(
       await ambHeaderReporterFactory.connect(signers[0]).deploy(...constructorArguments)
     )
     await ambHeaderReporter.deployed()
     console.log("AMBHeaderReporter deployed to:", ambHeaderReporter.address)
     if (taskArguments.verify) await verify(hre, ambHeaderReporter, constructorArguments)
+  })
+
+task("deploy:AMB:AMBMessageRelay")
+  .addParam("amb", "address of the AMB contract", undefined, types.string)
+  .addParam("yaho", "address of the Yaho contract", undefined, types.string)
+  .addFlag("verify", "whether to verify the contract on Etherscan")
+  .setAction(async function (taskArguments: TaskArguments, hre) {
+    console.log("Deploying AMBMessageRelay...")
+    const signers: SignerWithAddress[] = await hre.ethers.getSigners()
+    const ambMessageRelayFactory: AMBMessageRelay__factory = <AMBMessageRelay__factory>(
+      await hre.ethers.getContractFactory("AMBMessageRelay")
+    )
+    const constructorArguments = [taskArguments.amb, taskArguments.yaho] as const
+    const ambMessageRelay: AMBMessageRelay = <AMBMessageRelay>(
+      await ambMessageRelayFactory.connect(signers[0]).deploy(...constructorArguments)
+    )
+    await ambMessageRelay.deployed()
+    console.log("AMBMessageRelay deployed to:", ambMessageRelay.address)
+    if (taskArguments.verify) await verify(hre, ambMessageRelay, constructorArguments)
   })
