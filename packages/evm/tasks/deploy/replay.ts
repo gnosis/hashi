@@ -8,7 +8,6 @@ import type { Yaru__factory } from "../../types/factories/contracts/Yaru__factor
 import type { GiriGiriBashi__factory } from "../../types/factories/contracts/ownable/GiriGiriBashi__factory"
 import type { ShoyuBashi__factory } from "../../types/factories/contracts/ownable/ShoyuBashi__factory"
 import type { HeaderStorage__factory } from "../../types/factories/contracts/utils/HeaderStorage__factory"
-import type { HashiModule__factory } from "../../types/factories/contracts/zodiac/HashiModule__factory"
 
 const ADDRESS_ONE = "0x0000000000000000000000000000000000000001"
 
@@ -94,22 +93,6 @@ export const deploy = async ({ networks }: { networks: string[] }, hre: HardhatR
           await hre.ethers.getContractFactory("HeaderStorage")
         )
         await deployMastercopy(signer, headerStorageFactory, [], hre.ethers.constants.HashZero)
-      } catch (error) {
-        logDeployError(error)
-      }
-
-      // deploy hashi module
-      try {
-        console.log(`\x1B[4mHeader Storage\x1B[0m`)
-        const hashiModuleFactory: HashiModule__factory = <HashiModule__factory>(
-          await hre.ethers.getContractFactory("HashiModule")
-        )
-        await deployMastercopy(
-          signer,
-          hashiModuleFactory,
-          [ADDRESS_ONE, ADDRESS_ONE, ADDRESS_ONE, ADDRESS_ONE, ADDRESS_ONE, 1],
-          hre.ethers.constants.HashZero,
-        )
       } catch (error) {
         logDeployError(error)
       }

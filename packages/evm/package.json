@@ -96,7 +96,6 @@
     "@axelar-network/axelar-gmp-sdk-solidity": "^5.6.2",
     "@chainlink/contracts-ccip": "^0.7.6",
     "@connext/interfaces": "^2.0.0",
-    "@gnosis.pm/zodiac": "^3.3.2",
     "@hyperlane-xyz/core": "^3.1.10",
     "@openzeppelin/contracts-upgradeable": "^4.8.1",
     "@polytope-labs/solidity-merkle-trees": "^0.2.1",
