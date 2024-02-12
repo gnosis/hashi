@@ -5,7 +5,7 @@ import { IReporter } from "./IReporter.sol";
 import { IAdapter } from "./IAdapter.sol";
 
 struct Message {
-    bytes32 salt;
+    uint256 nonce;
     uint256 targetChainId;
     uint256 threshold;
     address sender;
