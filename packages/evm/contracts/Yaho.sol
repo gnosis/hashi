@@ -10,6 +10,7 @@ import { IAdapter } from "./interfaces/IAdapter.sol";
 
 contract Yaho is IYaho, MessageIdCalculator, MessageHashCalculator {
     mapping(uint256 => bytes32) private _pendingMessageHashes;
+    uint256 public currentNonce;
 
     /// @inheritdoc IYaho
     function dispatchMessage(
@@ -146,7 +147,7 @@ contract Yaho is IYaho, MessageIdCalculator, MessageHashCalculator {
     ) internal returns (uint256, bytes32) {
         address sender = msg.sender;
         Message memory message = Message(
-            keccak256(abi.encode(blockhash(block.number - 1), gasleft())),
+            currentNonce,
             targetChainId,
             threshold,
             sender,
@@ -158,6 +159,9 @@ contract Yaho is IYaho, MessageIdCalculator, MessageHashCalculator {
         bytes32 messageHash = calculateMessageHash(message);
         uint256 messageId = calculateMessageId(block.chainid, address(this), messageHash);
         _pendingMessageHashes[messageId] = messageHash;
+        unchecked {
+            ++currentNonce;
+        }
         emit MessageDispatched(messageId, message);
         return (messageId, messageHash);
     }
