@@ -84,6 +84,7 @@ contract Yaho is IYaho, MessageIdCalculator, MessageHashCalculator {
         }
 
         bytes32[] memory reportersReceipts = new bytes32[](reporters.length);
+        _resetPendingMessageHashesByMessageIds(messageIds);
         reportersReceipts = _dispatchMessagesToAdapters(targetChainId, messageIds, messageHashes, reporters, adapters);
         return (messageIds, reportersReceipts);
     }
@@ -114,6 +115,7 @@ contract Yaho is IYaho, MessageIdCalculator, MessageHashCalculator {
             if (messageHash == bytes32(0)) revert MessageHashNotFound(messageId);
             messageHashes[i] = messageHash;
             messageIds[i] = messageId;
+            delete _pendingMessageHashes[messageId];
         }
 
         return
@@ -177,6 +179,7 @@ contract Yaho is IYaho, MessageIdCalculator, MessageHashCalculator {
         bytes32[] memory messageHashes = new bytes32[](1);
         messageIds[0] = messageId;
         messageHashes[0] = messageHash;
+        _resetPendingMessageHashesByMessageIds(messageIds);
         return _dispatchMessagesToAdapters(targetChainId, messageIds, messageHashes, reporters, adapters);
     }
 
@@ -196,13 +199,15 @@ contract Yaho is IYaho, MessageIdCalculator, MessageHashCalculator {
             }
         }
 
-        for (uint256 j = 0; j < messageIds.length; ) {
-            delete _pendingMessageHashes[messageIds[j]];
+        return reportersReceipts;
+    }
+
+    function _resetPendingMessageHashesByMessageIds(uint256[] memory messageIds) internal {
+        for (uint256 i = 0; i < messageIds.length; ) {
+            delete _pendingMessageHashes[messageIds[i]];
             unchecked {
-                ++j;
+                ++i;
             }
         }
-
-        return reportersReceipts;
     }
 }

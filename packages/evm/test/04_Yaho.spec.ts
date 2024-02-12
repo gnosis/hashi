@@ -143,13 +143,14 @@ describe("Yaho", () => {
         [adapter1.address, adapter2.address],
       )
       const [message] = Message.fromReceipt(await tx.wait(1))
+      const expectedMessageHash = await yaho.calculateMessageHash(message.serialize())
       await expect(tx)
         .to.emit(yaho, "MessageDispatched")
         .withArgs(message.id, anyValue) // FIXME: https://github.com/NomicFoundation/hardhat/issues/3833
         .and.to.emit(reporter1, "MessageDispatched")
-        .withArgs(targetChainId, adapter1.address, message.id, await yaho.calculateMessageHash(message.serialize()))
+        .withArgs(targetChainId, adapter1.address, message.id, expectedMessageHash)
         .and.to.emit(reporter2, "MessageDispatched")
-        .withArgs(targetChainId, adapter2.address, message.id, await yaho.calculateMessageHash(message.serialize()))
+        .withArgs(targetChainId, adapter2.address, message.id, expectedMessageHash)
       expect(await yaho.getPendingMessageHash(message.id)).to.be.eq(toBytes32(0))
     })
 
@@ -227,17 +228,19 @@ describe("Yaho", () => {
         [adapter1.address, adapter2.address],
       )
       const [message1, message2] = Message.fromReceipt(await tx.wait(1))
+      const expectedMessageHash1 = await yaho.calculateMessageHash(message1.serialize())
+      const expectedMessageHash2 = await yaho.calculateMessageHash(message2.serialize())
       await expect(tx)
         .to.emit(yaho, "MessageDispatched")
         .withArgs(message1.id, anyValue) // FIXME: https://github.com/NomicFoundation/hardhat/issues/3833
         .and.to.emit(reporter1, "MessageDispatched")
-        .withArgs(targetChainId, adapter1.address, message1.id, await yaho.calculateMessageHash(message1.serialize()))
+        .withArgs(targetChainId, adapter1.address, message1.id, expectedMessageHash1)
         .and.to.emit(reporter1, "MessageDispatched")
-        .withArgs(targetChainId, adapter1.address, message2.id, await yaho.calculateMessageHash(message2.serialize()))
+        .withArgs(targetChainId, adapter1.address, message2.id, expectedMessageHash2)
         .and.to.emit(reporter2, "MessageDispatched")
-        .withArgs(targetChainId, adapter2.address, message1.id, await yaho.calculateMessageHash(message1.serialize()))
+        .withArgs(targetChainId, adapter2.address, message1.id, expectedMessageHash1)
         .and.to.emit(reporter2, "MessageDispatched")
-        .withArgs(targetChainId, adapter2.address, message2.id, await yaho.calculateMessageHash(message2.serialize()))
+        .withArgs(targetChainId, adapter2.address, message2.id, expectedMessageHash2)
       expect(await yaho.getPendingMessageHash(message1.id)).to.be.eq(toBytes32(0))
       expect(await yaho.getPendingMessageHash(message2.id)).to.be.eq(toBytes32(0))
     })
@@ -423,6 +426,24 @@ describe("Yaho", () => {
         .withArgs(targetChainId, adapter2.address, message2.id, await yaho.calculateMessageHash(message2.serialize()))
       expect(await yaho.getPendingMessageHash(message1.id)).to.be.eq(toBytes32(0))
       expect(await yaho.getPendingMessageHash(message2.id)).to.be.eq(toBytes32(0))
+    })
+
+    it("should not be able to relay the same message twice", async () => {
+      const targetChainId = Chains.Gnosis
+      const threshold = 2
+      const tx = await yaho.dispatchMessage(
+        targetChainId,
+        threshold,
+        receiver1.address,
+        "0x01",
+        [reporter1.address, reporter2.address],
+        [adapter1.address, adapter2.address],
+      )
+
+      const [message] = Message.fromReceipt(await tx.wait(1))
+      await expect(yaho.relayMessagesToAdapters([message, message]))
+        .to.be.revertedWithCustomError(yaho, "MessageHashNotFound")
+        .withArgs(message.id)
     })
   })
 })
