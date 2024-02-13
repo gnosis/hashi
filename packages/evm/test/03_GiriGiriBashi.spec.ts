@@ -451,12 +451,9 @@ describe("GiriGiriBashi", function () {
         value: BOND,
       })
 
-      expect(
-        await giriGiriBashi.resolveChallenge(DOMAIN_ID, challengeBlock, mockAdapter.address, [
-          secondMockAdapter.address,
-        ]),
-      )
-      expect(await ethers.provider.getBalance(ADDRESS_TWO)).to.equal(BOND)
+      const balanceBefore = await ethers.provider.getBalance(ADDRESS_TWO)
+      await giriGiriBashi.resolveChallenge(DOMAIN_ID, challengeBlock, mockAdapter.address, [secondMockAdapter.address])
+      expect(await ethers.provider.getBalance(ADDRESS_TWO)).to.equal(balanceBefore.add(BOND))
       const quarantined = (await giriGiriBashi.settings(mockAdapter.address)).quarantined
       expect(quarantined).to.equal(false)
     })

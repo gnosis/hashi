@@ -200,7 +200,7 @@ contract GiriGiriBashi is IGiriGiriBashi, ShuSo {
     }
 
     /// @inheritdoc IGiriGiriBashi
-    function setChallengeRange(uint256 domain, uint256 range) public {
+    function setChallengeRange(uint256 domain, uint256 range) public onlyOwner {
         if (challengeRanges[domain] != 0) revert ChallengeRangeAlreadySet(domain);
         challengeRanges[domain] = range;
         emit ChallengeRangeUpdated(domain, range);
