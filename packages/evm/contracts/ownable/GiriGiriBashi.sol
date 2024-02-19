@@ -148,24 +148,29 @@ contract GiriGiriBashi is IGiriGiriBashi, ShuSo {
         if (challenges[challengeId].challenger == address(0))
             revert ChallengeNotFound(challengeId, domain, id, adapter);
 
+        for (uint256 i = 0; i < _adapters.length; ) {
+            if (_adapters[i] == adapter) revert InvalidAdapters(_adapters, adapter);
+            unchecked {
+                ++i;
+            }
+        }
+
         Challenge storage challenge = challenges[challengeId];
         Settings storage adapterSettings = settings[domain][adapter];
         bytes32 storedHash = adapter.getHash(domain, id);
 
         if (storedHash == bytes32(0)) {
-            // check block.timestamp is greater than challenge.timestamp + adapterSettings.timeout, revert if false.
             if (block.timestamp < challenge.timestamp + adapterSettings.timeout)
                 revert AdapterHasNotYetTimedOut(adapter);
             adapterSettings.quarantined = true;
-            // send bond to challenger
             challenge.challenger.transfer(challenge.bond);
             success = true;
         } else {
             // if _adapters + 1 equals threshold && _adapters + adapter report the same header
-            if (_adapters.length + 1 == domains[domain].threshold) {
+            if (_adapters.length == domains[domain].threshold - 1) {
+                checkAdapterOrderAndValidity(domain, _adapters);
                 bytes32 canonicalHash = hashi.getHash(domain, id, _adapters);
                 if (canonicalHash == storedHash) {
-                    // return bond to recipient
                     bondRecipient.transfer(challenge.bond);
                     success = false;
                 } else {
@@ -178,9 +183,7 @@ contract GiriGiriBashi is IGiriGiriBashi, ShuSo {
                     bondRecipient.transfer(challenge.bond);
                     success = false;
                 } else {
-                    // quaratine adapter
                     adapterSettings.quarantined = true;
-                    // return bond to challenger
                     challenge.challenger.transfer(challenge.bond);
                     success = true;
                 }

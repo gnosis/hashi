@@ -32,6 +32,7 @@ interface IGiriGiriBashi is IShuSho {
     error ChallengeRangeAlreadySet(uint256 domain);
     error CountMustBeZero(uint256 domain);
     error DuplicateChallenge(bytes32 challengeId, uint256 domain, uint256 id, IAdapter adapter);
+    error InvalidAdapters(IAdapter[] adapters, IAdapter adapter);
     error NoConfidenceRequired();
     error NotEnoughValue(IAdapter adapter, uint256 value);
     error OutOfRange(IAdapter adapter, uint256 id);
