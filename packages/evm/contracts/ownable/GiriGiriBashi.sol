@@ -77,11 +77,11 @@ contract GiriGiriBashi is IGiriGiriBashi, ShuSo {
         if (confidence >= threshold) revert CannotProveNoConfidence(domain, id, _adapters);
 
         bytes32[] memory hashes = new bytes32[](_adapters.length);
-        for (uint i = 0; i < _adapters.length; i++) hashes[i] = _adapters[i].getHash(domain, id);
+        for (uint256 i = 0; i < _adapters.length; i++) hashes[i] = _adapters[i].getHash(domain, id);
 
         // prove that each member of _adapters disagrees
-        for (uint i = 0; i < hashes.length; i++)
-            for (uint j = 0; j < hashes.length; j++)
+        for (uint256 i = 0; i < hashes.length; i++)
+            for (uint256 j = 0; j < hashes.length; j++)
                 if (hashes[i] == hashes[j] && i != j) revert AdaptersAgreed(_adapters[i], _adapters[j]);
 
         domains[domain].threshold = type(uint256).max;
@@ -128,7 +128,7 @@ contract GiriGiriBashi is IGiriGiriBashi, ShuSo {
     ) public onlyOwner {
         if (currentAdapters.length != newAdapters.length || currentAdapters.length != _settings.length)
             revert UnequalArrayLengths();
-        for (uint i = 0; i < currentAdapters.length; i++) {
+        for (uint256 i = 0; i < currentAdapters.length; i++) {
             if (!settings[currentAdapters[i]][domain].quarantined) revert AdapterNotQuarantined(currentAdapters[i]);
         }
         _disableAdapters(domain, currentAdapters);
@@ -217,7 +217,7 @@ contract GiriGiriBashi is IGiriGiriBashi, ShuSo {
 
     function initSettings(uint256 domain, IAdapter[] memory _adapters, Settings[] memory _settings) private {
         if (_adapters.length != _settings.length) revert UnequalArrayLengths();
-        for (uint i = 0; i < _adapters.length; i++) {
+        for (uint256 i = 0; i < _adapters.length; i++) {
             IAdapter adapter = _adapters[i];
             settings[adapter][domain].quarantined = false;
             settings[adapter][domain].minimumBond = _settings[i].minimumBond;
