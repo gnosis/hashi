@@ -10,7 +10,7 @@ contract GiriGiriBashi is IGiriGiriBashi, ShuSo {
     address payable public bondRecipient; // address that bonds from unsuccessful challenges should be sent to.
     mapping(uint256 => uint256) public heads; // highest Id reported.
     mapping(uint256 => uint256) public challengeRanges; // how far beyond the current highestId can a challenged.
-    mapping(IAdapter => Settings) public settings;
+    mapping(IAdapter => mapping(uint256 => Settings)) public settings;
     mapping(bytes32 => Challenge) public challenges; // current challenges.
 
     constructor(address _owner, address _hashi, address payable _bondRecipient) ShuSo(_owner, _hashi) {
@@ -30,8 +30,8 @@ contract GiriGiriBashi is IGiriGiriBashi, ShuSo {
     /// @inheritdoc IGiriGiriBashi
     function challengeAdapter(uint256 domain, uint256 id, IAdapter adapter) public payable {
         if (adapters[domain][adapter].previous == IAdapter(address(0))) revert AdapterNotEnabled(adapter);
-        if (msg.value < settings[adapter].minimumBond) revert NotEnoughValue(adapter, msg.value);
-        if (settings[adapter].quarantined) revert AlreadyQuarantined(adapter);
+        if (msg.value < settings[adapter][domain].minimumBond) revert NotEnoughValue(adapter, msg.value);
+        if (settings[adapter][domain].quarantined) revert AlreadyQuarantined(adapter);
 
         bytes32 challengeId = getChallengeId(domain, id, adapter);
         if (challenges[challengeId].challenger != address(0))
@@ -41,10 +41,10 @@ contract GiriGiriBashi is IGiriGiriBashi, ShuSo {
         // check if id is less than highestId + challengeRange, revert if false
         // check if id is lower than highestId - idDepth, revert if true
         uint256 challengeRange = challengeRanges[domain];
-        uint256 idDepth = settings[adapter].idDepth;
+        uint256 idDepth = settings[adapter][domain].idDepth;
         uint256 head = heads[domain];
         if (
-            id < settings[adapter].startId || // before start id
+            id < settings[adapter][domain].startId || // before start id
             (challengeRange != 0 && id >= head && id - head > challengeRange) || // over domain challenge range
             (idDepth != 0 && head > idDepth && id <= head - idDepth) // outside of adapter idDepth
         ) revert OutOfRange(adapter, id);
@@ -129,7 +129,7 @@ contract GiriGiriBashi is IGiriGiriBashi, ShuSo {
         if (currentAdapters.length != newAdapters.length || currentAdapters.length != _settings.length)
             revert UnequalArrayLengths();
         for (uint i = 0; i < currentAdapters.length; i++) {
-            if (!settings[currentAdapters[i]].quarantined) revert AdapterNotQuarantined(currentAdapters[i]);
+            if (!settings[currentAdapters[i]][domain].quarantined) revert AdapterNotQuarantined(currentAdapters[i]);
         }
         _disableAdapters(domain, currentAdapters);
         _enableAdapters(domain, newAdapters);
@@ -149,7 +149,7 @@ contract GiriGiriBashi is IGiriGiriBashi, ShuSo {
             revert ChallengeNotFound(challengeId, domain, id, adapter);
 
         Challenge storage challenge = challenges[challengeId];
-        Settings storage adapterSettings = settings[adapter];
+        Settings storage adapterSettings = settings[adapter][domain];
         bytes32 storedHash = adapter.getHash(domain, id);
 
         if (storedHash == bytes32(0)) {
@@ -219,11 +219,11 @@ contract GiriGiriBashi is IGiriGiriBashi, ShuSo {
         if (_adapters.length != _settings.length) revert UnequalArrayLengths();
         for (uint i = 0; i < _adapters.length; i++) {
             IAdapter adapter = _adapters[i];
-            settings[adapter].quarantined = false;
-            settings[adapter].minimumBond = _settings[i].minimumBond;
-            settings[adapter].startId = _settings[i].startId;
-            settings[adapter].idDepth = _settings[i].idDepth;
-            settings[adapter].timeout = _settings[i].timeout;
+            settings[adapter][domain].quarantined = false;
+            settings[adapter][domain].minimumBond = _settings[i].minimumBond;
+            settings[adapter][domain].startId = _settings[i].startId;
+            settings[adapter][domain].idDepth = _settings[i].idDepth;
+            settings[adapter][domain].timeout = _settings[i].timeout;
             emit SettingsInitialized(domain, adapter, _settings[i]);
         }
     }
