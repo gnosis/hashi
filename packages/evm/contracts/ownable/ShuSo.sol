@@ -154,11 +154,13 @@ abstract contract ShuSo is IShuSho, OwnableUpgradeable {
         }
 
         for (uint i = 0; i < hashes.length; i++) {
+            if (i > hashes.length - threshold) break;
+
             bytes32 baseHash = hashes[i];
             if (baseHash == bytes32(0)) continue;
 
             uint256 num = 0;
-            for (uint j = 0; j < hashes.length; j++) {
+            for (uint j = i; j < hashes.length; j++) {
                 if (baseHash == hashes[j]) {
                     num++;
                     if (num == threshold) return hashes[i];
