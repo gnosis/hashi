@@ -149,7 +149,7 @@ contract GiriGiriBashi is IGiriGiriBashi, ShuSo {
             revert ChallengeNotFound(challengeId, domain, id, adapter);
 
         for (uint256 i = 0; i < _adapters.length; ) {
-            if (_adapters[i] == adapter) revert InvalidAdapters(_adapters, adapter);
+            if (_adapters[i] == adapter) revert AdaptersCannotContainChallengedAdapter(_adapters, adapter);
             unchecked {
                 ++i;
             }

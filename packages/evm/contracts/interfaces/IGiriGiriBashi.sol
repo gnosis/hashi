@@ -23,6 +23,7 @@ interface IGiriGiriBashi is IShuSho {
         uint256 timeout; // grace period in which the adapter must report on an in-range id after being challenged.
     }
 
+    error AdaptersCannotContainChallengedAdapter(IAdapter[] adapters, IAdapter adapter);
     error AdapterHasNotYetTimedOut(IAdapter adapter);
     error AdapterNotQuarantined(IAdapter adapter);
     error AdaptersAgreed(IAdapter adapter1, IAdapter adapter2);
@@ -32,7 +33,6 @@ interface IGiriGiriBashi is IShuSho {
     error ChallengeRangeAlreadySet(uint256 domain);
     error CountMustBeZero(uint256 domain);
     error DuplicateChallenge(bytes32 challengeId, uint256 domain, uint256 id, IAdapter adapter);
-    error InvalidAdapters(IAdapter[] adapters, IAdapter adapter);
     error NoConfidenceRequired();
     error NotEnoughValue(IAdapter adapter, uint256 value);
     error OutOfRange(IAdapter adapter, uint256 id);
