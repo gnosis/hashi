@@ -38,16 +38,20 @@ const setup = async (_configs?: any) => {
   const secondMockAdapter = await MockAdapter.deploy()
   const thirdMockAdapter = await MockAdapter.deploy()
 
-  await mockAdapter.setHashes(DOMAIN_ID, [0, 1, 20, 21, 22], [HASH_ZERO, HASH_GOOD, HASH_BAD, HASH_GOOD, HASH_BAD])
+  await mockAdapter.setHashes(
+    DOMAIN_ID,
+    [0, 1, 20, 21, 22, 23],
+    [HASH_ZERO, HASH_GOOD, HASH_BAD, HASH_GOOD, HASH_BAD, HASH_ZERO],
+  )
   await secondMockAdapter.setHashes(
     DOMAIN_ID,
-    [0, 1, 20, 21, 22],
-    [HASH_ZERO, HASH_GOOD, HASH_GOOD, HASH_GOOD, HASH_GOOD],
+    [0, 1, 20, 21, 22, 23],
+    [HASH_ZERO, HASH_GOOD, HASH_GOOD, HASH_GOOD, HASH_GOOD, HASH_ZERO],
   )
   await thirdMockAdapter.setHashes(
     DOMAIN_ID,
-    [0, 1, 20, 21, 22],
-    [HASH_ZERO, HASH_GOOD, HASH_DEAD, HASH_GOOD, HASH_GOOD],
+    [0, 1, 20, 21, 22, 23],
+    [HASH_ZERO, HASH_GOOD, HASH_DEAD, HASH_GOOD, HASH_GOOD, HASH_GOOD],
   )
 
   await giriGiriBashi.setChallengeRange(DOMAIN_ID, CHALLENGE_RANGE)
@@ -676,6 +680,15 @@ describe("GiriGiriBashi", function () {
       await expect(giriGiriBashi.callStatic.declareNoConfidence(DOMAIN_ID, 20, [mockAdapter.address]))
         .to.be.revertedWithCustomError(giriGiriBashi, "CannotProveNoConfidence")
         .withArgs(DOMAIN_ID, 20, [mockAdapter.address])
+    })
+    it("Reverts if the majority of adapters report the hash = 0", async function () {
+      const { giriGiriBashi, mockAdapter, secondMockAdapter, thirdMockAdapter, settings } = await setup()
+      const adapters = [mockAdapter.address, secondMockAdapter.address, thirdMockAdapter.address].sort(compareAddresses)
+      await giriGiriBashi.enableAdapters(DOMAIN_ID, adapters, [settings, settings, settings])
+      await giriGiriBashi.setThreshold(DOMAIN_ID, 2)
+      await expect(giriGiriBashi.callStatic.declareNoConfidence(DOMAIN_ID, 25, adapters))
+        .to.be.revertedWithCustomError(giriGiriBashi, "CannotProveNoConfidence")
+        .withArgs(DOMAIN_ID, 25, adapters)
     })
     it("Reverts if any of the provided adapters agree", async function () {
       const { giriGiriBashi, mockAdapter, secondMockAdapter, thirdMockAdapter, settings } = await setup()

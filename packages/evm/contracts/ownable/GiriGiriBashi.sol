@@ -75,14 +75,19 @@ contract GiriGiriBashi is IGiriGiriBashi, ShuSo {
         if (_adapters.length != count) revert CannotProveNoConfidence(domain, id, _adapters);
 
         bytes32[] memory hashes = new bytes32[](_adapters.length);
-        for (uint256 i = 0; i < _adapters.length; i++) hashes[i] = _adapters[i].getHash(domain, id);
+        uint256 zeroHashes = 0;
+        for (uint256 i = 0; i < _adapters.length; i++) {
+            hashes[i] = _adapters[i].getHash(domain, id);
+            if (hashes[i] == bytes32(0)) zeroHashes++;
+            if (zeroHashes == threshold) revert CannotProveNoConfidence(domain, id, _adapters);
+        }
 
         for (uint256 i = 0; i < hashes.length; i++) {
-            uint256 count = 1;
+            uint256 equalHashes = 1;
             for (uint256 j = 0; j < hashes.length; j++)
                 if (hashes[i] == hashes[j] && i != j) {
-                    count++;
-                    if (count == threshold) {
+                    equalHashes++;
+                    if (equalHashes == threshold) {
                         revert AdaptersAgreed();
                     }
                 }
