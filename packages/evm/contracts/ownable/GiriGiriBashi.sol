@@ -23,7 +23,7 @@ contract GiriGiriBashi is IGiriGiriBashi, ShuSo {
     }
 
     modifier zeroCount(uint256 domain) {
-        if (domains[domain].count != 0) revert CountMustBeZero(domain);
+        if (domains[domain].count != 0 && domains[domain].threshold > 0) revert CountMustBeZero(domain);
         _;
     }
 

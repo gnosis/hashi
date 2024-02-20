@@ -20,10 +20,12 @@ interface IShuSho {
 
     error AdapterNotEnabled(IAdapter adapter);
     error AdapterAlreadyEnabled(IAdapter adapter);
+    error CountCannotBeZero();
     error DuplicateHashiAddress(IHashi hashi);
     error DuplicateOrOutOfOrderAdapters(IAdapter adapterOne, IAdapter adapterTwo);
     error DuplicateThreashold(uint256 threshold);
     error InvalidAdapter(IAdapter adapter);
+    error InvalidThreshold(uint256 threshold);
     error NoAdaptersEnabled(uint256 domain);
     error NoAdaptersGiven();
     error ThresholdNotMet();
