@@ -202,6 +202,9 @@ abstract contract ShuSo is IShuSho, OwnableUpgradeable {
      * @param threshold - Uint256 threshold to set for the given domain.
      * @notice Only callable by the owner of this contract.
      * @notice Reverts if threshold is already set to the given value.
+     * @notice It's IMPORTANT to set the threshold greater than or equal to _adapters.length + 1. 
+     *         Setting it lower would mean that the return value of _getThresholdHash 
+     *         would depend on the order of the adapters.
      */
     function _setThreshold(uint256 domain, uint256 threshold) internal onlyOwner {
         if (domains[domain].threshold == threshold) revert DuplicateThreashold(threshold);
