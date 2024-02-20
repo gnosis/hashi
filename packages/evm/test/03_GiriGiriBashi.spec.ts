@@ -680,12 +680,12 @@ describe("GiriGiriBashi", function () {
     it("Reverts if any of the provided adapters agree", async function () {
       const { giriGiriBashi, mockAdapter, secondMockAdapter, thirdMockAdapter, settings } = await setup()
       const adapters = [mockAdapter.address, secondMockAdapter.address, thirdMockAdapter.address].sort(compareAddresses)
-      const adaptersThatAgree = [secondMockAdapter.address, thirdMockAdapter.address].sort(compareAddresses)
       await giriGiriBashi.enableAdapters(DOMAIN_ID, adapters, [settings, settings, settings])
       await giriGiriBashi.setThreshold(DOMAIN_ID, 2)
-      await expect(giriGiriBashi.callStatic.declareNoConfidence(DOMAIN_ID, 22, adapters))
-        .to.be.revertedWithCustomError(giriGiriBashi, "AdaptersAgreed")
-        .withArgs(adaptersThatAgree[0], adaptersThatAgree[1])
+      await expect(giriGiriBashi.callStatic.declareNoConfidence(DOMAIN_ID, 22, adapters)).to.be.revertedWithCustomError(
+        giriGiriBashi,
+        "AdaptersAgreed",
+      )
     })
     it("Clears state for domain", async function () {
       const { giriGiriBashi, mockAdapter, secondMockAdapter, thirdMockAdapter, settings } = await setup()

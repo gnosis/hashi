@@ -26,7 +26,7 @@ interface IGiriGiriBashi is IShuSho {
     error AdaptersCannotContainChallengedAdapter(IAdapter[] adapters, IAdapter adapter);
     error AdapterHasNotYetTimedOut(IAdapter adapter);
     error AdapterNotQuarantined(IAdapter adapter);
-    error AdaptersAgreed(IAdapter adapter1, IAdapter adapter2);
+    error AdaptersAgreed();
     error AlreadyQuarantined(IAdapter adapter);
     error CannotProveNoConfidence(uint256 domain, uint256 id, IAdapter[] adapters);
     error ChallengeNotFound(bytes32 challengeId, uint256 domain, uint256 id, IAdapter adapter);

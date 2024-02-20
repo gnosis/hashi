@@ -72,17 +72,21 @@ contract GiriGiriBashi is IGiriGiriBashi, ShuSo {
         checkAdapterOrderAndValidity(domain, _adapters);
         (uint256 threshold, uint256 count) = getThresholdAndCount(domain);
 
-        // check that there are enough adapters to prove no confidence
-        uint256 confidence = (count - _adapters.length) + 1;
-        if (confidence >= threshold) revert CannotProveNoConfidence(domain, id, _adapters);
+        if (_adapters.length != count) revert CannotProveNoConfidence(domain, id, _adapters);
 
         bytes32[] memory hashes = new bytes32[](_adapters.length);
         for (uint256 i = 0; i < _adapters.length; i++) hashes[i] = _adapters[i].getHash(domain, id);
 
-        // prove that each member of _adapters disagrees
-        for (uint256 i = 0; i < hashes.length; i++)
+        for (uint256 i = 0; i < hashes.length; i++) {
+            uint256 count = 1;
             for (uint256 j = 0; j < hashes.length; j++)
-                if (hashes[i] == hashes[j] && i != j) revert AdaptersAgreed(_adapters[i], _adapters[j]);
+                if (hashes[i] == hashes[j] && i != j) {
+                    count++;
+                    if (count == threshold) {
+                        revert AdaptersAgreed();
+                    }
+                }
+        }
 
         domains[domain].threshold = type(uint256).max;
         delete challengeRanges[domain];
