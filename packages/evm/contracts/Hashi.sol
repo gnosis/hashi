@@ -58,6 +58,8 @@ contract Hashi is IHashi {
         }
 
         for (uint256 i = 0; i < hashes.length; ) {
+            if (i > hashes.length - threshold) break;
+
             bytes32 baseHash = hashes[i];
             if (baseHash == bytes32(0)) {
                 unchecked {
@@ -67,7 +69,7 @@ contract Hashi is IHashi {
             }
 
             uint256 num = 0;
-            for (uint256 j = 0; j < hashes.length; ) {
+            for (uint256 j = i; j < hashes.length; ) {
                 if (baseHash == hashes[j]) {
                     unchecked {
                         ++num;
