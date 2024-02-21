@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: LGPL-3.0-only
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.0;
 
 import { IAdapter } from "./IAdapter.sol";
 import { IHashi } from "./IHashi.sol";
@@ -23,9 +23,10 @@ interface IGiriGiriBashi is IShuSho {
         uint256 timeout; // grace period in which the adapter must report on an in-range id after being challenged.
     }
 
+    error AdaptersCannotContainChallengedAdapter(IAdapter[] adapters, IAdapter adapter);
     error AdapterHasNotYetTimedOut(IAdapter adapter);
     error AdapterNotQuarantined(IAdapter adapter);
-    error AdaptersAgreed(IAdapter adapter1, IAdapter adapter2);
+    error AdaptersAgreed();
     error AlreadyQuarantined(IAdapter adapter);
     error CannotProveNoConfidence(uint256 domain, uint256 id, IAdapter[] adapters);
     error ChallengeNotFound(bytes32 challengeId, uint256 domain, uint256 id, IAdapter adapter);
@@ -144,6 +145,13 @@ interface IGiriGiriBashi is IShuSho {
     function enableAdapters(uint256 domain, IAdapter[] memory adapters, Settings[] memory settings) external;
 
     /**
+     * @dev Get the current challenge given a challengeId.
+     * @param challengeId - The Bytes32 identifier for the challenge.
+     * @return challenge - Challenge indicating the challenge parameters.
+     */
+    function getChallenge(bytes32 challengeId) external view returns (Challenge memory);
+
+    /**
      * @dev Gets the challenge ID for a given domain, ID, and adapter.
      * @param domain - The Uint256 identifier for the domain.
      * @param id - The Uint256 identifier.
@@ -151,6 +159,13 @@ interface IGiriGiriBashi is IShuSho {
      * @return The computed challenge ID as a bytes32 hash.
      */
     function getChallengeId(uint256 domain, uint256 id, IAdapter adapter) external pure returns (bytes32);
+
+    /**
+     * @dev Get how far beyond the current highestId can be challenged.
+     * @param domain - The Uint256 identifier for the domain.
+     * @return range - Uint256 indicating the challenge range.
+     */
+    function getChallengeRange(uint256 domain) external view returns (uint256);
 
     /**
      * @dev Returns the hash agreed upon by a threshold of the enabled adapters.
@@ -186,6 +201,21 @@ interface IGiriGiriBashi is IShuSho {
      * @notice Reverts if no adapters are set for the given domain.
      */
     function getHash(uint256 domain, uint256 id, IAdapter[] memory adapters) external returns (bytes32);
+
+    /**
+     * @dev Returns the highest id reported for a given id
+     * @param domain - Uint256 identifier for the domain to query.
+     * @return id - Uint256 indicating the highest id reported.
+     */
+    function getHead(uint256 domain) external view returns (uint256);
+
+    /**
+     * @dev Get the current settings for a given adapter.
+     * @param domain - Uint256 identifier for the domain to query.
+     * @param adapter - The adapter.
+     * @return settings - The Settings for the given adapter.
+     */
+    function getSettings(uint256 domain, IAdapter adapter) external view returns (Settings memory);
 
     /**
      * @dev Replaces the quarantined adapters for a given domain with new adapters and settings.

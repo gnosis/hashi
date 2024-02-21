@@ -38,18 +38,22 @@ const setup = async (_configs?: any) => {
   const secondMockAdapter = await MockAdapter.deploy()
   const thirdMockAdapter = await MockAdapter.deploy()
 
-  await mockAdapter.setHashes(DOMAIN_ID, [0, 1, 20, 21, 22], [HASH_ZERO, HASH_GOOD, HASH_BAD, HASH_GOOD, HASH_BAD])
+  await mockAdapter.setHashes(
+    DOMAIN_ID,
+    [0, 1, 20, 21, 22, 23],
+    [HASH_ZERO, HASH_GOOD, HASH_BAD, HASH_GOOD, HASH_BAD, HASH_ZERO],
+  )
   await secondMockAdapter.setHashes(
     DOMAIN_ID,
-    [0, 1, 20, 21, 22],
-    [HASH_ZERO, HASH_GOOD, HASH_GOOD, HASH_GOOD, HASH_GOOD],
+    [0, 1, 20, 21, 22, 23],
+    [HASH_ZERO, HASH_GOOD, HASH_GOOD, HASH_GOOD, HASH_GOOD, HASH_ZERO],
   )
   await thirdMockAdapter.setHashes(
     DOMAIN_ID,
-    [0, 1, 20, 21, 22],
-    [HASH_ZERO, HASH_GOOD, HASH_DEAD, HASH_GOOD, HASH_GOOD],
+    [0, 1, 20, 21, 22, 23],
+    [HASH_ZERO, HASH_GOOD, HASH_DEAD, HASH_GOOD, HASH_GOOD, HASH_GOOD],
   )
-  await giriGiriBashi.setThreshold(DOMAIN_ID, _configs?.threshold || 2)
+
   await giriGiriBashi.setChallengeRange(DOMAIN_ID, CHALLENGE_RANGE)
 
   const settings = {
@@ -111,21 +115,50 @@ describe("GiriGiriBashi", function () {
     it("Reverts if count is greater than zero", async function () {
       const { giriGiriBashi, mockAdapter, settings } = await setup()
       await giriGiriBashi.enableAdapters(DOMAIN_ID, [mockAdapter.address], [settings])
+      await giriGiriBashi.setThreshold(DOMAIN_ID, 2)
       await expect(giriGiriBashi.setThreshold(DOMAIN_ID, 2)).to.be.revertedWithCustomError(
         giriGiriBashi,
         "CountMustBeZero",
       )
     })
-    it("Sets threshold for the given ChainID", async function () {
+    it("Reverts if adapters are not enabled", async function () {
       const { giriGiriBashi } = await setup()
-      expect(await giriGiriBashi.setThreshold(DOMAIN_ID, 3))
-      expect((await giriGiriBashi.domains(DOMAIN_ID)).threshold).to.equal(3)
+      await expect(giriGiriBashi.setThreshold(DOMAIN_ID, 2)).to.be.revertedWithCustomError(
+        giriGiriBashi,
+        "CountCannotBeZero",
+      )
+    })
+    it("Reverts if the threshold is less than them majority of adapters", async function () {
+      const { giriGiriBashi, settings, mockAdapter, secondMockAdapter, thirdMockAdapter } = await setup()
+      await giriGiriBashi.enableAdapters(
+        DOMAIN_ID,
+        [mockAdapter.address, secondMockAdapter.address, thirdMockAdapter.address],
+        [settings, settings, settings],
+      )
+      await expect(giriGiriBashi.setThreshold(DOMAIN_ID, 1))
+        .to.be.revertedWithCustomError(giriGiriBashi, "InvalidThreshold")
+        .withArgs(1)
+    })
+    it("Sets threshold for the given ChainID", async function () {
+      const { giriGiriBashi, mockAdapter, secondMockAdapter, settings } = await setup()
+      await giriGiriBashi.enableAdapters(
+        DOMAIN_ID,
+        [mockAdapter.address, secondMockAdapter.address],
+        [settings, settings],
+      )
+      await giriGiriBashi.setThreshold(DOMAIN_ID, 2)
+      expect((await giriGiriBashi.getDomain(DOMAIN_ID)).threshold).to.equal(2)
     })
     it("Emits HashiSet() event", async function () {
-      const { giriGiriBashi } = await setup()
-      await expect(giriGiriBashi.setThreshold(DOMAIN_ID, 3))
+      const { giriGiriBashi, mockAdapter, secondMockAdapter, settings } = await setup()
+      await giriGiriBashi.enableAdapters(
+        DOMAIN_ID,
+        [mockAdapter.address, secondMockAdapter.address],
+        [settings, settings],
+      )
+      await expect(giriGiriBashi.setThreshold(DOMAIN_ID, 2))
         .to.emit(giriGiriBashi, "ThresholdSet")
-        .withArgs(DOMAIN_ID, 3)
+        .withArgs(DOMAIN_ID, 2)
     })
   })
 
@@ -139,7 +172,8 @@ describe("GiriGiriBashi", function () {
     })
     it("Reverts if any adapters are already enabled", async function () {
       const { giriGiriBashi, settings } = await setup()
-      await expect(giriGiriBashi.enableAdapters(DOMAIN_ID, [ADDRESS_TWO], [settings]))
+      await giriGiriBashi.enableAdapters(DOMAIN_ID, [ADDRESS_TWO], [settings])
+      await giriGiriBashi.setThreshold(DOMAIN_ID, 1)
       await expect(giriGiriBashi.enableAdapters(DOMAIN_ID, [ADDRESS_TWO], [settings])).to.be.revertedWithCustomError(
         giriGiriBashi,
         "CountMustBeZero",
@@ -153,23 +187,24 @@ describe("GiriGiriBashi", function () {
     })
     it("Enables the given adapters", async function () {
       const { giriGiriBashi, settings } = await setup()
-      await expect(giriGiriBashi.enableAdapters(DOMAIN_ID, [ADDRESS_TWO, ADDRESS_THREE], [settings, settings]))
+      await giriGiriBashi.enableAdapters(DOMAIN_ID, [ADDRESS_TWO, ADDRESS_THREE], [settings, settings])
+      await giriGiriBashi.setThreshold(DOMAIN_ID, 2)
       const adapters = await giriGiriBashi.getAdapters(DOMAIN_ID)
       await expect(adapters[0]).to.equal(ADDRESS_TWO)
       await expect(adapters[1]).to.equal(ADDRESS_THREE)
-      expect((await giriGiriBashi.adapters(DOMAIN_ID, LIST_END)).next).to.equal(ADDRESS_TWO)
-      expect((await giriGiriBashi.adapters(DOMAIN_ID, LIST_END)).previous).to.equal(ADDRESS_THREE)
-      expect((await giriGiriBashi.adapters(DOMAIN_ID, ADDRESS_TWO)).next).to.equal(ADDRESS_THREE)
-      expect((await giriGiriBashi.adapters(DOMAIN_ID, ADDRESS_TWO)).previous).to.equal(LIST_END)
-      expect((await giriGiriBashi.adapters(DOMAIN_ID, ADDRESS_THREE)).next).to.equal(LIST_END)
-      expect((await giriGiriBashi.adapters(DOMAIN_ID, ADDRESS_THREE)).previous).to.equal(ADDRESS_TWO)
-      let adapterSettings = await giriGiriBashi.settings(ADDRESS_TWO)
+      expect((await giriGiriBashi.getAdapterLink(DOMAIN_ID, LIST_END)).next).to.equal(ADDRESS_TWO)
+      expect((await giriGiriBashi.getAdapterLink(DOMAIN_ID, LIST_END)).previous).to.equal(ADDRESS_THREE)
+      expect((await giriGiriBashi.getAdapterLink(DOMAIN_ID, ADDRESS_TWO)).next).to.equal(ADDRESS_THREE)
+      expect((await giriGiriBashi.getAdapterLink(DOMAIN_ID, ADDRESS_TWO)).previous).to.equal(LIST_END)
+      expect((await giriGiriBashi.getAdapterLink(DOMAIN_ID, ADDRESS_THREE)).next).to.equal(LIST_END)
+      expect((await giriGiriBashi.getAdapterLink(DOMAIN_ID, ADDRESS_THREE)).previous).to.equal(ADDRESS_TWO)
+      let adapterSettings = await giriGiriBashi.getSettings(DOMAIN_ID, ADDRESS_TWO)
       expect(adapterSettings.quarantined).to.deep.equal(settings.quarantined)
       expect(adapterSettings.minimumBond).to.deep.equal(settings.minimumBond)
       expect(adapterSettings.startId).to.deep.equal(settings.startId)
       expect(adapterSettings.idDepth).to.deep.equal(settings.idDepth)
       expect(adapterSettings.timeout).to.deep.equal(settings.timeout)
-      adapterSettings = await giriGiriBashi.settings(ADDRESS_THREE)
+      adapterSettings = await giriGiriBashi.getSettings(DOMAIN_ID, ADDRESS_THREE)
       expect(adapterSettings.quarantined).to.deep.equal(settings.quarantined)
       expect(adapterSettings.minimumBond).to.deep.equal(settings.minimumBond)
       expect(adapterSettings.startId).to.deep.equal(settings.startId)
@@ -194,8 +229,8 @@ describe("GiriGiriBashi", function () {
     })
     it("Disables the given adapters", async function () {
       const { giriGiriBashi, settings } = await setup()
-      await giriGiriBashi.setThreshold(DOMAIN_ID, ethers.constants.MaxUint256)
       await giriGiriBashi.enableAdapters(DOMAIN_ID, [ADDRESS_TWO, ADDRESS_THREE], [settings, settings])
+      await giriGiriBashi.setThreshold(DOMAIN_ID, ethers.constants.MaxUint256)
       await giriGiriBashi.disableAdapters(DOMAIN_ID, [ADDRESS_TWO, ADDRESS_THREE])
       const adapters = await giriGiriBashi.getAdapters(DOMAIN_ID)
       await expect(adapters[0]).to.equal(undefined)
@@ -210,26 +245,26 @@ describe("GiriGiriBashi", function () {
         [mockAdapter.address, secondMockAdapter.address],
         [settings, settings],
       )
-      const oldHead = await giriGiriBashi.heads(DOMAIN_ID)
+      const oldHead = await giriGiriBashi.getHead(DOMAIN_ID)
       await giriGiriBashi.getUnanimousHash(DOMAIN_ID, 1)
-      const newHead = await giriGiriBashi.heads(DOMAIN_ID)
+      const newHead = await giriGiriBashi.getHead(DOMAIN_ID)
       expect(newHead).not.to.equal(oldHead)
     })
   })
 
   describe("getThresholdHash()", function () {
-    for (let threshold = 1; threshold <= 3; threshold++) {
+    for (let threshold = 2; threshold <= 3; threshold++) {
       it(`Updates head for given domain with ${threshold}/3`, async function () {
-        const { giriGiriBashi, mockAdapter, secondMockAdapter, thirdMockAdapter, settings } = await setup({ threshold })
+        const { giriGiriBashi, mockAdapter, secondMockAdapter, thirdMockAdapter, settings } = await setup()
         await giriGiriBashi.enableAdapters(
           DOMAIN_ID,
           [mockAdapter.address, secondMockAdapter.address, thirdMockAdapter.address],
           [settings, settings, settings],
         )
-        const oldHead = await giriGiriBashi.heads(DOMAIN_ID)
+        const oldHead = await giriGiriBashi.getHead(DOMAIN_ID)
         expect(await giriGiriBashi.callStatic.getThresholdHash(DOMAIN_ID, 1)).to.equal(HASH_GOOD)
         await giriGiriBashi.getThresholdHash(DOMAIN_ID, 1)
-        const newHead = await giriGiriBashi.heads(DOMAIN_ID)
+        const newHead = await giriGiriBashi.getHead(DOMAIN_ID)
         expect(newHead).not.to.equal(oldHead)
       })
     }
@@ -243,15 +278,16 @@ describe("GiriGiriBashi", function () {
         [mockAdapter.address, secondMockAdapter.address],
         [settings, settings],
       )
+      await giriGiriBashi.setThreshold(DOMAIN_ID, 2)
       let adapters
       if (secondMockAdapter.address > mockAdapter.address) {
         adapters = [mockAdapter.address, secondMockAdapter.address]
       } else {
         adapters = [secondMockAdapter.address, mockAdapter.address]
       }
-      const oldHead = await giriGiriBashi.heads(DOMAIN_ID)
+      const oldHead = await giriGiriBashi.getHead(DOMAIN_ID)
       await giriGiriBashi.getHash(DOMAIN_ID, 1, adapters)
-      const newHead = await giriGiriBashi.heads(DOMAIN_ID)
+      const newHead = await giriGiriBashi.getHead(DOMAIN_ID)
       expect(newHead).not.to.equal(oldHead)
     })
   })
@@ -270,6 +306,7 @@ describe("GiriGiriBashi", function () {
         [mockAdapter.address, secondMockAdapter.address],
         [settings, settings],
       )
+      await giriGiriBashi.setThreshold(DOMAIN_ID, 2)
       await expect(giriGiriBashi.challengeAdapter(DOMAIN_ID, 1, mockAdapter.address))
         .to.be.revertedWithCustomError(giriGiriBashi, "NotEnoughValue")
         .withArgs(mockAdapter.address, 0)
@@ -278,15 +315,16 @@ describe("GiriGiriBashi", function () {
       const { giriGiriBashi, mockAdapter, secondMockAdapter, settings } = await setup()
       const adapters = [mockAdapter.address, secondMockAdapter.address].sort(compareAddresses)
       await giriGiriBashi.enableAdapters(DOMAIN_ID, adapters, [settings, settings])
+      await giriGiriBashi.setThreshold(DOMAIN_ID, 2)
 
       await giriGiriBashi.getHash(DOMAIN_ID, 21, adapters)
-      const head = await giriGiriBashi.heads(DOMAIN_ID)
+      const head = await giriGiriBashi.getHead(DOMAIN_ID)
       const challengeBlock = head - CHALLENGE_RANGE + 2
       await giriGiriBashi.challengeAdapter(DOMAIN_ID, challengeBlock, mockAdapter.address, {
         value: BOND,
       })
       const challengeId = await giriGiriBashi.getChallengeId(DOMAIN_ID, challengeBlock, mockAdapter.address)
-      const challenge = await giriGiriBashi.challenges(challengeId)
+      const challenge = await giriGiriBashi.getChallenge(challengeId)
       const increaseAmount = challenge.timestamp.add(settings.timeout).add(1)
 
       await network.provider.send("evm_setNextBlockTimestamp", [increaseAmount.toHexString()])
@@ -300,12 +338,57 @@ describe("GiriGiriBashi", function () {
         .to.be.revertedWithCustomError(giriGiriBashi, "AlreadyQuarantined")
         .withArgs(mockAdapter.address)
     })
+    it("Reverts if adapters array contains duplicates", async function () {
+      const { giriGiriBashi, mockAdapter, secondMockAdapter, settings } = await setup()
+      const adapters = [mockAdapter.address, secondMockAdapter.address].sort(compareAddresses)
+      await giriGiriBashi.enableAdapters(DOMAIN_ID, adapters, [settings, settings])
+      await giriGiriBashi.setThreshold(DOMAIN_ID, 2)
+
+      await giriGiriBashi.getHash(DOMAIN_ID, 21, adapters)
+      const head = await giriGiriBashi.getHead(DOMAIN_ID)
+      const challengeBlock = head - CHALLENGE_RANGE + 2
+      await giriGiriBashi.challengeAdapter(DOMAIN_ID, challengeBlock, mockAdapter.address, {
+        value: BOND,
+      })
+      const challengeId = await giriGiriBashi.getChallengeId(DOMAIN_ID, challengeBlock, mockAdapter.address)
+      const challenge = await giriGiriBashi.getChallenge(challengeId)
+      const increaseAmount = challenge.timestamp.add(settings.timeout).add(1)
+
+      await network.provider.send("evm_setNextBlockTimestamp", [increaseAmount.toHexString()])
+      await mockAdapter.setHashes(DOMAIN_ID, [challengeBlock], [HASH_GOOD])
+      await secondMockAdapter.setHashes(DOMAIN_ID, [challengeBlock], [HASH_GOOD])
+
+      await expect(
+        giriGiriBashi.resolveChallenge(DOMAIN_ID, challengeBlock, mockAdapter.address, [
+          secondMockAdapter.address,
+          secondMockAdapter.address,
+        ]),
+      ).to.be.revertedWithCustomError(giriGiriBashi, "DuplicateOrOutOfOrderAdapters")
+    })
+    it("Reverts if adapters array contains the challenged adapter", async function () {
+      const { giriGiriBashi, mockAdapter, secondMockAdapter, settings } = await setup()
+      const adapters = [mockAdapter.address, secondMockAdapter.address].sort(compareAddresses)
+      await giriGiriBashi.enableAdapters(DOMAIN_ID, adapters, [settings, settings])
+
+      await giriGiriBashi.getHash(DOMAIN_ID, 21, adapters)
+      const head = await giriGiriBashi.getHead(DOMAIN_ID)
+      const challengeBlock = head - CHALLENGE_RANGE + 2
+      await giriGiriBashi.challengeAdapter(DOMAIN_ID, challengeBlock, mockAdapter.address, {
+        value: BOND,
+      })
+
+      const wrongAdapters = [secondMockAdapter.address, mockAdapter.address]
+      await expect(giriGiriBashi.resolveChallenge(DOMAIN_ID, challengeBlock, mockAdapter.address, wrongAdapters))
+        .to.revertedWithCustomError(giriGiriBashi, "AdaptersCannotContainChallengedAdapter")
+        .withArgs(wrongAdapters, mockAdapter.address)
+    })
     it("Reverts if duplicate challenge exists", async function () {
       const { giriGiriBashi, mockAdapter, secondMockAdapter, settings } = await setup()
       const adapters = [mockAdapter.address, secondMockAdapter.address].sort(compareAddresses)
       await giriGiriBashi.enableAdapters(DOMAIN_ID, adapters, [settings, settings])
+      await giriGiriBashi.setThreshold(DOMAIN_ID, 2)
       await giriGiriBashi.getHash(DOMAIN_ID, 21, adapters)
-      const head = await giriGiriBashi.heads(DOMAIN_ID)
+      const head = await giriGiriBashi.getHead(DOMAIN_ID)
       expect(
         await giriGiriBashi.challengeAdapter(DOMAIN_ID, head - CHALLENGE_RANGE + 1, mockAdapter.address, {
           value: BOND,
@@ -321,8 +404,9 @@ describe("GiriGiriBashi", function () {
       const { giriGiriBashi, mockAdapter, secondMockAdapter, settings } = await setup()
       const adapters = [mockAdapter.address, secondMockAdapter.address].sort(compareAddresses)
       await giriGiriBashi.enableAdapters(DOMAIN_ID, adapters, [settings, settings])
+      await giriGiriBashi.setThreshold(DOMAIN_ID, 2)
       await giriGiriBashi.getHash(DOMAIN_ID, 21, adapters)
-      const head = await giriGiriBashi.heads(DOMAIN_ID)
+      const head = await giriGiriBashi.getHead(DOMAIN_ID)
 
       // revert on block before start ID
       await expect(giriGiriBashi.callStatic.challengeAdapter(DOMAIN_ID, 0, mockAdapter.address, { value: BOND }))
@@ -360,9 +444,10 @@ describe("GiriGiriBashi", function () {
       const { giriGiriBashi, mockAdapter, secondMockAdapter, settings } = await setup()
       const adapters = [mockAdapter.address, secondMockAdapter.address].sort(compareAddresses)
       await giriGiriBashi.enableAdapters(DOMAIN_ID, adapters, [settings, settings])
+      await giriGiriBashi.setThreshold(DOMAIN_ID, 2)
 
       await giriGiriBashi.getHash(DOMAIN_ID, 21, adapters)
-      const head = await giriGiriBashi.heads(DOMAIN_ID)
+      const head = await giriGiriBashi.getHead(DOMAIN_ID)
       expect(
         await giriGiriBashi.challengeAdapter(DOMAIN_ID, head - CHALLENGE_RANGE + 1, mockAdapter.address, {
           value: BOND,
@@ -373,8 +458,9 @@ describe("GiriGiriBashi", function () {
       const { giriGiriBashi, mockAdapter, secondMockAdapter, settings } = await setup()
       const adapters = [mockAdapter.address, secondMockAdapter.address].sort(compareAddresses)
       await giriGiriBashi.enableAdapters(DOMAIN_ID, adapters, [settings, settings])
+      await giriGiriBashi.setThreshold(DOMAIN_ID, 2)
       await giriGiriBashi.getHash(DOMAIN_ID, 21, adapters)
-      const head = await giriGiriBashi.heads(DOMAIN_ID)
+      const head = await giriGiriBashi.getHead(DOMAIN_ID)
 
       await expect(
         giriGiriBashi.challengeAdapter(DOMAIN_ID, head - CHALLENGE_RANGE + 1, mockAdapter.address, {
@@ -395,15 +481,16 @@ describe("GiriGiriBashi", function () {
       const { giriGiriBashi, mockAdapter, secondMockAdapter, settings } = await setup()
       const adapters = [mockAdapter.address, secondMockAdapter.address].sort(compareAddresses)
       await giriGiriBashi.enableAdapters(DOMAIN_ID, adapters, [settings, settings])
+      await giriGiriBashi.setThreshold(DOMAIN_ID, 2)
 
       await giriGiriBashi.getHash(DOMAIN_ID, 21, adapters)
-      const head = await giriGiriBashi.heads(DOMAIN_ID)
+      const head = await giriGiriBashi.getHead(DOMAIN_ID)
       const challengeBlock = head - CHALLENGE_RANGE + 1
       await giriGiriBashi.challengeAdapter(DOMAIN_ID, challengeBlock, mockAdapter.address, {
         value: BOND,
       })
       const challengeId = await giriGiriBashi.getChallengeId(DOMAIN_ID, challengeBlock, mockAdapter.address)
-      const challenge = await giriGiriBashi.challenges(challengeId)
+      const challenge = await giriGiriBashi.getChallenge(challengeId)
       const increaseAmount = challenge.timestamp.add(settings.timeout).sub(1)
 
       await network.provider.send("evm_setNextBlockTimestamp", [increaseAmount.toHexString()])
@@ -416,15 +503,16 @@ describe("GiriGiriBashi", function () {
       const { giriGiriBashi, mockAdapter, secondMockAdapter, settings, wallet } = await setup()
       const adapters = [mockAdapter.address, secondMockAdapter.address].sort(compareAddresses)
       await giriGiriBashi.enableAdapters(DOMAIN_ID, adapters, [settings, settings])
+      await giriGiriBashi.setThreshold(DOMAIN_ID, 2)
       await giriGiriBashi.getHash(DOMAIN_ID, 21, adapters)
-      const head = await giriGiriBashi.heads(DOMAIN_ID)
+      const head = await giriGiriBashi.getHead(DOMAIN_ID)
       const challengeBlock = head - CHALLENGE_RANGE + 1
 
       await giriGiriBashi.challengeAdapter(DOMAIN_ID, challengeBlock, mockAdapter.address, {
         value: BOND,
       })
       const challengeId = await giriGiriBashi.getChallengeId(DOMAIN_ID, challengeBlock, mockAdapter.address)
-      const challenge = await giriGiriBashi.challenges(challengeId)
+      const challenge = await giriGiriBashi.getChallenge(challengeId)
       const increaseAmount = challenge.timestamp.add(settings.timeout).add(1)
 
       await network.provider.send("evm_setNextBlockTimestamp", [increaseAmount.toHexString()])
@@ -436,16 +524,17 @@ describe("GiriGiriBashi", function () {
       const newBalance = await ethers.provider.getBalance(wallet.address)
       await expect(newBalance).to.be.greaterThan(previousBalance)
 
-      const quarantined = (await giriGiriBashi.settings(mockAdapter.address)).quarantined
+      const quarantined = (await giriGiriBashi.getSettings(DOMAIN_ID, mockAdapter.address)).quarantined
       await expect(quarantined).to.equal(true)
     })
     it("Keeps bond if _adapters + adapter equals threshold and agree", async function () {
       const { giriGiriBashi, mockAdapter, secondMockAdapter, settings } = await setup()
       const adapters = [mockAdapter.address, secondMockAdapter.address].sort(compareAddresses)
       await giriGiriBashi.enableAdapters(DOMAIN_ID, adapters, [settings, settings])
+      await giriGiriBashi.setThreshold(DOMAIN_ID, 2)
 
       await giriGiriBashi.getHash(DOMAIN_ID, 1, adapters)
-      const head = await giriGiriBashi.heads(DOMAIN_ID)
+      const head = await giriGiriBashi.getHead(DOMAIN_ID)
       const challengeBlock = head.add(20)
       await giriGiriBashi.challengeAdapter(DOMAIN_ID, challengeBlock, mockAdapter.address, {
         value: BOND,
@@ -454,16 +543,17 @@ describe("GiriGiriBashi", function () {
       const balanceBefore = await ethers.provider.getBalance(ADDRESS_TWO)
       await giriGiriBashi.resolveChallenge(DOMAIN_ID, challengeBlock, mockAdapter.address, [secondMockAdapter.address])
       expect(await ethers.provider.getBalance(ADDRESS_TWO)).to.equal(balanceBefore.add(BOND))
-      const quarantined = (await giriGiriBashi.settings(mockAdapter.address)).quarantined
+      const quarantined = (await giriGiriBashi.getSettings(DOMAIN_ID, mockAdapter.address)).quarantined
       expect(quarantined).to.equal(false)
     })
     it("Reverts if _adapters + adapter equals threshold and disagree", async function () {
       const { giriGiriBashi, mockAdapter, secondMockAdapter, settings, hashi } = await setup()
       const adapters = [mockAdapter.address, secondMockAdapter.address].sort(compareAddresses)
       await giriGiriBashi.enableAdapters(DOMAIN_ID, adapters, [settings, settings])
+      await giriGiriBashi.setThreshold(DOMAIN_ID, 2)
 
       await giriGiriBashi.getHash(DOMAIN_ID, 21, adapters)
-      const head = await giriGiriBashi.heads(DOMAIN_ID)
+      const head = await giriGiriBashi.getHead(DOMAIN_ID)
       const challengeBlock = head.add(1)
       await giriGiriBashi.challengeAdapter(DOMAIN_ID, challengeBlock, mockAdapter.address, {
         value: BOND,
@@ -479,10 +569,11 @@ describe("GiriGiriBashi", function () {
       const { giriGiriBashi, mockAdapter, secondMockAdapter, thirdMockAdapter, settings } = await setup()
       let adapters = [mockAdapter.address, secondMockAdapter.address, thirdMockAdapter.address]
       await giriGiriBashi.enableAdapters(DOMAIN_ID, adapters, [settings, settings, settings])
+      await giriGiriBashi.setThreshold(DOMAIN_ID, 2)
       adapters = adapters.sort(compareAddresses)
 
       await giriGiriBashi.getHash(DOMAIN_ID, 1, adapters)
-      const head = await giriGiriBashi.heads(DOMAIN_ID)
+      const head = await giriGiriBashi.getHead(DOMAIN_ID)
       const challengeBlock = head.add(20)
       await giriGiriBashi.challengeAdapter(DOMAIN_ID, challengeBlock, mockAdapter.address, {
         value: BOND,
@@ -497,17 +588,18 @@ describe("GiriGiriBashi", function () {
         [secondMockAdapter.address, thirdMockAdapter.address].sort(compareAddresses),
       )
       expect(await ethers.provider.getBalance(ADDRESS_TWO)).to.equal(previousBalance.add(BOND))
-      const quarantined = (await giriGiriBashi.settings(mockAdapter.address)).quarantined
+      const quarantined = (await giriGiriBashi.getSettings(DOMAIN_ID, mockAdapter.address)).quarantined
       expect(quarantined).to.equal(false)
     })
     it("Quarantines adapter and returns bond if challenged adapter disagrees with canonical hash", async function () {
       const { giriGiriBashi, mockAdapter, secondMockAdapter, thirdMockAdapter, settings } = await setup()
       let adapters = [mockAdapter.address, secondMockAdapter.address, thirdMockAdapter.address]
       await giriGiriBashi.enableAdapters(DOMAIN_ID, adapters, [settings, settings, settings])
+      await giriGiriBashi.setThreshold(DOMAIN_ID, 2)
       adapters = adapters.sort(compareAddresses)
 
       await giriGiriBashi.getHash(DOMAIN_ID, 21, adapters)
-      const head = await giriGiriBashi.heads(DOMAIN_ID)
+      const head = await giriGiriBashi.getHead(DOMAIN_ID)
       const challengeBlock = head.add(1)
       await giriGiriBashi.challengeAdapter(DOMAIN_ID, challengeBlock, mockAdapter.address, {
         value: BOND,
@@ -519,17 +611,18 @@ describe("GiriGiriBashi", function () {
         mockAdapter.address,
         [secondMockAdapter.address, thirdMockAdapter.address].sort(compareAddresses),
       )
-      const quarantined = (await giriGiriBashi.settings(mockAdapter.address)).quarantined
+      const quarantined = (await giriGiriBashi.getSettings(DOMAIN_ID, mockAdapter.address)).quarantined
       await expect(quarantined).to.equal(true)
     })
     it("Clears state after challenge is resolved", async function () {
       const { giriGiriBashi, mockAdapter, secondMockAdapter, thirdMockAdapter, settings } = await setup()
       let adapters = [mockAdapter.address, secondMockAdapter.address, thirdMockAdapter.address]
       await giriGiriBashi.enableAdapters(DOMAIN_ID, adapters, [settings, settings, settings])
+      await giriGiriBashi.setThreshold(DOMAIN_ID, 2)
       adapters = adapters.sort(compareAddresses)
 
       await giriGiriBashi.getHash(DOMAIN_ID, 21, adapters)
-      const head = await giriGiriBashi.heads(DOMAIN_ID)
+      const head = await giriGiriBashi.getHead(DOMAIN_ID)
       const challengeBlock = head.add(1)
       await giriGiriBashi.challengeAdapter(DOMAIN_ID, challengeBlock, mockAdapter.address, {
         value: BOND,
@@ -541,10 +634,10 @@ describe("GiriGiriBashi", function () {
         mockAdapter.address,
         [secondMockAdapter.address, thirdMockAdapter.address].sort(compareAddresses),
       )
-      const quarantined = (await giriGiriBashi.settings(mockAdapter.address)).quarantined
+      const quarantined = (await giriGiriBashi.getSettings(DOMAIN_ID, mockAdapter.address)).quarantined
       expect(quarantined).to.equal(true)
       const challengeId = await giriGiriBashi.getChallengeId(DOMAIN_ID, challengeBlock, mockAdapter.address)
-      const challenge = await giriGiriBashi.challenges(challengeId)
+      const challenge = await giriGiriBashi.getChallenge(challengeId)
       expect(challenge.challenger).to.equal(ADDRESS_ZERO)
       expect(challenge.timestamp).to.equal(0)
       expect(challenge.bond).to.equal(0)
@@ -553,9 +646,10 @@ describe("GiriGiriBashi", function () {
       const { giriGiriBashi, mockAdapter, secondMockAdapter, thirdMockAdapter, settings, wallet } = await setup()
       const adapters = [mockAdapter.address, secondMockAdapter.address, thirdMockAdapter.address].sort(compareAddresses)
       await giriGiriBashi.enableAdapters(DOMAIN_ID, adapters, [settings, settings, settings])
+      await giriGiriBashi.setThreshold(DOMAIN_ID, 2)
 
       await giriGiriBashi.getHash(DOMAIN_ID, 21, adapters)
-      const head = await giriGiriBashi.heads(DOMAIN_ID)
+      const head = await giriGiriBashi.getHead(DOMAIN_ID)
       const challengeBlock = head.add(1)
       await giriGiriBashi.challengeAdapter(DOMAIN_ID, challengeBlock, mockAdapter.address, {
         value: BOND,
@@ -580,26 +674,38 @@ describe("GiriGiriBashi", function () {
       const { giriGiriBashi, mockAdapter, secondMockAdapter, thirdMockAdapter, settings } = await setup()
       const adapters = [mockAdapter.address, secondMockAdapter.address, thirdMockAdapter.address].sort(compareAddresses)
       await giriGiriBashi.enableAdapters(DOMAIN_ID, adapters, [settings, settings, settings])
+      await giriGiriBashi.setThreshold(DOMAIN_ID, 2)
       await expect(giriGiriBashi.callStatic.declareNoConfidence(DOMAIN_ID, 20, [mockAdapter.address]))
         .to.be.revertedWithCustomError(giriGiriBashi, "CannotProveNoConfidence")
         .withArgs(DOMAIN_ID, 20, [mockAdapter.address])
     })
+    it("Reverts if the majority of adapters report the hash = 0", async function () {
+      const { giriGiriBashi, mockAdapter, secondMockAdapter, thirdMockAdapter, settings } = await setup()
+      const adapters = [mockAdapter.address, secondMockAdapter.address, thirdMockAdapter.address].sort(compareAddresses)
+      await giriGiriBashi.enableAdapters(DOMAIN_ID, adapters, [settings, settings, settings])
+      await giriGiriBashi.setThreshold(DOMAIN_ID, 2)
+      await expect(giriGiriBashi.callStatic.declareNoConfidence(DOMAIN_ID, 25, adapters))
+        .to.be.revertedWithCustomError(giriGiriBashi, "CannotProveNoConfidence")
+        .withArgs(DOMAIN_ID, 25, adapters)
+    })
     it("Reverts if any of the provided adapters agree", async function () {
       const { giriGiriBashi, mockAdapter, secondMockAdapter, thirdMockAdapter, settings } = await setup()
       const adapters = [mockAdapter.address, secondMockAdapter.address, thirdMockAdapter.address].sort(compareAddresses)
-      const adaptersThatAgree = [secondMockAdapter.address, thirdMockAdapter.address].sort(compareAddresses)
       await giriGiriBashi.enableAdapters(DOMAIN_ID, adapters, [settings, settings, settings])
-      await expect(giriGiriBashi.callStatic.declareNoConfidence(DOMAIN_ID, 22, adapters))
-        .to.be.revertedWithCustomError(giriGiriBashi, "AdaptersAgreed")
-        .withArgs(adaptersThatAgree[0], adaptersThatAgree[1])
+      await giriGiriBashi.setThreshold(DOMAIN_ID, 2)
+      await expect(giriGiriBashi.callStatic.declareNoConfidence(DOMAIN_ID, 22, adapters)).to.be.revertedWithCustomError(
+        giriGiriBashi,
+        "AdaptersAgreed",
+      )
     })
     it("Clears state for domain", async function () {
       const { giriGiriBashi, mockAdapter, secondMockAdapter, thirdMockAdapter, settings } = await setup()
       const adapters = [mockAdapter.address, secondMockAdapter.address, thirdMockAdapter.address].sort(compareAddresses)
       await giriGiriBashi.enableAdapters(DOMAIN_ID, adapters, [settings, settings, settings])
+      await giriGiriBashi.setThreshold(DOMAIN_ID, 2)
       expect(await giriGiriBashi.declareNoConfidence(DOMAIN_ID, 20, adapters))
-      const domain = await giriGiriBashi.domains(DOMAIN_ID)
-      const challengeRange = await giriGiriBashi.challengeRanges(DOMAIN_ID)
+      const domain = await giriGiriBashi.getDomain(DOMAIN_ID)
+      const challengeRange = await giriGiriBashi.getChallengeRange(DOMAIN_ID)
       expect(domain.threshold).to.equal(ethers.constants.MaxUint256)
       expect(challengeRange).to.equal(0)
     })
@@ -635,7 +741,7 @@ describe("GiriGiriBashi", function () {
     it("Sets challenge range for given domain", async function () {
       const { giriGiriBashi } = await setup()
       expect(await giriGiriBashi.setChallengeRange(2, CHALLENGE_RANGE))
-      const challengeRange = await giriGiriBashi.challengeRanges(2)
+      const challengeRange = await giriGiriBashi.getChallengeRange(2)
       expect(challengeRange).to.equal(CHALLENGE_RANGE)
     })
     it("Emits the ChallengeRangeUpdated event", async function () {
@@ -654,6 +760,7 @@ describe("GiriGiriBashi", function () {
         [mockAdapter.address, secondMockAdapter.address],
         [settings, settings],
       )
+      await giriGiriBashi.setThreshold(DOMAIN_ID, 2)
       await expect(
         giriGiriBashi.replaceQuarantinedAdapters(
           DOMAIN_ID,
@@ -686,6 +793,7 @@ describe("GiriGiriBashi", function () {
         [mockAdapter.address, secondMockAdapter.address],
         [settings, settings],
       )
+      await giriGiriBashi.setThreshold(DOMAIN_ID, 2)
       await expect(
         giriGiriBashi.replaceQuarantinedAdapters(
           DOMAIN_ID,
@@ -699,10 +807,11 @@ describe("GiriGiriBashi", function () {
       const { giriGiriBashi, mockAdapter, secondMockAdapter, thirdMockAdapter, settings } = await setup()
       let adapters = [mockAdapter.address, secondMockAdapter.address, thirdMockAdapter.address]
       await giriGiriBashi.enableAdapters(DOMAIN_ID, adapters, [settings, settings, settings])
+      await giriGiriBashi.setThreshold(DOMAIN_ID, 2)
       adapters = adapters.sort(compareAddresses)
 
       await giriGiriBashi.getHash(DOMAIN_ID, 21, adapters)
-      const head = await giriGiriBashi.heads(DOMAIN_ID)
+      const head = await giriGiriBashi.getHead(DOMAIN_ID)
       const challengeBlock = head.add(1)
       await giriGiriBashi.challengeAdapter(DOMAIN_ID, challengeBlock, mockAdapter.address, {
         value: BOND,
@@ -717,7 +826,7 @@ describe("GiriGiriBashi", function () {
       expect(
         await giriGiriBashi.replaceQuarantinedAdapters(DOMAIN_ID, [mockAdapter.address], [ADDRESS_TWO], [settings]),
       )
-      const adapterSettings = await giriGiriBashi.settings(ADDRESS_TWO)
+      const adapterSettings = await giriGiriBashi.getSettings(DOMAIN_ID, ADDRESS_TWO)
       expect(adapterSettings.quarantined).to.deep.equal(settings.quarantined)
       expect(adapterSettings.minimumBond).to.deep.equal(settings.minimumBond)
       expect(adapterSettings.startId).to.deep.equal(settings.startId)

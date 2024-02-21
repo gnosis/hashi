@@ -19,13 +19,13 @@ contract ShoyuBashi is IShoyuBashi, ShuSo {
     }
 
     /// @inheritdoc IShoyuBashi
-    function enableAdapters(uint256 domain, IAdapter[] memory _adapters) public {
-        _enableAdapters(domain, _adapters);
+    function enableAdapters(uint256 domain, IAdapter[] memory adapters) public {
+        _enableAdapters(domain, adapters);
     }
 
     /// @inheritdoc IShoyuBashi
-    function disableAdapters(uint256 domain, IAdapter[] memory _adapters) public {
-        _disableAdapters(domain, _adapters);
+    function disableAdapters(uint256 domain, IAdapter[] memory adapters) public {
+        _disableAdapters(domain, adapters);
     }
 
     /// @inheritdoc IShoyuBashi
@@ -39,7 +39,7 @@ contract ShoyuBashi is IShoyuBashi, ShuSo {
     }
 
     /// @inheritdoc IShoyuBashi
-    function getHash(uint256 domain, uint256 id, IAdapter[] memory _adapters) public view returns (bytes32) {
-        return _getHash(domain, id, _adapters);
+    function getHash(uint256 domain, uint256 id, IAdapter[] memory adapters) public view returns (bytes32) {
+        return _getHash(domain, id, adapters);
     }
 }

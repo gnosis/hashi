@@ -22,7 +22,6 @@ const setup = async () => {
 
   await mockAdapter.setHashes(DOMAIN_ID, [0, 1, 2], [HASH_ZERO, HASH_GOOD, HASH_GOOD])
   await anotherAdapter.setHashes(DOMAIN_ID, [0, 1, 2], [HASH_ZERO, HASH_GOOD, HASH_BAD])
-  await shoyuBashi.setThreshold(DOMAIN_ID, 2)
 
   return {
     wallet,
@@ -81,6 +80,8 @@ describe("ShoyuBashi", function () {
     })
     it("Reverts if threshold is already set", async function () {
       const { shoyuBashi } = await setup()
+      await shoyuBashi.enableAdapters(DOMAIN_ID, [ADDRESS_TWO, ADDRESS_THREE])
+      await shoyuBashi.setThreshold(DOMAIN_ID, 2)
       await expect(shoyuBashi.setThreshold(DOMAIN_ID, 2)).to.be.revertedWithCustomError(
         shoyuBashi,
         "DuplicateThreashold",
@@ -88,12 +89,14 @@ describe("ShoyuBashi", function () {
     })
     it("Sets threshold for the given ChainID", async function () {
       const { shoyuBashi } = await setup()
-      expect(await shoyuBashi.setThreshold(DOMAIN_ID, 3))
-      expect((await shoyuBashi.domains(DOMAIN_ID)).threshold).to.equal(3)
+      await shoyuBashi.enableAdapters(DOMAIN_ID, [ADDRESS_TWO, ADDRESS_THREE])
+      expect(await shoyuBashi.setThreshold(DOMAIN_ID, 2))
+      expect((await shoyuBashi.getDomain(DOMAIN_ID)).threshold).to.equal(2)
     })
     it("Emits HashiSet() event", async function () {
       const { shoyuBashi } = await setup()
-      await expect(shoyuBashi.setThreshold(DOMAIN_ID, 3)).to.emit(shoyuBashi, "ThresholdSet").withArgs(DOMAIN_ID, 3)
+      await shoyuBashi.enableAdapters(DOMAIN_ID, [ADDRESS_TWO, ADDRESS_THREE])
+      await expect(shoyuBashi.setThreshold(DOMAIN_ID, 2)).to.emit(shoyuBashi, "ThresholdSet").withArgs(DOMAIN_ID, 2)
     })
   })
 
@@ -140,12 +143,12 @@ describe("ShoyuBashi", function () {
       const adapters = await shoyuBashi.getAdapters(DOMAIN_ID)
       await expect(adapters[0]).to.equal(ADDRESS_TWO)
       await expect(adapters[1]).to.equal(ADDRESS_THREE)
-      expect((await shoyuBashi.adapters(DOMAIN_ID, LIST_END)).next).to.equal(ADDRESS_TWO)
-      expect((await shoyuBashi.adapters(DOMAIN_ID, LIST_END)).previous).to.equal(ADDRESS_THREE)
-      expect((await shoyuBashi.adapters(DOMAIN_ID, ADDRESS_TWO)).next).to.equal(ADDRESS_THREE)
-      expect((await shoyuBashi.adapters(DOMAIN_ID, ADDRESS_TWO)).previous).to.equal(LIST_END)
-      expect((await shoyuBashi.adapters(DOMAIN_ID, ADDRESS_THREE)).next).to.equal(LIST_END)
-      expect((await shoyuBashi.adapters(DOMAIN_ID, ADDRESS_THREE)).previous).to.equal(ADDRESS_TWO)
+      expect((await shoyuBashi.getAdapterLink(DOMAIN_ID, LIST_END)).next).to.equal(ADDRESS_TWO)
+      expect((await shoyuBashi.getAdapterLink(DOMAIN_ID, LIST_END)).previous).to.equal(ADDRESS_THREE)
+      expect((await shoyuBashi.getAdapterLink(DOMAIN_ID, ADDRESS_TWO)).next).to.equal(ADDRESS_THREE)
+      expect((await shoyuBashi.getAdapterLink(DOMAIN_ID, ADDRESS_TWO)).previous).to.equal(LIST_END)
+      expect((await shoyuBashi.getAdapterLink(DOMAIN_ID, ADDRESS_THREE)).next).to.equal(LIST_END)
+      expect((await shoyuBashi.getAdapterLink(DOMAIN_ID, ADDRESS_THREE)).previous).to.equal(ADDRESS_TWO)
     })
     it("Emits AdaptersEnabled() event", async function () {
       const { shoyuBashi } = await setup()
@@ -246,9 +249,9 @@ describe("ShoyuBashi", function () {
     it("Returns threshold and count", async function () {
       const { shoyuBashi } = await setup()
       await shoyuBashi.enableAdapters(DOMAIN_ID, [ADDRESS_TWO, ADDRESS_THREE])
-      await shoyuBashi.setThreshold(DOMAIN_ID, 1)
+      await shoyuBashi.setThreshold(DOMAIN_ID, 2)
       const [threshold] = await shoyuBashi.getThresholdAndCount(DOMAIN_ID)
-      await expect(threshold).to.equal(1)
+      await expect(threshold).to.equal(2)
     })
   })
 
@@ -263,6 +266,7 @@ describe("ShoyuBashi", function () {
     it("Reverts if threshold is not met", async function () {
       const { shoyuBashi, mockAdapter } = await setup()
       await shoyuBashi.enableAdapters(DOMAIN_ID, [mockAdapter.address])
+      await shoyuBashi.setThreshold(DOMAIN_ID, 2)
       await expect(shoyuBashi.getUnanimousHash(DOMAIN_ID, 1)).to.be.revertedWithCustomError(
         shoyuBashi,
         "ThresholdNotMet",
@@ -286,6 +290,7 @@ describe("ShoyuBashi", function () {
     it("Reverts if threshold is not met", async function () {
       const { shoyuBashi, mockAdapter, anotherAdapter } = await setup()
       await shoyuBashi.enableAdapters(DOMAIN_ID, [mockAdapter.address, anotherAdapter.address])
+      await shoyuBashi.setThreshold(DOMAIN_ID, 3)
       await expect(shoyuBashi.getThresholdHash(DOMAIN_ID, 2)).to.be.revertedWithCustomError(
         shoyuBashi,
         "ThresholdNotMet",
@@ -310,6 +315,7 @@ describe("ShoyuBashi", function () {
     it("Reverts if threshold is not met", async function () {
       const { shoyuBashi, mockAdapter } = await setup()
       await shoyuBashi.enableAdapters(DOMAIN_ID, [mockAdapter.address])
+      await shoyuBashi.setThreshold(DOMAIN_ID, 2)
       await expect(shoyuBashi.getHash(DOMAIN_ID, 1, [mockAdapter.address])).to.be.revertedWithCustomError(
         shoyuBashi,
         "ThresholdNotMet",
