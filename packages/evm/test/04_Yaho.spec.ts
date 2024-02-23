@@ -6,7 +6,7 @@ import { ethers } from "hardhat"
 
 import { toBytes32 } from "./utils"
 import Message from "./utils/Message"
-import { Chains } from "./utils/constants"
+import { Chains, ZERO_ADDRESS } from "./utils/constants"
 
 let reporter1: Contract,
   reporter2: Contract,
@@ -127,6 +127,23 @@ describe("Yaho", () => {
       )
         .to.be.revertedWithCustomError(yaho, "InvalidThreshold")
         .withArgs(3, 2)
+    })
+
+    it("should dispatch a single message without calling the reporter because a zk adapter is used", async () => {
+      const threshold = 2
+      const tx = await yaho.dispatchMessage(
+        Chains.Gnosis,
+        threshold,
+        receiver1.address,
+        "0x01",
+        [ZERO_ADDRESS, reporter2.address],
+        [adapter1.address, adapter2.address],
+      )
+      const [message] = Message.fromReceipt(await tx.wait(1))
+      await expect(tx).to.emit(yaho, "MessageDispatched").withArgs(message.id, anyValue) // FIXME: https://github.com/NomicFoundation/hardhat/issues/3833
+      expect(await yaho.getPendingMessageHash(message.id)).to.be.eq(
+        await yaho.calculateMessageHash(message.serialize()),
+      )
     })
   })
 

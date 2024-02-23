@@ -3,7 +3,7 @@ import { Contract } from "ethers"
 import { ethers } from "hardhat"
 
 import Message from "./utils/Message"
-import { Chains } from "./utils/constants"
+import { Chains, ZERO_ADDRESS } from "./utils/constants"
 
 let reporter1: Contract,
   reporter2: Contract,
@@ -190,5 +190,28 @@ describe("Yaru", () => {
           .and.to.emit(pingPong2, "Pong")
       })
     }
+
+    it(`should be able to execute a message using 2 zk adapters`, async () => {
+      const threshold = 4
+      const tx = await yaho.dispatchMessagesToAdapters(
+        Chains.Hardhat,
+        [threshold, threshold],
+        [pingPong1.address, pingPong2.address],
+        ["0x01", "0x02"],
+        [ZERO_ADDRESS, reporter2.address, ZERO_ADDRESS, reporter4.address],
+        [adapter1.address, adapter2.address, adapter3.address, adapter4.address],
+      )
+      const [message1, message2] = Message.fromReceipt(await tx.wait(1))
+      const hash1 = await yaho.calculateMessageHash(message1.serialize())
+      const hash2 = await yaho.calculateMessageHash(message2.serialize())
+      const adapters = [adapter1, adapter2, adapter3, adapter4]
+      for (let i = 0; i < threshold; i++) {
+        await adapters[i].setHashes(Chains.Hardhat, [message1.id], [hash1])
+        await adapters[i].setHashes(Chains.Hardhat, [message2.id], [hash2])
+      }
+      await expect(yaru.executeMessages([message1, message2]))
+        .to.emit(pingPong1, "Pong")
+        .and.to.emit(pingPong2, "Pong")
+    })
   })
 })
