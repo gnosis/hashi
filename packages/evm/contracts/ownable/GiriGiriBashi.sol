@@ -86,13 +86,13 @@ contract GiriGiriBashi is IGiriGiriBashi, ShuSo {
 
         for (uint256 i = 0; i < hashes.length; i++) {
             uint256 equalHashes = 1;
-            for (uint256 j = 0; j < hashes.length; j++)
+            for (uint256 j = 0; j < hashes.length; j++) {
                 if (hashes[i] == hashes[j] && i != j) {
                     equalHashes++;
-                    if (equalHashes == threshold) {
-                        revert AdaptersAgreed();
-                    }
                 }
+            }
+
+            if (equalHashes + zeroHashes >= threshold) revert CannotProveNoConfidence(domain, id, adapters);
         }
 
         _setDomainThreshold(domain, type(uint256).max);

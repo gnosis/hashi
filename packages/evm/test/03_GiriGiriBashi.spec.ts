@@ -695,8 +695,17 @@ describe("GiriGiriBashi", function () {
       await giriGiriBashi.setThreshold(DOMAIN_ID, 2)
       await expect(giriGiriBashi.callStatic.declareNoConfidence(DOMAIN_ID, 22, adapters)).to.be.revertedWithCustomError(
         giriGiriBashi,
-        "AdaptersAgreed",
+        "CannotProveNoConfidence",
       )
+    })
+    it("Reverts if number of equal hashes + number of zero hashes are greater than the threshold", async function () {
+      const { giriGiriBashi, mockAdapter, secondMockAdapter, thirdMockAdapter, settings } = await setup()
+      const adapters = [mockAdapter.address, secondMockAdapter.address, thirdMockAdapter.address].sort(compareAddresses)
+      await giriGiriBashi.enableAdapters(DOMAIN_ID, adapters, [settings, settings, settings])
+      await giriGiriBashi.setThreshold(DOMAIN_ID, 2)
+      await expect(giriGiriBashi.callStatic.declareNoConfidence(DOMAIN_ID, 23, adapters))
+        .to.be.revertedWithCustomError(giriGiriBashi, "CannotProveNoConfidence")
+        .withArgs(DOMAIN_ID, 23, adapters)
     })
     it("Clears state for domain", async function () {
       const { giriGiriBashi, mockAdapter, secondMockAdapter, thirdMockAdapter, settings } = await setup()
