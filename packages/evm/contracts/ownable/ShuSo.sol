@@ -158,9 +158,7 @@ abstract contract ShuSo is IShuSho, OwnableUpgradeable {
 
         bytes32[] memory hashes = new bytes32[](adapters.length);
         for (uint256 i = 0; i < adapters.length; i++) {
-            try adapters[i].getHash(domain, id) returns (bytes32 currentHash) {
-                hashes[i] = currentHash;
-            } catch {} // solhint-disable no-empty-blocks
+            hashes[i] = adapters[i].getHash(domain, id);
         }
 
         for (uint256 i = 0; i < hashes.length; i++) {

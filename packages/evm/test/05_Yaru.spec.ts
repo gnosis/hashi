@@ -98,7 +98,7 @@ describe("Yaru", () => {
         pingPong1.address,
         "0x01",
         [reporter1.address, reporter2.address, reporter3.address],
-        [adapter1.address, adapter2.address, reporter3.address],
+        [adapter1.address, adapter2.address, adapter3.address],
       )
       const [message] = Message.fromReceipt(await tx.wait(1))
       const hash = await yaho.calculateMessageHash(message.serialize())

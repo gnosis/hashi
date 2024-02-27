@@ -49,9 +49,7 @@ contract Hashi is IHashi {
 
         bytes32[] memory hashes = new bytes32[](adapters.length);
         for (uint256 i = 0; i < adapters.length; ) {
-            try adapters[i].getHash(domain, id) returns (bytes32 hash) {
-                hashes[i] = hash;
-            } catch {} // solhint-disable no-empty-blocks
+            hashes[i] = adapters[i].getHash(domain, id);
             unchecked {
                 ++i;
             }
