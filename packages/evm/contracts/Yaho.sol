@@ -193,7 +193,10 @@ contract Yaho is IYaho, MessageIdCalculator, MessageHashCalculator {
         bytes32[] memory reportersReceipts = new bytes32[](reporters.length);
 
         for (uint256 i = 0; i < reporters.length; ) {
-            reportersReceipts[i] = reporters[i].dispatchMessages(targetChainId, adapters[i], messageIds, messageHashes);
+            IReporter reporter = reporters[i];
+            if (address(reporter) != address(0)) {
+                reportersReceipts[i] = reporter.dispatchMessages(targetChainId, adapters[i], messageIds, messageHashes);
+            }
             unchecked {
                 ++i;
             }

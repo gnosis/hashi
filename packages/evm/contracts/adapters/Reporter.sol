@@ -54,7 +54,7 @@ abstract contract Reporter is IReporter {
     function _dispatch(
         uint256 targetChainId,
         address adapter,
-        uint256[] memory messageIds,
-        bytes32[] memory messageHashes
+        uint256[] memory ids,
+        bytes32[] memory hashes
     ) internal virtual returns (bytes32);
 }
