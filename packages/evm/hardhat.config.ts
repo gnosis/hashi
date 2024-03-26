@@ -1,3 +1,4 @@
+import "@nomicfoundation/hardhat-chai-matchers"
 import "@nomicfoundation/hardhat-toolbox"
 import { config as dotenvConfig } from "dotenv"
 import "hardhat-change-network"
@@ -95,18 +96,7 @@ const config: HardhatUserConfig = {
     src: "./contracts",
   },
   networks: {
-    hardhat: {
-      accounts: {
-        accountsBalance: "1000000000000000000000",
-      },
-      // Used for testing axiom
-      // forking: {
-      //   url: getChainConfig("mainnet").url,
-      //   // block number of attestation block
-      //   blockNumber: 10000000,
-      // },
-      chainId: chainIds.hardhat,
-    },
+    hardhat: {},
     arbitrum: getChainConfig("arbitrum-mainnet"),
     avalanche: getChainConfig("avalanche"),
     bsc: getChainConfig("bsc"),
@@ -124,21 +114,14 @@ const config: HardhatUserConfig = {
     cache: "./cache",
     sources: "./contracts",
     tests: "./test",
-    // tests: "./test_axiom",
   },
   solidity: {
-    version: "0.8.17",
+    version: "0.8.20",
     settings: {
-      metadata: {
-        // Not including the metadata hash
-        // https://github.com/paulrberg/hardhat-template/issues/31
-        bytecodeHash: "none",
-      },
-      // Disable the optimizer when debugging
-      // https://hardhat.org/hardhat-network/#solidity-optimizer-support
+      viaIR: true,
       optimizer: {
         enabled: true,
-        runs: 800,
+        runs: 10000,
       },
     },
   },

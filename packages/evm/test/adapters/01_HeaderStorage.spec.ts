@@ -2,11 +2,6 @@ import { mine } from "@nomicfoundation/hardhat-network-helpers"
 import { expect } from "chai"
 import { ethers, network } from "hardhat"
 
-const CHAIN_ID = 1
-const HEADER_ZERO = "0x0000000000000000000000000000000000000000000000000000000000000000"
-const HEADER_GOOD = "0x0000000000000000000000000000000000000000000000000000000000000001"
-const HEADER_BAD = "0x0000000000000000000000000000000000000000000000000000000000000bad"
-
 const setup = async () => {
   await network.provider.request({ method: "hardhat_reset", params: [] })
   const [wallet] = await ethers.getSigners()

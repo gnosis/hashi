@@ -1,35 +1,36 @@
 // SPDX-License-Identifier: LGPL-3.0-only
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.20;
 
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { ZetaReceiver, ZetaInterfaces } from "./interfaces/ZetaInterfaces.sol";
-import { HeaderOracleAdapter } from "../HeaderOracleAdapter.sol";
+import { BlockHashAdapter } from "../BlockHashAdapter.sol";
 
-contract ZetaAdapter is HeaderOracleAdapter, ZetaReceiver {
+contract ZetaAdapter is BlockHashAdapter, Ownable, ZetaReceiver {
     string public constant PROVIDER = "zeta";
     address public immutable ZETA_CONNECTOR;
-    bytes public ZETA_REPORTER_ADDRESS; // Immutable
-    bytes32 public immutable ZETA_REPORTER_ADDRESS_HASH;
+
+    mapping(uint256 => bytes32) public enabledReporters;
 
     error UnauthorizedZetaChainReceive();
 
-    constructor(
-        uint256 reporterChain,
-        address reporterAddress,
-        address zetaConnector,
-        bytes memory zetaReporterAddress
-    ) HeaderOracleAdapter(reporterChain, reporterAddress) {
+    event ReporterSet(uint256 indexed chainId, address indexed reporter);
+
+    constructor(address zetaConnector) {
         ZETA_CONNECTOR = zetaConnector;
-        ZETA_REPORTER_ADDRESS = zetaReporterAddress;
-        ZETA_REPORTER_ADDRESS_HASH = keccak256(zetaReporterAddress);
     }
 
     function onZetaMessage(ZetaInterfaces.ZetaMessage calldata zetaMessage) external {
-        // Auth adapted from "ZetaInteractor" contract's "isValidMessageCall" modifier
+        // NOTE: auth adapted from "ZetaInteractor" contract's "isValidMessageCall" modifier
         if (
             msg.sender != ZETA_CONNECTOR ||
-            zetaMessage.sourceChainId != REPORTER_CHAIN ||
-            keccak256(zetaMessage.zetaTxSenderAddress) != ZETA_REPORTER_ADDRESS_HASH
+            enabledReporters[zetaMessage.sourceChainId] != keccak256(zetaMessage.zetaTxSenderAddress)
         ) revert UnauthorizedZetaChainReceive();
-        _receivePayload(zetaMessage.message);
+        (uint256[] memory ids, bytes32[] memory hashes) = abi.decode(zetaMessage.message, (uint256[], bytes32[]));
+        _storeHashes(zetaMessage.sourceChainId, ids, hashes);
+    }
+
+    function setReporterByChainId(uint256 chainId, address reporter) external onlyOwner {
+        enabledReporters[chainId] = keccak256(abi.encodePacked(reporter));
+        emit ReporterSet(chainId, reporter);
     }
 }

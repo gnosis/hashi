@@ -1,26 +1,43 @@
 // SPDX-License-Identifier: LGPL-3.0-only
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.20;
 
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { IMailbox } from "@hyperlane-xyz/core/contracts/interfaces/IMailbox.sol";
 import { TypeCasts } from "@hyperlane-xyz/core/contracts/libs/TypeCasts.sol";
+import { Reporter } from "../Reporter.sol";
 
-abstract contract HyperlaneReporter {
+contract HyperlaneReporter is Reporter, Ownable {
     using TypeCasts for address;
 
     string public constant PROVIDER = "hyperlane";
     IMailbox public immutable HYPERLANE_MAILBOX;
-    uint32 public immutable HYPERLANE_ADAPTER_CHAIN;
 
-    constructor(address hyperlaneMailbox, uint32 hyperlaneAdapterChain) {
+    mapping(uint256 => uint32) public domains;
+
+    error DomainNotAvailable();
+
+    event DomainSet(uint256 indexed chainId, uint32 indexed domain);
+
+    constructor(address headerStorage, address yaho, address hyperlaneMailbox) Reporter(headerStorage, yaho) {
         HYPERLANE_MAILBOX = IMailbox(hyperlaneMailbox);
-        HYPERLANE_ADAPTER_CHAIN = hyperlaneAdapterChain;
     }
 
-    function _hyperlaneSend(bytes memory payload, address adapter) internal {
-        HYPERLANE_MAILBOX.dispatch{ value: msg.value }(
-            HYPERLANE_ADAPTER_CHAIN, // _destinationDomain
-            adapter.addressToBytes32(), // _recipientAddress
-            payload // _messageBody
-        );
+    function setDomainByChainId(uint256 chainId, uint32 domain) external onlyOwner {
+        domains[chainId] = domain;
+        emit DomainSet(chainId, domain);
+    }
+
+    function _dispatch(
+        uint256 targetChainId,
+        address adapter,
+        uint256[] memory ids,
+        bytes32[] memory hashes
+    ) internal override returns (bytes32) {
+        uint32 targetDomain = domains[targetChainId];
+        if (targetDomain == 0) revert DomainNotAvailable();
+        bytes memory payload = abi.encode(ids, hashes);
+        HYPERLANE_MAILBOX.dispatch{ value: msg.value }(targetDomain, adapter.addressToBytes32(), payload);
+
+        return bytes32(0);
     }
 }

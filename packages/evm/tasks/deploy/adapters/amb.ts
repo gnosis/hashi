@@ -4,15 +4,15 @@ import type { TaskArguments } from "hardhat/types"
 
 import { verify } from ".."
 import type { AMBAdapter } from "../../../types/contracts/adapters/AMB/AMBAdapter"
-import type { AMBHeaderReporter } from "../../../types/contracts/adapters/AMB/AMBHeaderReporter"
+import type { AMBReporter } from "../../../types/contracts/adapters/AMB/AMBReporter"
 import type { AMBAdapter__factory } from "../../../types/factories/contracts/adapters/AMB/AMBAdapter__factory"
-import { AMBHeaderReporter__factory } from "../../../types/factories/contracts/adapters/AMB/AMBHeaderReporter__factory"
+import { AMBReporter__factory } from "../../../types/factories/contracts/adapters/AMB/AMBReporter__factory"
 
 // Deploy on destination chain
 task("deploy:AMB:Adapter")
   .addParam("amb", "address of the AMB contract", undefined, types.string)
   .addParam("reporter", "address of the hash reporter", undefined, types.string)
-  .addParam("chainId", "chainId of the source chain", undefined, types.int)
+  .addParam("sourceChainId", "sourceChainId of the source chain", undefined, types.int)
   .addFlag("verify", "whether to verify the contract on Etherscan")
   .setAction(async function (taskArguments: TaskArguments, hre) {
     console.log("Deploying AMBAdapter...")
@@ -20,7 +20,12 @@ task("deploy:AMB:Adapter")
     const ambAdapterFactory: AMBAdapter__factory = <AMBAdapter__factory>(
       await hre.ethers.getContractFactory("AMBAdapter")
     )
-    const constructorArguments = [taskArguments.amb, taskArguments.reporter, taskArguments.chainId] as const
+
+    const constructorArguments = [
+      taskArguments.amb,
+      taskArguments.reporter,
+      "0x" + taskArguments.sourceChainId.toString(16).padStart(64, "0"),
+    ] as const
     const ambAdapter: AMBAdapter = <AMBAdapter>(
       await ambAdapterFactory.connect(signers[0]).deploy(...constructorArguments)
     )
@@ -30,21 +35,30 @@ task("deploy:AMB:Adapter")
   })
 
 // Deploy source chain
-task("deploy:AMB:HeaderReporter")
-  .addParam("amb", "address of the AMB contract", undefined, types.string)
+task("deploy:AMB:Reporter")
   .addParam("headerStorage", "address of the header storage contract", undefined, types.string)
+  .addParam("yaho", "address of the Yaho contract", undefined, types.string)
+  .addParam("amb", "address of the AMB contract", undefined, types.string)
+  .addParam("targetChainId", "target chain id", undefined, types.int)
+  .addParam("gas", "gas limit value used to call requireToPassMessage", 500000, types.int)
   .addFlag("verify", "whether to verify the contract on Etherscan")
   .setAction(async function (taskArguments: TaskArguments, hre) {
-    console.log("Deploying AMBHeaderReporter...")
+    console.log("Deploying AMBReporter...")
     const signers: SignerWithAddress[] = await hre.ethers.getSigners()
-    const ambHeaderReporterFactory: AMBHeaderReporter__factory = <AMBHeaderReporter__factory>(
-      await hre.ethers.getContractFactory("AMBHeaderReporter")
+    const ambReporterFactory: AMBReporter__factory = <AMBReporter__factory>(
+      await hre.ethers.getContractFactory("AMBReporter")
     )
-    const constructorArguments = [taskArguments.amb, taskArguments.reporter, taskArguments.chainId] as const
-    const ambHeaderReporter: AMBHeaderReporter = <AMBHeaderReporter>(
-      await ambHeaderReporterFactory.connect(signers[0]).deploy(...constructorArguments)
+    const constructorArguments = [
+      taskArguments.headerStorage,
+      taskArguments.yaho,
+      taskArguments.amb,
+      taskArguments.targetChainId,
+      taskArguments.gas,
+    ] as const
+    const ambReporter: AMBReporter = <AMBReporter>(
+      await ambReporterFactory.connect(signers[0]).deploy(...constructorArguments)
     )
-    await ambHeaderReporter.deployed()
-    console.log("AMBHeaderReporter deployed to:", ambHeaderReporter.address)
-    if (taskArguments.verify) await verify(hre, ambHeaderReporter, constructorArguments)
+    await ambReporter.deployed()
+    console.log("AMBReporter deployed to:", ambReporter.address)
+    if (taskArguments.verify) await verify(hre, ambReporter, constructorArguments)
   })

@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: LGPL-3.0-only
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.20;
 
 import { ILightClient, LightClientUpdate } from "./interfaces/IDendrETH.sol";
 import { SSZ } from "../Telepathy/libraries/SimpleSerialize.sol";
-import { BlockHashOracleAdapter } from "../BlockHashOracleAdapter.sol";
+import { BlockHashAdapter } from "../BlockHashAdapter.sol";
 
-contract DendrETHAdapter is BlockHashOracleAdapter {
+contract DendrETHAdapter is BlockHashAdapter {
     error InvalidUpdate();
     error BlockHeaderNotAvailable(uint256 slot);
     error InvalidBlockNumberProof();

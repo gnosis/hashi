@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: LGPL-3.0-only
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.20;
 
 library Merkle {
     uint256 internal constant SLOTS_PER_HISTORICAL_ROOT = 8192;
