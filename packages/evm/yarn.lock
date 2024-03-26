@@ -955,35 +955,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gnosis.pm/mock-contract@npm:^4.0.0":
-  version: 4.0.0
-  resolution: "@gnosis.pm/mock-contract@npm:4.0.0"
-  checksum: ce6f3d6218779a1899f9697dc668ce85c9fcd8b743a8c7cd157124130cc79ba0b2f64faa1a723a03c41134dc617bec2af0a757a381397674e745d694a8cb4bb2
-  languageName: node
-  linkType: hard
-
-"@gnosis.pm/safe-contracts@npm:1.3.0":
-  version: 1.3.0
-  resolution: "@gnosis.pm/safe-contracts@npm:1.3.0"
-  peerDependencies:
-    ethers: ^5.1.4
-  checksum: fea331745e3af0ed7322115e5bd4cc37de914253d9f6e1d85a4713e7e1fdc758bdba95cd2c38c6ba2cfd1bb289378d983d40723c3c525331dce0ed30418ab990
-  languageName: node
-  linkType: hard
-
-"@gnosis.pm/zodiac@npm:^3.3.2":
-  version: 3.3.2
-  resolution: "@gnosis.pm/zodiac@npm:3.3.2"
-  dependencies:
-    "@gnosis.pm/mock-contract": ^4.0.0
-    "@gnosis.pm/safe-contracts": 1.3.0
-    "@openzeppelin/contracts": ^4.8.1
-    "@openzeppelin/contracts-upgradeable": ^4.8.1
-    ethers: ^5.7.1
-  checksum: 796258749d673b552db0cf231ba3968acd2dfe6dfce759f36e91503c6cf29d26bd87c31f883f1ffc6879272ec041c8a7413756364615072339df562c4f90ac31
-  languageName: node
-  linkType: hard
-
 "@gnosis/hashi@workspace:.":
   version: 0.0.0-use.local
   resolution: "@gnosis/hashi@workspace:."
@@ -998,7 +969,6 @@ __metadata:
     "@ethersproject/bignumber": ^5.7.0
     "@ethersproject/bytes": ^5.7.0
     "@ethersproject/providers": ^5.7.2
-    "@gnosis.pm/zodiac": ^3.3.2
     "@hyperlane-xyz/core": ^3.1.10
     "@nomicfoundation/hardhat-chai-matchers": ^1.0.4
     "@nomicfoundation/hardhat-network-helpers": ^1.0.8
@@ -1007,6 +977,7 @@ __metadata:
     "@nomiclabs/hardhat-etherscan": ^3.1.2
     "@openzeppelin/contracts-upgradeable": ^4.8.1
     "@polytope-labs/solidity-merkle-trees": ^0.2.1
+    "@routerprotocol/evm-gateway-contracts": ^1.1.13
     "@trivago/prettier-plugin-sort-imports": ^4.0.0
     "@typechain/ethers-v5": ^10.1.1
     "@typechain/hardhat": ^6.1.4
@@ -1622,6 +1593,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@openzeppelin/contracts-upgradeable@npm:^4.7.3":
+  version: 4.9.6
+  resolution: "@openzeppelin/contracts-upgradeable@npm:4.9.6"
+  checksum: 481075e7222cab025ae55304263fca69a2d04305521957bc16d2aece9fa2b86b6914711724822493e3d04df7e793469cd0bcb1e09f0ddd10cb4e360ac7eed12a
+  languageName: node
+  linkType: hard
+
 "@openzeppelin/contracts-upgradeable@npm:^4.8.1":
   version: 4.8.2
   resolution: "@openzeppelin/contracts-upgradeable@npm:4.8.2"
@@ -1643,10 +1621,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@openzeppelin/contracts@npm:^4.8.1":
-  version: 4.8.3
-  resolution: "@openzeppelin/contracts@npm:4.8.3"
-  checksum: aea130d38d46840c5cbe3adbaa9a7ac645e4bd66ad3f3baf2fa78588c408d1a686170b3408c9e2e5e05530fba22ecdc00d7efb6b27852a8b29f91accbc0af255
+"@openzeppelin/contracts@npm:^4.4.1":
+  version: 4.9.6
+  resolution: "@openzeppelin/contracts@npm:4.9.6"
+  checksum: 274b6e968268294f12d5ca4f0278f6e6357792c8bb4d76664f83dbdc325f780541538a127e6a6e97e4f018088b42f65952014dec9c745c0fa25081f43ef9c4bf
   languageName: node
   linkType: hard
 
@@ -1668,6 +1646,16 @@ __metadata:
   version: 0.2.1
   resolution: "@polytope-labs/solidity-merkle-trees@npm:0.2.1"
   checksum: c6808f104565a17305d3857932c87fb026d046bbe199ddb572bb2683758bee70fbda587585a2488c37832fe2524f45c4782516a6a497e00c57fc576a7499c6da
+  languageName: node
+  linkType: hard
+
+"@routerprotocol/evm-gateway-contracts@npm:^1.1.13":
+  version: 1.1.13
+  resolution: "@routerprotocol/evm-gateway-contracts@npm:1.1.13"
+  dependencies:
+    "@openzeppelin/contracts": ^4.4.1
+    "@openzeppelin/contracts-upgradeable": ^4.7.3
+  checksum: 08898738eaf06d330a96ada9c1760ddc5ee8e3f7871eca425d1ce66a3c1496766d1509f40aec203b6f1dd6f077696fdf5c7e489ba3291f0377261e556d4999cc
   languageName: node
   linkType: hard
 
