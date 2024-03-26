@@ -54,7 +54,7 @@ contract RouterAdapter is BlockHashAdapter, Ownable, IDapp {
         return hex"";
     }
 
-    function iAck(uint256, bool, bytes memory) external override {
+    function iAck(uint256, bool, bytes memory) external pure override {
         revert RouterIAckNotSupported();
     }
 }
