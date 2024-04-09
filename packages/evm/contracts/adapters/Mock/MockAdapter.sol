@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity ^0.8.20;
 
-import { Adapter } from "../adapters/Adapter.sol";
-import { BlockHashAdapter } from "../adapters/BlockHashAdapter.sol";
+import { Adapter } from "../Adapter.sol";
+import { BlockHashAdapter } from "../BlockHashAdapter.sol";
 
 contract MockAdapter is Adapter, BlockHashAdapter {
     error LengthMismatch();
