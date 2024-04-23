@@ -8,7 +8,8 @@ import { Receipt } from "../Electron/lib/Receipt.sol";
 import { BlockHashAdapter } from "../BlockHashAdapter.sol";
 
 contract DendrETHAdapter is BlockHashAdapter {
-    bytes32 internal constant MESSAGE_DISPATCHED_EVENT_SIG = keccak256("TODO");
+    bytes32 internal constant MESSAGE_DISPATCHED_EVENT_SIG =
+        0x218247aabc759e65b5bb92ccc074f9d62cd187259f2a0984c3c9cf91f67ff7cf; //  keccak256("MessageDispatched(uint256,(uint256,uint256,uint256,address,address,bytes,address[],address[]))"); // keccak256("MessageDispatched(uint256,(uint256,uint256,uint256,address,address,bytes,address[],address[]))")
 
     address public immutable DENDRETH_ADDRESS;
     address public immutable SOURCE_YAHO;
