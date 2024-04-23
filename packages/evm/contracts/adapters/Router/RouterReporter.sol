@@ -15,10 +15,8 @@ interface IRouterGateway is IGateway {
 
 interface IRouterGasStation {
     function payFee(string memory destChainId, uint256 destGasLimit) external payable returns (uint256);
-    function getNativeFees(
-        string memory destChainId,
-        uint256 destGasLimit
-    ) external view returns (uint256) ; 
+
+    function getNativeFees(string memory destChainId, uint256 destGasLimit) external view returns (uint256);
 }
 
 contract RouterReporter is Reporter, Ownable {
@@ -98,7 +96,7 @@ contract RouterReporter is Reporter, Ownable {
 
         uint256 iSendFee = ROUTER_GATEWAY.iSendDefaultFee();
         uint256 crosstalkFee = ROUTER_GAS_STATION.getNativeFees(targetChainIdStr, 200_000);
-        
+
         if (address(this).balance < (iSendFee + crosstalkFee)) revert InsufficientFeePassed();
 
         ROUTER_GAS_STATION.payFee{ value: crosstalkFee }(targetChainIdStr, 200_000);
