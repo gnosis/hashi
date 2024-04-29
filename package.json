@@ -1,6 +1,5 @@
 {
   "private": true,
-  "name": "hashi",
   "description": "",
   "author": {
     "name": "gnosis",
@@ -8,23 +7,17 @@
   },
   "scripts": {
     "prepare": "husky install",
-    "preinstall": "yarn contracts:install",
-    "build": "yarn contracts:build",
-    "test": "yarn contracts:test",
-    "lint": "yarn contracts:lint",
-    "coverage": "yarn contracts:coverage",
-    "contracts:install": "cd packages/evm && yarn install",
-    "contracts:build": "cd packages/evm && yarn build",
-    "contracts:test": "cd packages/evm && yarn test",
-    "contracts:lint": "cd packages/evm && yarn lint",
-    "contracts:coverage": "cd packages/evm && yarn coverage"
+    "postinstall": "patch-package"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.5.1",
     "@commitlint/config-conventional": "^17.4.4",
     "husky": "^8.0.3",
+    "patch-package": "8.0.0",
     "prettier": "^2.8.7",
     "prettier-plugin-solidity": "^1.0.0"
   },
-  "packageManager": "yarn@3.2.1"
+  "workspaces": [
+    "packages/*"
+  ]
 }
