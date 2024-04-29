@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity ^0.8.20;
 
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { BlockHashAdapter } from "../BlockHashAdapter.sol";
 import { ILightClient } from "./interfaces/ILightClient.sol";
 import { Merkle } from "./lib/Merkle.sol";
 import { Receipt } from "./lib/Receipt.sol";
-import { Ownable } from "openzeppelin/access/Ownable.sol";
 
 contract ElectronAdapter is BlockHashAdapter, Ownable {
     ILightClient public lightClient;

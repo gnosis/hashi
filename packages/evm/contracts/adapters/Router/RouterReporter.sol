@@ -2,7 +2,6 @@
 pragma solidity ^0.8.20;
 
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { Reporter } from "../Reporter.sol";
 import { IGateway } from "@routerprotocol/evm-gateway-contracts/contracts/IGateway.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
