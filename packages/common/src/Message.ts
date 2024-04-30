@@ -89,8 +89,8 @@ class Message {
   serialize() {
     return [
       this.nonce.toString(),
-      this.targetChainId.toString(),
-      this.threshold.toString(),
+      parseInt(this.targetChainId.toString()),
+      parseInt(this.threshold.toString()),
       this.sender,
       this.receiver,
       this.data,
@@ -107,8 +107,8 @@ class Message {
       receiver: this.receiver,
       reporters: this.reporters,
       sender: this.sender,
-      targetChainId: this.targetChainId.toString(),
-      threshold: this.threshold.toString()
+      targetChainId: parseInt(this.targetChainId.toString()),
+      threshold: parseInt(this.threshold.toString())
     }
   }
 }
