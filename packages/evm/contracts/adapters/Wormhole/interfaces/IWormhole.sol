@@ -30,7 +30,7 @@ interface IWormhole {
         uint8 consistencyLevel
     ) external payable returns (uint64 sequence);
 
-    /// @dev parseAndVerifyVM serves to parse an encodedVM and wholy validate it for consumption
+    /// @dev parseAndVerifyVM serves to parse an encodedVM and wholly validate it for consumption
     function parseAndVerifyVM(
         bytes calldata encodedVM
     ) external view returns (VM memory vm, bool valid, string memory reason);
