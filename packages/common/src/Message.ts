@@ -108,7 +108,7 @@ class Message {
       reporters: this.reporters,
       sender: this.sender,
       targetChainId: parseInt(this.targetChainId.toString()),
-      threshold: parseInt(this.threshold.toString())
+      threshold: parseInt(this.threshold.toString()),
     }
   }
 }

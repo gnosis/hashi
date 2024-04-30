@@ -2,10 +2,11 @@ import { configDotenv } from "dotenv"
 import { createWalletClient, http, Chain, publicActions, Log, Block } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import * as chains from "viem/chains"
-import { MongoClient } from "mongodb"
+import { MongoClient, Document } from "mongodb"
 
 import { logger, Message } from "@gnosis/hashi-common"
 
+import Batcher from "./Batcher"
 import Watcher from "./Watcher"
 import yahoAbi from "./abi/Yaho.json" assert { type: "json" }
 
@@ -62,3 +63,38 @@ const watcher = new Watcher({
   },
 })
 watcher.start()
+
+const batcher = new Batcher({
+  collection: db.collection("messages"),
+  createBatchIntervalTimeMs: Number(process.env.CREATE_BATCH_INTERVAL_TIME_MS as string),
+  finalStatus: "relayed",
+  findCondition: {
+    status: "dispatched",
+    address: process.env.YAHO_ADDRESS as `0x${string}`,
+  },
+  logger,
+  minBatchSize: Number(process.env.MIN_BATCH_SIZE as string),
+  onBatch: async (_batch: Document[]) => {
+    const serializedMessages = _batch.map((_val: any) =>
+      new Message({
+        id: _val.id,
+        ..._val.data,
+      }).serialize(),
+    )
+
+    logger.child({ service: "Relayer" }).info("Sending messages ...")
+    const { request } = await client.simulateContract({
+      address: process.env.YAHO_ADDRESS as `0x${string}`,
+      abi: yahoAbi,
+      functionName: "relayMessagesToAdapters",
+      args: [serializedMessages],
+    })
+    const transactionHash = await client.writeContract(request)
+    logger.child({ service: "Relayer" }).info(`Messages sent: ${transactionHash}`)
+
+    return {
+      transactionHash,
+    }
+  },
+})
+batcher.start()
