@@ -1,7 +1,7 @@
 import winston from "winston"
 import { Log } from "viem"
 
-interface ListenerConfigs {
+interface WatcherConfigs {
   logger: winston.Logger
   client: any
   contractAddress: `0x${string}`
@@ -21,7 +21,7 @@ class Watcher {
   private _lastBlock: bigint
   private _listenIntervalTimeMs: number
 
-  constructor(_configs: ListenerConfigs) {
+  constructor(_configs: WatcherConfigs) {
     this.logger = _configs.logger.child({ service: "Watcher" })
     this.client = _configs.client
     this.contractAddress = _configs.contractAddress
