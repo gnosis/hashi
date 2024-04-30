@@ -6,6 +6,7 @@
     "name": "gnosis",
     "url": "https://github.com/gnosis"
   },
+  "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -16,7 +17,8 @@
     "prettier:write": "prettier --write \"**/*.{js,json,md,sol,ts,yml}\""
   },
   "dependencies": {
-    "winston": "^3.11.0"
+    "winston": "^3.11.0",
+    "viem": "^2.9.28"
   },
   "devDependencies": {
     "@types/node": "^20.8.9",

@@ -1,3 +1,4 @@
 import logger from "./logger"
+import Message from "./Message"
 
-export { logger }
+export { logger, Message }
