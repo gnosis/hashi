@@ -17,6 +17,7 @@
   "dependencies": {
     "@gnosis/hashi-common": "0.1.0",
     "dotenv": "^16.3.1",
+    "mongodb": "6.5.0",
     "viem": "^2.9.28",
     "winston": "^3.11.0"
   },
