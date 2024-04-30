@@ -1,5 +1,5 @@
 import { configDotenv } from "dotenv"
-import { createWalletClient, http, Chain, publicActions, Log } from "viem"
+import { createWalletClient, http, Chain, publicActions, Log, Block } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import * as chains from "viem/chains"
 import { MongoClient } from "mongodb"
@@ -34,24 +34,31 @@ const watcher = new Watcher({
   onLogs: async (_logs: Log[]) => {
     // TODO: filter messages that you don't want to relay. For example it could be possible
     // to relayMessagesToAdapters only those coming from specific message.sender
+
+    const blocks = (await Promise.all(
+      _logs.map((_log: Log) => client.getBlock({ blockHash: _log.blockHash as `0x${string}` })),
+    )) as Block[]
     const messages = _logs.map((_log: Log) => Message.fromLog(_log))
-    await messages.map((_message: Message) =>
-      db.collection("messages").updateOne(
-        { id: _message.id },
-        {
-          $set: {
-            data: _message.toJSON(),
-            status: "dispatched",
-            chainId: client?.chain?.id as number,
-            address: process.env.YAHO_ADDRESS as `0x${string}`,
+
+    await Promise.all(
+      messages.map((_message: Message, _index: number) =>
+        db.collection("messages").updateOne(
+          { id: _message.id },
+          {
+            $set: {
+              data: _message.toJSON(),
+              status: "dispatched",
+              chainId: client?.chain?.id as number,
+              address: process.env.YAHO_ADDRESS as `0x${string}`,
+              timestamp: parseInt(blocks[_index].timestamp.toString()),
+            },
           },
-        },
-        {
-          upsert: true,
-        },
+          {
+            upsert: true,
+          },
+        ),
       ),
     )
   },
 })
 watcher.start()
-
