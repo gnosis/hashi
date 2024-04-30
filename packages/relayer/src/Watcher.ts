@@ -7,7 +7,7 @@ interface WatcherConfigs {
   contractAddress: `0x${string}`
   abi: any
   eventName: string
-  listenIntervalTimeMs: number
+  watchIntervalTimeMs: number
   onLogs: (logs: Log[]) => Promise<void>
 }
 
@@ -19,7 +19,7 @@ class Watcher {
   abi: any
   eventName: string
   private _lastBlock: bigint
-  private _listenIntervalTimeMs: number
+  private _watchIntervalTimeMs: number
 
   constructor(_configs: WatcherConfigs) {
     this.logger = _configs.logger.child({ service: "Watcher" })
@@ -28,17 +28,17 @@ class Watcher {
     this.abi = _configs.abi
     this.eventName = _configs.eventName
     this.onLogs = _configs.onLogs
-    this._listenIntervalTimeMs = _configs.listenIntervalTimeMs
+    this._watchIntervalTimeMs = _configs.watchIntervalTimeMs
 
     this._lastBlock = 0n
   }
 
-  async startWatching() {
+  async start() {
     try {
       this._watch()
       setInterval(() => {
         this._watch()
-      }, this._listenIntervalTimeMs)
+      }, this._watchIntervalTimeMs)
     } catch (_err) {}
   }
 

@@ -30,8 +30,10 @@ const watcher = new Watcher({
   contractAddress: process.env.YAHO_ADDRESS as `0x${string}`,
   abi: yahoAbi,
   eventName: "MessageDispatched",
-  listenIntervalTimeMs: Number(process.env.LISTEN_INTERVAL_TIME_MS as string),
+  watchIntervalTimeMs: Number(process.env.WATCH_INTERVAL_TIME_MS as string),
   onLogs: async (_logs: Log[]) => {
+    // TODO: filter messages that you don't want to relay. For example it could be possible
+    // to relayMessagesToAdapters only those coming from specific message.sender
     const messages = _logs.map((_log: Log) => Message.fromLog(_log))
     await messages.map((_message: Message) =>
       db.collection("messages").updateOne(
@@ -39,7 +41,7 @@ const watcher = new Watcher({
         {
           $set: {
             data: _message.toJSON(),
-            status: "seen",
+            status: "dispatched",
             chainId: client?.chain?.id as number,
             address: process.env.YAHO_ADDRESS as `0x${string}`,
           },
@@ -51,4 +53,5 @@ const watcher = new Watcher({
     )
   },
 })
-watcher.startWatching()
+watcher.start()
+
