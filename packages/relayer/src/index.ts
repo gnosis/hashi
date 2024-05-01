@@ -66,10 +66,13 @@ const batcher = new Batcher({
   logger,
   minBatchSize: Number(process.env.MIN_BATCH_SIZE as string),
   onGetValues: () => {
-    return db.collection("relayedMessages").find({
-      status: "dispatched",
-      address: process.env.YAHO_ADDRESS as `0x${string}`,
-    }).toArray()
+    return db
+      .collection("relayedMessages")
+      .find({
+        status: "dispatched",
+        address: process.env.YAHO_ADDRESS as `0x${string}`,
+      })
+      .toArray()
   },
   onBatch: async (_batch: Document[]) => {
     const serializedMessages = _batch.map((_val: any) =>
@@ -87,7 +90,7 @@ const batcher = new Batcher({
       args: [serializedMessages],
     })
     const transactionHash = await client.writeContract(request)
-    logger.child({ service: "Relayer" }).info(`Messages relayed: ${transactionHash}`)
+    logger.child({ service: "Relayer" }).info(`${serializedMessages.length} messages relayed: ${transactionHash}`)
     return transactionHash
   },
   onResult: (_result: any, _values: Document[]) => {
