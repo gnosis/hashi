@@ -115,7 +115,7 @@ const batcher = new Batcher({
       logger
         .child({ service: "Executor" })
         .info(`Found ${messagesAlreadyExecuted.length} messages already executed. Processing them ...`)
-      // NOTE: find the transactionHash
+      // TODO: find the transactionHash
       await db
         .collection("messagesAlreadyExecuted")
         .updateMany(
