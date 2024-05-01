@@ -41,12 +41,11 @@ class Batcher {
 
   private async _createBatch() {
     try {
-      this.logger.info(`looking for creating a batch ...`)
       const values = await this.collection.find(this._findCondition).toArray()
+      this.logger.info(`Current batch size: ${values.length} missing: ${this.minBatchSize - values.length}`)
       if (values.length >= this.minBatchSize) {
         this.logger.info(`Batch found. Processing it ...`)
         const result = await this.onBatch(values)
-
         await Promise.all(
           values.map(({ _id }) =>
             this.collection.updateOne(

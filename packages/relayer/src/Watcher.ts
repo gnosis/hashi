@@ -64,7 +64,7 @@ class Watcher {
       const logs = (await this.client.getFilterLogs({ filter })) as Log[]
 
       if (logs.length) {
-        this.logger.info(`Detected ${logs.length} new logs. Processing them ...`)
+        this.logger.info(`Detected ${logs.length} new ${this.eventName} events. Processing them ...`)
         await this.onLogs(logs)
       }
 
