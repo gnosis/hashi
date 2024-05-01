@@ -2,6 +2,7 @@ import winston from "winston"
 import { Log } from "viem"
 
 interface WatcherConfigs {
+  service: string
   logger: winston.Logger
   client: any
   contractAddress: `0x${string}`
@@ -22,7 +23,7 @@ class Watcher {
   private _watchIntervalTimeMs: number
 
   constructor(_configs: WatcherConfigs) {
-    this.logger = _configs.logger.child({ service: "Watcher" })
+    this.logger = _configs.logger.child({ service: _configs.service })
     this.client = _configs.client
     this.contractAddress = _configs.contractAddress
     this.abi = _configs.abi

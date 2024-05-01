@@ -1,33 +1,30 @@
 import winston from "winston"
-import { Collection, Document } from "mongodb"
 
 interface BatcherConfigs {
+  service: string
   logger: winston.Logger
-  collection: Collection
   minBatchSize: number
-  findCondition: any
   createBatchIntervalTimeMs: number
-  finalStatus: string
-  onBatch: (logs: Document[]) => Promise<any>
+  onBatch: (batch: any[]) => Promise<any>
+  onGetValues: () => Promise<any[]>
+  onResult?: (result: any, values: any) => Promise<any[]>
 }
 
 class Batcher {
   logger: winston.Logger
-  collection: Collection
   minBatchSize: number
-  finalStatus: string
-  onBatch: (logs: Document[]) => Promise<any>
+  onBatch: (batch: any[]) => Promise<any>
+  onGetValues: () => Promise<any[]>
+  onResult: ((result: any, values: any) => Promise<any[]>) | undefined
   private _createBatchIntervalTimeMs: number
-  private _findCondition: any
 
   constructor(_configs: BatcherConfigs) {
-    this.logger = _configs.logger.child({ service: "Batcher" })
-    this.collection = _configs.collection
+    this.logger = _configs.logger.child({ service: _configs.service })
     this.minBatchSize = _configs.minBatchSize
-    this._findCondition = _configs.findCondition
-    this.finalStatus = _configs.finalStatus
     this._createBatchIntervalTimeMs = _configs.createBatchIntervalTimeMs
     this.onBatch = _configs.onBatch
+    this.onGetValues = _configs.onGetValues
+    this.onResult = _configs.onResult
   }
 
   async start() {
@@ -41,21 +38,14 @@ class Batcher {
 
   private async _createBatch() {
     try {
-      const values = await this.collection.find(this._findCondition).toArray()
+      const values = await this.onGetValues()
       this.logger.info(`Current batch size: ${values.length} missing: ${this.minBatchSize - values.length}`)
       if (values.length >= this.minBatchSize) {
         this.logger.info(`Batch found. Processing it ...`)
         const result = await this.onBatch(values)
-        await Promise.all(
-          values.map(({ _id }) =>
-            this.collection.updateOne(
-              { _id },
-              {
-                $set: { ...result, status: this.finalStatus },
-              },
-            ),
-          ),
-        )
+        if (result && this.onResult) {
+          await this.onResult(result, values)
+        }
       }
     } catch (_err) {
       this.logger.error(`${_err}`)
