@@ -3,10 +3,7 @@ import { createWalletClient, http, Chain, publicActions, Log } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import * as chains from "viem/chains"
 import { MongoClient, Document } from "mongodb"
-
-import { logger, Message, Watcher, yahoAbi } from "@gnosis/hashi-common"
-
-import Batcher from "./Batcher"
+import { Batcher, logger, Message, Watcher, yahoAbi } from "@gnosis/hashi-common"
 
 configDotenv()
 
@@ -24,6 +21,7 @@ await mongoClient.connect()
 const db = mongoClient.db("hashi")
 
 const watcher = new Watcher({
+  service: "RelayerWatcher",
   logger,
   client,
   contractAddress: process.env.YAHO_ADDRESS as `0x${string}`,
@@ -63,15 +61,16 @@ const watcher = new Watcher({
 watcher.start()
 
 const batcher = new Batcher({
-  collection: db.collection("relayedMessages"),
+  service: "RelayerBatcher",
   createBatchIntervalTimeMs: Number(process.env.CREATE_BATCH_INTERVAL_TIME_MS as string),
-  finalStatus: "relayed",
-  findCondition: {
-    status: "dispatched",
-    address: process.env.YAHO_ADDRESS as `0x${string}`,
-  },
   logger,
   minBatchSize: Number(process.env.MIN_BATCH_SIZE as string),
+  onGetValues: () => {
+    return db.collection("relayedMessages").find({
+      status: "dispatched",
+      address: process.env.YAHO_ADDRESS as `0x${string}`,
+    }).toArray()
+  },
   onBatch: async (_batch: Document[]) => {
     const serializedMessages = _batch.map((_val: any) =>
       new Message({
@@ -80,7 +79,7 @@ const batcher = new Batcher({
       }).serialize(),
     )
 
-    logger.child({ service: "Relayer" }).info("Sending messages ...")
+    logger.child({ service: "Relayer" }).info(`Relaying ${serializedMessages.length} messages ...`)
     const { request } = await client.simulateContract({
       address: process.env.YAHO_ADDRESS as `0x${string}`,
       abi: yahoAbi,
@@ -88,11 +87,20 @@ const batcher = new Batcher({
       args: [serializedMessages],
     })
     const transactionHash = await client.writeContract(request)
-    logger.child({ service: "Relayer" }).info(`Messages sent: ${transactionHash}`)
-
-    return {
-      relayTransactionHash: transactionHash,
-    }
+    logger.child({ service: "Relayer" }).info(`Messages relayed: ${transactionHash}`)
+    return transactionHash
+  },
+  onResult: (_result: any, _values: Document[]) => {
+    return Promise.all(
+      _values.map(({ _id }) =>
+        db.collection("relayedMessages").updateOne(
+          { _id },
+          {
+            $set: { relayTransactionHash: _result, status: "relayed" },
+          },
+        ),
+      ),
+    )
   },
 })
 batcher.start()
