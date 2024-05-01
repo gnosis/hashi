@@ -1,14 +1,12 @@
 import { configDotenv } from "dotenv"
-import { createWalletClient, http, Chain, publicActions, Log, Block } from "viem"
+import { createWalletClient, http, Chain, publicActions, Log } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import * as chains from "viem/chains"
 import { MongoClient, Document } from "mongodb"
 
-import { logger, Message } from "@gnosis/hashi-common"
+import { logger, Message, Watcher, yahoAbi } from "@gnosis/hashi-common"
 
 import Batcher from "./Batcher"
-import Watcher from "./Watcher"
-import yahoAbi from "./abi/Yaho.json" assert { type: "json" }
 
 configDotenv()
 
@@ -36,22 +34,22 @@ const watcher = new Watcher({
     // TODO: filter messages that you don't want to relay. For example it could be possible
     // to relayMessagesToAdapters only those coming from specific message.sender
 
-    const blocks = (await Promise.all(
+    /*const blocks = (await Promise.all(
       _logs.map((_log: Log) => client.getBlock({ blockHash: _log.blockHash as `0x${string}` })),
-    )) as Block[]
+    )) as Block[]*/
     const messages = _logs.map((_log: Log) => Message.fromLog(_log))
 
     await Promise.all(
       messages.map((_message: Message, _index: number) =>
-        db.collection("messages").updateOne(
+        db.collection("relayedMessages").updateOne(
           { id: _message.id },
           {
             $set: {
-              data: _message.toJSON(),
-              status: "dispatched",
-              chainId: client?.chain?.id as number,
               address: process.env.YAHO_ADDRESS as `0x${string}`,
-              timestamp: parseInt(blocks[_index].timestamp.toString()),
+              chainId: client?.chain?.id as number,
+              data: _message.toJSON(),
+              dispatchTransactionHash: _logs[_index].transactionHash,
+              status: "dispatched",
             },
           },
           {
@@ -65,7 +63,7 @@ const watcher = new Watcher({
 watcher.start()
 
 const batcher = new Batcher({
-  collection: db.collection("messages"),
+  collection: db.collection("relayedMessages"),
   createBatchIntervalTimeMs: Number(process.env.CREATE_BATCH_INTERVAL_TIME_MS as string),
   finalStatus: "relayed",
   findCondition: {
@@ -93,7 +91,7 @@ const batcher = new Batcher({
     logger.child({ service: "Relayer" }).info(`Messages sent: ${transactionHash}`)
 
     return {
-      transactionHash,
+      relayTransactionHash: transactionHash,
     }
   },
 })
