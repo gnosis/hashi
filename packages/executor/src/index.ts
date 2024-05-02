@@ -85,17 +85,16 @@ const batcher = new Batcher({
   logger,
   minBatchSize: Number(process.env.MIN_BATCH_SIZE as string),
   service: "ExecutorBatcher",
-  onGetValues: () => {
-    return db
+  onGetValues: async () => {
+    const values = await db
       .collection("executedMessages")
       .find({
         status: "waitingForConfirmations",
         $expr: { $gte: [{ $size: "$confirmedBy" }, "$threshold"] },
       })
       .toArray()
-  },
-  onBatch: async (_batch: Document[]) => {
-    const messages = _batch.map(
+
+    const messages = values.map(
       (_val: any) =>
         new Message({
           id: _val.id,
@@ -127,45 +126,42 @@ const batcher = new Batcher({
         )
     }
 
-    const messagesToExecute = messages.filter((_, _index) => !executed[_index])
-    if (messagesToExecute.length) {
-      // NOTE: need to try one by one all messages in order to filter those that cannot be executed because the receiver contract reverts
-      const messagesToBeExecuteWithoutRevert = []
-      for (const message of messagesToExecute) {
-        try {
-          await targetClient.simulateContract({
-            address: process.env.TARGET_YARU_ADDRESS as `0x${string}`,
-            abi: yaruAbi,
-            functionName: "executeMessages",
-            args: [[message.serialize()]],
-          })
-          messagesToBeExecuteWithoutRevert.push(message)
-        } catch (_err) {
-          logger
-            .child({ service: "Executor" })
-            .info(`Message ${message.id} cannot be executed because it reverts. Skipping it ...`)
-        }
-      }
+    const messageToBeExecuted = messages.filter((_, _index) => !executed[_index])
 
-      if (messagesToBeExecuteWithoutRevert.length) {
-        logger.child({ service: "Executor" }).info(`Executing ${messagesToBeExecuteWithoutRevert.length} messages ...`)
-        const { request } = await targetClient.simulateContract({
+    // NOTE: need to try one by one all messages in order to filter those that cannot be executed because the receiver contract reverts
+    const messagesToBeExecuteWithoutRevert = []
+    for (const message of messageToBeExecuted) {
+      try {
+        await targetClient.simulateContract({
           address: process.env.TARGET_YARU_ADDRESS as `0x${string}`,
           abi: yaruAbi,
           functionName: "executeMessages",
-          args: [messagesToBeExecuteWithoutRevert.map((_message: Message) => _message.serialize())],
+          args: [[message.serialize()]],
         })
-
-        const transactionHash = await targetClient.writeContract({ ...request, gas: 1000000n })
+        messagesToBeExecuteWithoutRevert.push(message)
+      } catch (_err) {
         logger
           .child({ service: "Executor" })
-          .info(`${messagesToBeExecuteWithoutRevert.length} messages executed: ${transactionHash}`)
-
-        return {
-          transactionHash,
-          messages: messagesToBeExecuteWithoutRevert,
-        }
+          .info(`Message ${message.id} cannot be executed because it reverts. Skipping it ...`)
       }
+    }
+    return messagesToBeExecuteWithoutRevert
+  },
+  onBatch: async (_messages: Message[]) => {
+    logger.child({ service: "Executor" }).info(`Executing ${_messages.length} messages ...`)
+    const { request } = await targetClient.simulateContract({
+      address: process.env.TARGET_YARU_ADDRESS as `0x${string}`,
+      abi: yaruAbi,
+      functionName: "executeMessages",
+      args: [_messages.map((_message: Message) => _message.serialize())],
+    })
+
+    const transactionHash = await targetClient.writeContract({ ...request, gas: 1000000n })
+    logger.child({ service: "Executor" }).info(`${_messages.length} messages executed: ${transactionHash}`)
+
+    return {
+      transactionHash,
+      messages: _messages,
     }
   },
   onResult: (_result: any) => {
