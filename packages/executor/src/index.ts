@@ -1,5 +1,5 @@
 import { configDotenv } from "dotenv"
-import { createWalletClient, http, Chain, publicActions, Log, Block } from "viem"
+import { createWalletClient, http, Chain, publicActions, Log } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import * as chains from "viem/chains"
 import { MongoClient, Document } from "mongodb"
@@ -49,7 +49,7 @@ const watchers = adapters.map(
           args: {
             messageId: messageIds,
           },
-          fromBlock: blockNumber - 99999n,
+          fromBlock: blockNumber - BigInt(process.env.BLOCKS_RANGE as string),
           toBlock: blockNumber,
         })
 
