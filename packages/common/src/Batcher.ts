@@ -7,7 +7,7 @@ interface BatcherConfigs {
   createBatchIntervalTimeMs: number
   onBatch: (batch: any[]) => Promise<any>
   onGetValues: () => Promise<any[]>
-  onResult?: (result: any, values: any) => Promise<any[]>
+  onResult?: (result: any) => Promise<any[]>
 }
 
 class Batcher {
@@ -15,7 +15,7 @@ class Batcher {
   minBatchSize: number
   onBatch: (batch: any[]) => Promise<any>
   onGetValues: () => Promise<any[]>
-  onResult: ((result: any, values: any) => Promise<any[]>) | undefined
+  onResult: ((result: any) => Promise<any[]>) | undefined
   private _createBatchIntervalTimeMs: number
 
   constructor(_configs: BatcherConfigs) {
@@ -39,12 +39,12 @@ class Batcher {
   private async _createBatch() {
     try {
       const values = await this.onGetValues()
-      this.logger.info(`Current batch size: ${values.length} missing: ${this.minBatchSize - values.length}`)
+      this.logger.info(`Current batch size: ${values.length} missing: ${values.length > this.minBatchSize ? 0 : this.minBatchSize - values.length}`)
       if (values.length >= this.minBatchSize) {
         this.logger.info(`Batch found. Processing it ...`)
         const result = await this.onBatch(values)
         if (result && this.onResult) {
-          await this.onResult(result, values)
+          await this.onResult(result)
         }
       }
     } catch (_err) {

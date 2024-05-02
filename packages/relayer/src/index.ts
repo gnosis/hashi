@@ -75,12 +75,14 @@ const batcher = new Batcher({
       .toArray()
   },
   onBatch: async (_batch: Document[]) => {
-    const serializedMessages = _batch.map((_val: any) =>
-      new Message({
-        id: _val.id,
-        ..._val.data,
-      }).serialize(),
+    const messages = _batch.map(
+      (_val: any) =>
+        new Message({
+          id: _val.id,
+          ..._val.data,
+        }),
     )
+    const serializedMessages = messages.map((_message: Message) => _message.serialize())
 
     logger.child({ service: "Relayer" }).info(`Relaying ${serializedMessages.length} messages ...`)
     const { request } = await client.simulateContract({
@@ -91,15 +93,21 @@ const batcher = new Batcher({
     })
     const transactionHash = await client.writeContract(request)
     logger.child({ service: "Relayer" }).info(`${serializedMessages.length} messages relayed: ${transactionHash}`)
-    return transactionHash
+
+    return {
+      messages,
+      transactionHash,
+    }
   },
-  onResult: (_result: any, _values: Document[]) => {
+  onResult: (_result: any) => {
+    const { messages, transactionHash } = _result as { messages: Message[]; transactionHash: string }
+
     return Promise.all(
-      _values.map(({ _id }) =>
+      messages.map(({ id }) =>
         db.collection("relayedMessages").updateOne(
-          { _id },
+          { id },
           {
-            $set: { relayTransactionHash: _result, status: "relayed" },
+            $set: { relayTransactionHash: transactionHash, status: "relayed" },
           },
         ),
       ),
