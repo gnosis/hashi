@@ -49,7 +49,7 @@ const watchers = adapters.map(
           args: {
             messageId: messageIds,
           },
-          fromBlock: blockNumber - BigInt(process.env.BLOCKS_RANGE as string),
+          fromBlock: blockNumber - BigInt(process.env.BLOCKS_WINDOW as string),
           toBlock: blockNumber,
         })
 
