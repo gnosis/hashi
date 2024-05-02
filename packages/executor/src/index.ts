@@ -1,11 +1,9 @@
-import { configDotenv } from "dotenv"
+import 'dotenv/config'
 import { createWalletClient, http, Chain, publicActions, Log } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import * as chains from "viem/chains"
-import { MongoClient, Document } from "mongodb"
+import { MongoClient} from "mongodb"
 import { adapterAbi, Batcher, logger, Message, Watcher, yahoAbi, yaruAbi } from "@gnosis/hashi-common"
-
-configDotenv()
 
 const mongoClient = new MongoClient(process.env.MONGO_DB_URI as string)
 await mongoClient.connect()

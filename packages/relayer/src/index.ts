@@ -1,4 +1,4 @@
-import { configDotenv } from "dotenv"
+import 'dotenv/config'
 import { createWalletClient, http, Chain, publicActions, Log } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import * as chains from "viem/chains"
