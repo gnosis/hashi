@@ -38,7 +38,11 @@ Before running the Executor, you need to create an `.env` file. All parameters c
 
 To start Executor, run the following command:
 
+```bash
+cd packages/executor
 ```
+
+```bash
 yarn start dotenv_config_path="your env file"
 ```
 

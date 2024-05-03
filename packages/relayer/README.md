@@ -38,7 +38,11 @@ Before running the Relayer, you need to create an `.env` file. All parameters ca
 
 To start Relayer, run the following command:
 
+```bash
+cd packages/relayer
 ```
+
+```bash
 yarn start dotenv_config_path="your env file"
 ```
 
