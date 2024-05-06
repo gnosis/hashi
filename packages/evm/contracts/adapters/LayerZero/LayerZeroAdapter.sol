@@ -2,10 +2,10 @@
 pragma solidity ^0.8.20;
 
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
-import { ILayerZeroReceiver } from "./interfaces/ILayerZeroReceiver.sol";
 import { BlockHashAdapter } from "../BlockHashAdapter.sol";
+import { ILayerZeroEndpointV2, Origin } from "./interfaces/ILayerZeroEndpointV2.sol";
 
-contract LayerZeroAdapter is BlockHashAdapter, Ownable, ILayerZeroReceiver {
+contract LayerZeroAdapter is BlockHashAdapter, Ownable {
     string public constant PROVIDER = "layer-zero";
     address public immutable LAYER_ZERO_ENDPOINT;
 
@@ -20,17 +20,24 @@ contract LayerZeroAdapter is BlockHashAdapter, Ownable, ILayerZeroReceiver {
         LAYER_ZERO_ENDPOINT = lzEndpoint;
     }
 
-    function lzReceive(uint16 srcEndpointId, bytes memory srcPath, uint64 /* nonce */, bytes memory payload) external {
-        if (msg.sender != LAYER_ZERO_ENDPOINT || enabledReportersPaths[srcEndpointId] != keccak256(srcPath))
-            revert UnauthorizedLayerZeroReceive();
-        uint256 sourceChainId = chainIds[srcEndpointId];
-        (uint256[] memory ids, bytes32[] memory hashes) = abi.decode(payload, (uint256[], bytes32[]));
-        _storeHashes(sourceChainId, ids, hashes);
-    }
-
+    // set source chain reporter and source chain endpoint Id
     function setReporterByChain(uint256 chainId, uint16 endpointId, address reporter) external onlyOwner {
-        enabledReportersPaths[endpointId] = keccak256(abi.encodePacked(reporter, address(this)));
+        enabledReportersPaths[endpointId] = bytes32(abi.encodePacked(reporter));
         chainIds[endpointId] = chainId;
         emit ReporterSet(chainId, endpointId, reporter);
+    }
+
+    function lzReceive(
+        Origin calldata _origin,
+        bytes32 /*_guid*/,
+        bytes calldata _message,
+        address /*_executor*/,
+        bytes calldata /*_extraData*/
+    ) external payable {
+        if (msg.sender != LAYER_ZERO_ENDPOINT || enabledReportersPaths[_origin.srcEid] != _origin.sender)
+            revert UnauthorizedLayerZeroReceive();
+        uint256 sourceChainId = chainIds[_origin.srcEid];
+        (uint256[] memory ids, bytes32[] memory hashes) = abi.decode(_message, (uint256[], bytes32[]));
+        _storeHashes(sourceChainId, ids, hashes);
     }
 }

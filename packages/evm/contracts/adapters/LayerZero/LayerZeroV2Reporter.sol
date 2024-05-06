@@ -2,14 +2,14 @@
 pragma solidity ^0.8.20;
 
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
-import { ILayerZeroEndpoint } from "./interfaces/ILayerZeroEndpoint.sol";
+import { ILayerZeroEndpointV2, MessagingParams } from "./interfaces/ILayerZeroEndpointV2.sol";
 import { Reporter } from "../Reporter.sol";
 
-contract LayerZeroReporter is Reporter, Ownable {
+contract LayerZeroV2Reporter is Reporter, Ownable {
     string public constant PROVIDER = "layer-zero";
-    ILayerZeroEndpoint public immutable LAYER_ZERO_ENDPOINT;
+    ILayerZeroEndpointV2 public immutable LAYER_ZERO_ENDPOINT;
 
-    mapping(uint256 => uint16) public endpointIds;
+    mapping(uint256 => uint32) public endpointIds;
     uint256 public fee;
 
     error EndpointIdNotAvailable();
@@ -18,7 +18,7 @@ contract LayerZeroReporter is Reporter, Ownable {
     event FeeSet(uint256 fee);
 
     constructor(address headerStorage, address yaho, address lzEndpoint) Reporter(headerStorage, yaho) {
-        LAYER_ZERO_ENDPOINT = ILayerZeroEndpoint(lzEndpoint);
+        LAYER_ZERO_ENDPOINT = ILayerZeroEndpointV2(lzEndpoint);
     }
 
     function setEndpointIdByChainId(uint256 chainId, uint16 endpointId) external onlyOwner {
@@ -37,18 +37,24 @@ contract LayerZeroReporter is Reporter, Ownable {
         uint256[] memory ids,
         bytes32[] memory hashes
     ) internal override returns (bytes32) {
-        uint16 targetEndpointId = endpointIds[targetChainId];
+        uint32 targetEndpointId = endpointIds[targetChainId];
         if (targetEndpointId == 0) revert EndpointIdNotAvailable();
-        bytes memory payload = abi.encode(ids, hashes);
-        bytes memory path = abi.encodePacked(adapter, address(this));
+        // OptionsBuilder::newOptions
+        // https://github.com/LayerZero-Labs/LayerZero-v2/blob/1fde89479fdc68b1a54cda7f19efa84483fcacc4/oapp/contracts/oapp/libs/OptionsBuilder.sol#L38
+        bytes memory options = abi.encodePacked(uint16(3));
+        bytes memory message = abi.encode(ids, hashes);
+        MessagingParams memory params = MessagingParams(
+            endpointIds[targetChainId],
+            bytes32(abi.encodePacked(adapter)),
+            message,
+            options,
+            false
+        );
+
         // solhint-disable-next-line check-send-result
         LAYER_ZERO_ENDPOINT.send{ value: fee }(
-            targetEndpointId,
-            path,
-            payload,
-            payable(msg.sender), // _refundAddress: refund address
-            address(0), // _zroPaymentAddress: future parameter
-            bytes("") // _adapterParams: adapterParams (see "Advanced Features")
+            params,
+            address(0) // refundAddress
         );
         return bytes32(0);
     }
