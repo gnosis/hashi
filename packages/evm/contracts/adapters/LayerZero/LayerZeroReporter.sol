@@ -10,10 +10,12 @@ contract LayerZeroReporter is Reporter, Ownable {
     ILayerZeroEndpoint public immutable LAYER_ZERO_ENDPOINT;
 
     mapping(uint256 => uint16) public endpointIds;
+    uint256 public fee;
 
     error EndpointIdNotAvailable();
 
     event EndpointIdSet(uint256 indexed chainId, uint16 indexed endpointId);
+    event FeeSet(uint256 fee);
 
     constructor(address headerStorage, address yaho, address lzEndpoint) Reporter(headerStorage, yaho) {
         LAYER_ZERO_ENDPOINT = ILayerZeroEndpoint(lzEndpoint);
@@ -22,6 +24,11 @@ contract LayerZeroReporter is Reporter, Ownable {
     function setEndpointIdByChainId(uint256 chainId, uint16 endpointId) external onlyOwner {
         endpointIds[chainId] = endpointId;
         emit EndpointIdSet(chainId, endpointId);
+    }
+
+    function setFee(uint256 fee_) external onlyOwner {
+        fee = fee_;
+        emit FeeSet(fee);
     }
 
     function _dispatch(
@@ -35,7 +42,7 @@ contract LayerZeroReporter is Reporter, Ownable {
         bytes memory payload = abi.encode(ids, hashes);
         bytes memory path = abi.encodePacked(adapter, address(this));
         // solhint-disable-next-line check-send-result
-        LAYER_ZERO_ENDPOINT.send{ value: msg.value }(
+        LAYER_ZERO_ENDPOINT.send{ value: fee }(
             targetEndpointId,
             path,
             payload,
