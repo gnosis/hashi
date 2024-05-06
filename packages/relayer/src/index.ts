@@ -5,8 +5,6 @@ import * as chains from "viem/chains"
 import { MongoClient, Document } from "mongodb"
 import { Batcher, logger, Message, Watcher, yahoAbi } from "@gnosis/hashi-common"
 
-configDotenv()
-
 const chain = Object.values(chains).find(({ id }) => id.toString() === (process.env.CHAIN_ID as string))
 if (!chain) throw new Error("Invalid CHAIN_ID")
 
