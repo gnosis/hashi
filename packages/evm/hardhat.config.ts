@@ -76,7 +76,7 @@ const config: HardhatUserConfig = {
       arbitrumOne: process.env.ARBISCAN_API_KEY || "",
       avalanche: process.env.SNOWTRACE_API_KEY || "",
       bsc: process.env.BSCSCAN_API_KEY || "",
-      chiado:  process.env.CHIADO_BLOCKSCOUT_API_KEY || "",
+      chiado: process.env.CHIADO_BLOCKSCOUT_API_KEY || "",
       gnosis: process.env.GNOSISSCAN_API_KEY || "",
       goerli: process.env.ETHERSCAN_API_KEY || "",
       mainnet: process.env.ETHERSCAN_API_KEY || "",
@@ -91,10 +91,10 @@ const config: HardhatUserConfig = {
         chainId: 10200,
         urls: {
           apiURL: "https://gnosis-chiado.blockscout.com/api",
-          browserURL: "https://gnosis-chiado.blockscout.com/"
-        }
-      }
-    ]
+          browserURL: "https://gnosis-chiado.blockscout.com/",
+        },
+      },
+    ],
   },
   gasReporter: {
     currency: "USD",
