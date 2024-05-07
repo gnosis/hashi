@@ -32,7 +32,7 @@ const watcher = new Watcher({
   watchIntervalTimeMs: Number(process.env.WATCH_INTERVAL_TIME_MS as string),
   onLogs: async (_logs: Log[]) => {
     let messages = _logs.map((_log: Log) => Message.fromLog(_log))
-    if (whitelistedSenderAddresses.length) {
+    if (whitelistedSenderAddresses?.length) {
       logger.child({ service: "Relayer" }).info(`Filtering messages ...`)
       messages = messages.filter((_message) => whitelistedSenderAddresses.includes(_message.sender.toLowerCase()))
     }
