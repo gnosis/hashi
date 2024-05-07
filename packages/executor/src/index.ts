@@ -87,6 +87,7 @@ const batcher = new Batcher({
     const values = await db
       .collection("executedMessages")
       .find({
+        chainId: targetClient?.chain?.id as number,
         status: "waitingForConfirmations",
         $expr: { $gte: [{ $size: "$confirmedBy" }, "$threshold"] },
       })
