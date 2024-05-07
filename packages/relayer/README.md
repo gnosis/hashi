@@ -9,6 +9,7 @@ The Relayer is a service used to relay batches of dispatched messages through Ya
 &nbsp;
 
 ## Installation
+
 To install the Relayer, follow these steps:
 
 ```bash
@@ -45,4 +46,3 @@ cd packages/relayer
 ```bash
 yarn start dotenv_config_path="your env file"
 ```
-

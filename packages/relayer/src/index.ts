@@ -1,4 +1,4 @@
-import 'dotenv/config'
+import "dotenv/config"
 import { createWalletClient, http, Chain, publicActions, Log } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import * as chains from "viem/chains"
@@ -18,6 +18,10 @@ const mongoClient = new MongoClient(process.env.MONGO_DB_URI as string)
 await mongoClient.connect()
 const db = mongoClient.db("hashi")
 
+const whitelistedSenderAddresses = process.env.WHITELISTED_SENDER_ADDRESSES?.split(",").map((_address: string) =>
+  _address.toLowerCase(),
+) as string[]
+
 const watcher = new Watcher({
   service: "RelayerWatcher",
   logger,
@@ -27,13 +31,11 @@ const watcher = new Watcher({
   eventName: "MessageDispatched",
   watchIntervalTimeMs: Number(process.env.WATCH_INTERVAL_TIME_MS as string),
   onLogs: async (_logs: Log[]) => {
-    // TODO: filter messages that you don't want to relay. For example it could be possible
-    // to relayMessagesToAdapters only those coming from specific message.sender
-
-    /*const blocks = (await Promise.all(
-      _logs.map((_log: Log) => client.getBlock({ blockHash: _log.blockHash as `0x${string}` })),
-    )) as Block[]*/
-    const messages = _logs.map((_log: Log) => Message.fromLog(_log))
+    let messages = _logs.map((_log: Log) => Message.fromLog(_log))
+    if (whitelistedSenderAddresses.length) {
+      logger.child({ service: "Relayer" }).info(`Filtering messages ...`)
+      messages = messages.filter((_message) => whitelistedSenderAddresses.includes(_message.sender.toLowerCase()))
+    }
 
     await Promise.all(
       messages.map((_message: Message, _index: number) =>
