@@ -13,8 +13,8 @@ contract DeBridgeReporter is Reporter, Ownable {
 
     event FeeSet(uint256 fee);
 
-    constructor(address headerStorage, address yaho, address _deBridgeGate) Reporter(headerStorage, yaho) {
-        deBridgeGate = IDeBridgeGate(_deBridgeGate);
+    constructor(address headerStorage, address yaho, address deBridgeGate_) Reporter(headerStorage, yaho) {
+        deBridgeGate = IDeBridgeGate(deBridgeGate_);
     }
 
     function setFee(uint256 fee_) external onlyOwner {
