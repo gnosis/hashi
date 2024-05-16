@@ -82,25 +82,51 @@ const batcher = new Batcher({
           ..._val.data,
         }),
     )
-    const serializedMessages = messages.map((_message: Message) => _message.serialize())
 
-    logger.child({ service: "Relayer" }).info(`Relaying ${serializedMessages.length} messages ...`)
-    const { request } = await client.simulateContract({
-      address: process.env.YAHO_ADDRESS as `0x${string}`,
-      abi: yahoAbi,
-      functionName: "relayMessagesToAdapters",
-      args: [serializedMessages],
-    })
-    const transactionHash = await client.writeContract(request)
-    logger.child({ service: "Relayer" }).info(`${serializedMessages.length} messages relayed: ${transactionHash}`)
+    const executableMessages = []
+    for (const message of messages) {
+      const hash = await client.readContract({
+        address: process.env.YAHO_ADDRESS as `0x${string}`,
+        abi: yahoAbi,
+        functionName: "getPendingMessageHash",
+        args: [message.id],
+      })
+      if (hash != "0x0000000000000000000000000000000000000000000000000000000000000000") {
+        executableMessages.push(message)
+      } else {
+        logger.child({ service: "Relayer" }).info(`${message.id} already relayed. Filtering it ...`)
+        await db.collection("relayedMessages").updateOne(
+          { id: message.id },
+          {
+            $set: { status: "alreadyRelayed" },
+          },
+        )
+      }
+    }
+
+    let transactionHash = null
+    if (executableMessages.length) {
+      const serializedMessages = executableMessages.map((_message: Message) => _message.serialize())
+
+      logger.child({ service: "Relayer" }).info(`Relaying ${serializedMessages.length} messages ...`)
+      const { request } = await client.simulateContract({
+        address: process.env.YAHO_ADDRESS as `0x${string}`,
+        abi: yahoAbi,
+        functionName: "relayMessagesToAdapters",
+        args: [serializedMessages],
+      })
+      transactionHash = await client.writeContract(request)
+      logger.child({ service: "Relayer" }).info(`${serializedMessages.length} messages relayed: ${transactionHash}`)
+    }
 
     return {
-      messages,
+      messages: executableMessages,
       transactionHash,
     }
   },
-  onResult: (_result: any) => {
+  onResult: async (_result: any) => {
     const { messages, transactionHash } = _result as { messages: Message[]; transactionHash: string }
+    if (!messages.length) return null
 
     return Promise.all(
       messages.map(({ id }) =>

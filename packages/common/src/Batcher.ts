@@ -6,8 +6,8 @@ interface BatcherConfigs {
   minBatchSize: number
   createBatchIntervalTimeMs: number
   onBatch: (batch: any[]) => Promise<any>
-  onGetValues: () => Promise<any[]>
-  onResult?: (result: any) => Promise<any[]>
+  onGetValues: () => Promise<any>
+  onResult?: (result: any) => Promise<any>
 }
 
 class Batcher {
@@ -39,7 +39,9 @@ class Batcher {
   private async _createBatch() {
     try {
       const values = await this.onGetValues()
-      this.logger.info(`Current batch size: ${values.length} missing: ${values.length > this.minBatchSize ? 0 : this.minBatchSize - values.length}`)
+      this.logger.info(
+        `Current batch size: ${values.length} missing: ${values.length > this.minBatchSize ? 0 : this.minBatchSize - values.length}`,
+      )
       if (values.length >= this.minBatchSize) {
         this.logger.info(`Batch found. Processing it ...`)
         const result = await this.onBatch(values)
