@@ -22,7 +22,15 @@ contract Yaho is IYaho, MessageIdCalculator, MessageHashCalculator {
         IAdapter[] calldata adapters
     ) external returns (uint256) {
         _checkReportersAndAdapters(threshold, reporters, adapters);
-        (uint256 messageId, ) = _dispatchMessage(targetChainId, threshold, receiver, data, reporters, adapters);
+        (uint256 messageId, bytes32 messageHash) = _dispatchMessage(
+            targetChainId,
+            threshold,
+            receiver,
+            data,
+            reporters,
+            adapters
+        );
+        _pendingMessageHashes[messageId] = messageHash;
         return messageId;
     }
 
@@ -84,7 +92,6 @@ contract Yaho is IYaho, MessageIdCalculator, MessageHashCalculator {
         }
 
         bytes32[] memory reportersReceipts = new bytes32[](reporters.length);
-        _resetPendingMessageHashesByMessageIds(messageIds);
         reportersReceipts = _dispatchMessagesToAdapters(targetChainId, messageIds, messageHashes, reporters, adapters);
         return (messageIds, reportersReceipts);
     }
@@ -160,7 +167,6 @@ contract Yaho is IYaho, MessageIdCalculator, MessageHashCalculator {
         );
         bytes32 messageHash = calculateMessageHash(message);
         uint256 messageId = calculateMessageId(block.chainid, address(this), messageHash);
-        _pendingMessageHashes[messageId] = messageHash;
         unchecked {
             ++currentNonce;
         }
@@ -179,7 +185,6 @@ contract Yaho is IYaho, MessageIdCalculator, MessageHashCalculator {
         bytes32[] memory messageHashes = new bytes32[](1);
         messageIds[0] = messageId;
         messageHashes[0] = messageHash;
-        _resetPendingMessageHashesByMessageIds(messageIds);
         return _dispatchMessagesToAdapters(targetChainId, messageIds, messageHashes, reporters, adapters);
     }
 
@@ -203,14 +208,5 @@ contract Yaho is IYaho, MessageIdCalculator, MessageHashCalculator {
         }
 
         return reportersReceipts;
-    }
-
-    function _resetPendingMessageHashesByMessageIds(uint256[] memory messageIds) internal {
-        for (uint256 i = 0; i < messageIds.length; ) {
-            delete _pendingMessageHashes[messageIds[i]];
-            unchecked {
-                ++i;
-            }
-        }
     }
 }
