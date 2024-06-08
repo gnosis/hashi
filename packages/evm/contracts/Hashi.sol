@@ -44,16 +44,8 @@ contract Hashi is IHashi {
         uint256 threshold,
         IAdapter[] calldata adapters
     ) external view returns (bool) {
-        if (adapters.length == 0) revert NoAdaptersGiven();
         if (threshold > adapters.length || threshold == 0) revert InvalidThreshold(threshold, adapters.length);
-
-        bytes32[] memory hashes = new bytes32[](adapters.length);
-        for (uint256 i = 0; i < adapters.length; ) {
-            hashes[i] = adapters[i].getHash(domain, id);
-            unchecked {
-                ++i;
-            }
-        }
+        bytes32[] memory hashes = getHashesFromAdapters(domain, id, adapters);
 
         for (uint256 i = 0; i < hashes.length; ) {
             if (i > hashes.length - threshold) break;
@@ -87,7 +79,7 @@ contract Hashi is IHashi {
     }
 
     /// @inheritdoc IHashi
-    function getHashFromAdapter(uint256 domain, uint256 id, IAdapter adapter) public view returns (bytes32) {
+    function getHashFromAdapter(uint256 domain, uint256 id, IAdapter adapter) external view returns (bytes32) {
         return adapter.getHash(domain, id);
     }
 
@@ -100,7 +92,7 @@ contract Hashi is IHashi {
         if (adapters.length == 0) revert NoAdaptersGiven();
         bytes32[] memory hashes = new bytes32[](adapters.length);
         for (uint256 i = 0; i < adapters.length; ) {
-            hashes[i] = getHashFromAdapter(domain, id, adapters[i]);
+            hashes[i] = adapters[i].getHash(domain, id);
             unchecked {
                 ++i;
             }
