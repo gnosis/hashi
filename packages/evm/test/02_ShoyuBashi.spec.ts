@@ -84,7 +84,7 @@ describe("ShoyuBashi", function () {
       await shoyuBashi.setThreshold(DOMAIN_ID, 2)
       await expect(shoyuBashi.setThreshold(DOMAIN_ID, 2)).to.be.revertedWithCustomError(
         shoyuBashi,
-        "DuplicateThreashold",
+        "DuplicateThreshold",
       )
     })
     it("Sets threshold for the given ChainID", async function () {
