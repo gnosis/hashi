@@ -221,8 +221,4 @@ abstract contract ShuSo is IShuSho, OwnableUpgradeable {
         _domains[domain].threshold = threshold;
         emit ThresholdSet(domain, threshold);
     }
-
-    function _setDomainThreshold(uint256 domainId, uint256 threshold) internal {
-        _domains[domainId].threshold = threshold;
-    }
 }
