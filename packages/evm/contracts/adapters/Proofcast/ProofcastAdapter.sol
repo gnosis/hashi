@@ -17,7 +17,7 @@ contract ProofcastAdapter is BlockHashAdapter, MessageIdCalculator, MessageHashC
     // MessageDispatched(uint256 indexed messageId, Message message)
     bytes32 public constant MESSAGE_DISPATCHED_EVENT_TOPIC =
         0x218247aabc759e65b5bb92ccc074f9d62cd187259f2a0984c3c9cf91f67ff7cf;
-    uint256 public constant TEE_ADDRESS_CHANGE_GRACE_PERIOD = 172800; // 48 hours
+    uint256 public constant TEE_ADDRESS_CHANGE_GRACE_PERIOD = 48 hours;
 
     address public teeAddress;
     address public teeAddressNew;
