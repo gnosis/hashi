@@ -24,7 +24,11 @@ contract ProofcastAdapter is BlockHashAdapter, MessageIdCalculator, MessageHashC
     uint256 public teeAddressChangeGraceThreshold;
     mapping(uint256 => address) public yahos;
 
+    error NotUsableYaho();
     error InvalidEventRLP();
+    error InvalidTeeSigner();
+    error InvalidSignature();
+    error InvalidYahoAddress();
     error InvalidEventContentLength(uint256);
     error UnsupportedProtocolId(bytes1);
     error UnsupportedChainId(uint256);
@@ -38,7 +42,9 @@ contract ProofcastAdapter is BlockHashAdapter, MessageIdCalculator, MessageHashC
     event YahoInitialized(uint256, address);
 
     function initYaho(uint256 chainId, address yaho_) public onlyOwner {
-        require(chainId != block.chainid, "Not usable Yaho (same chainId)");
+        if (chainId == block.chainid) {
+            revert NotUsableYaho();
+        }
         yahos[chainId] = yaho_;
         emit YahoInitialized(chainId, yaho_);
     }
@@ -63,8 +69,8 @@ contract ProofcastAdapter is BlockHashAdapter, MessageIdCalculator, MessageHashC
             teeAddressNew = address(0);
             emit TeeSignerChanged(teeAddress);
         }
-        require(teeAddress != address(0), "Tee signer not set!");
-        require(ECDSA.recover(sha256(statement), signature) == teeAddress, "Invalid signature");
+        if (teeAddress == address(0)) revert InvalidTeeSigner();
+        if (ECDSA.recover(sha256(statement), signature) != teeAddress) revert InvalidSignature();
 
         // Supports only EVM events
         bytes1 protocolId = statement[1];
@@ -98,7 +104,7 @@ contract ProofcastAdapter is BlockHashAdapter, MessageIdCalculator, MessageHashC
 
         // MessageDispatched event parsing
         address yahoAddress = RLPReader.toAddress(eventContent[0]);
-        require(yahoAddress == yahos[domain], "Invalid Yaho address");
+        if (yahoAddress != yahos[domain]) revert InvalidYahoAddress();
 
         RLPReader.RLPItem[] memory logs = RLPReader.toList(eventContent[1]);
 

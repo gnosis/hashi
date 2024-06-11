@@ -57,7 +57,7 @@ describe("Proofcast adapter", () => {
     })
 
     it("should reject when the tee signer is not set", async () => {
-      await expect(adapter.storeHashes(statement, signature)).to.rejectedWith("Tee signer not set!")
+      await expect(adapter.storeHashes(statement, signature)).to.be.revertedWithCustomError(adapter, "InvalidTeeSigner")
     })
 
     it("should set the tee address successfully", async () => {
@@ -178,7 +178,7 @@ describe("Proofcast adapter", () => {
       statement = evilEventAttestator.getStatement(event)
       signature = evilEventAttestator.sign(event)
 
-      await expect(adapter.storeHashes(statement, signature)).to.be.rejectedWith("Invalid signature")
+      await expect(adapter.storeHashes(statement, signature)).to.be.revertedWithCustomError(adapter, "InvalidSignature")
     })
   })
 
@@ -287,7 +287,7 @@ describe("Proofcast adapter", () => {
       statement = eventAttestator2.getStatement(event)
       signature = eventAttestator2.sign(event)
 
-      await expect(adapter.storeHashes(statement, signature)).to.be.revertedWith("Invalid signature")
+      await expect(adapter.storeHashes(statement, signature)).to.be.revertedWithCustomError(adapter, "InvalidSignature")
 
       await time.increase(gracePeriod / 2)
 
@@ -300,7 +300,10 @@ describe("Proofcast adapter", () => {
   describe("initYaho()", () => {
     it("should reject when setting for the same chain id", async () => {
       const { adapter, yaho } = await loadFixture(deployContractsFixture)
-      await expect(adapter.initYaho(Chains.Hardhat, yaho.address)).to.rejectedWith("Not usable Yaho (same chainId)")
+      await expect(adapter.initYaho(Chains.Hardhat, yaho.address)).to.be.revertedWithCustomError(
+        adapter,
+        "NotUsableYaho",
+      )
     })
   })
 })
