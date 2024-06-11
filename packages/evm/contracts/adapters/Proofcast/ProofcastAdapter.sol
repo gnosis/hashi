@@ -36,7 +36,6 @@ contract ProofcastAdapter is BlockHashAdapter, MessageIdCalculator, MessageHashC
     address public teeAddressNew;
     uint256 public teeAddressChangeGraceThreshold;
     mapping(uint256 => address) public yahos;
-    mapping(bytes32 => bool) public pastEvents;
 
     function initYaho(uint256 chainId, address yaho_) public onlyOwner {
         require(chainId != block.chainid, "Not usable Yaho (same chainId)");
