@@ -29,17 +29,17 @@ contract ProofcastAdapter is BlockHashAdapter, MessageIdCalculator, MessageHashC
     error InvalidTeeSigner();
     error InvalidSignature();
     error InvalidYahoAddress();
-    error InvalidEventContentLength(uint256);
-    error UnsupportedProtocolId(bytes1);
-    error UnsupportedChainId(uint256);
-    error UnexpectedEventTopic(bytes32);
+    error InvalidEventContentLength(uint256 length);
+    error UnsupportedProtocolId(bytes1 protocolId);
+    error UnsupportedChainId(uint256 chainId);
+    error UnexpectedEventTopic(bytes32 topic);
     error InvalidSender();
-    error InvalidMessageId(uint256, uint256);
-    error InvalidDestinationChainId(uint256);
+    error InvalidMessageId(uint256 actual, uint256 expected);
+    error InvalidDestinationChainId(uint256 chainId);
 
-    event TeeSignerChanged(address);
-    event TeeSignerPendingChange(address, bytes, uint256);
-    event YahoInitialized(uint256, address);
+    event TeeSignerChanged(address newAddress);
+    event TeeSignerPendingChange(address newAddress, bytes attestation, uint256 gracePeriod);
+    event YahoInitialized(uint256 chainId, address yaho);
 
     function initYaho(uint256 chainId, address yaho_) public onlyOwner {
         if (chainId == block.chainid) {
