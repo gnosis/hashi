@@ -63,7 +63,7 @@ contract ProofcastAdapter is BlockHashAdapter, MessageIdCalculator, MessageHashC
         }
     }
 
-    function storeHashes(bytes calldata statement, bytes memory signature) public {
+    function verifyEventAndStoreHash(bytes calldata statement, bytes memory signature) public {
         if (teeAddressNew != address(0) && block.timestamp > teeAddressChangeGraceThreshold) {
             teeAddress = teeAddressNew;
             teeAddressNew = address(0);

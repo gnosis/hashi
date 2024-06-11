@@ -32,7 +32,7 @@ describe("Proofcast adapter", () => {
     return { adapter, yaho, eventAttestator, receiver }
   }
 
-  describe("storeHashes()", () => {
+  describe("verifyEventAndStoreHash()", () => {
     let adapter: Contract,
       yaho: SignerWithAddress,
       eventAttestator: ProofcastEventAttestator,
@@ -50,7 +50,10 @@ describe("Proofcast adapter", () => {
     })
 
     it("should reject when the tee signer is not set", async () => {
-      await expect(adapter.storeHashes(statement, signature)).to.be.revertedWithCustomError(adapter, "InvalidTeeSigner")
+      await expect(adapter.verifyEventAndStoreHash(statement, signature)).to.be.revertedWithCustomError(
+        adapter,
+        "InvalidTeeSigner",
+      )
     })
 
     it("should set the tee address successfully", async () => {
@@ -64,7 +67,7 @@ describe("Proofcast adapter", () => {
     })
 
     it("should reject when yaho address is not set for the given chain id", async () => {
-      await expect(adapter.storeHashes(statement, signature)).to.be.revertedWithCustomError(
+      await expect(adapter.verifyEventAndStoreHash(statement, signature)).to.be.revertedWithCustomError(
         adapter,
         "UnsupportedChainId",
       )
@@ -77,7 +80,9 @@ describe("Proofcast adapter", () => {
     })
 
     it("should store the dispatched block hashes successfully", async () => {
-      await expect(adapter.storeHashes(statement, signature)).to.emit(adapter, "HashStored").withArgs(ids[0], hashes[0])
+      await expect(adapter.verifyEventAndStoreHash(statement, signature))
+        .to.emit(adapter, "HashStored")
+        .withArgs(ids[0], hashes[0])
     })
 
     it("should reject when invalid event bytes are used", async () => {
@@ -93,10 +98,9 @@ describe("Proofcast adapter", () => {
 
       const wrongRLPStatementSignature = eventAttestator.signBytes(wrongRLPStatement)
 
-      await expect(adapter.storeHashes(wrongRLPStatement, wrongRLPStatementSignature)).to.be.revertedWithCustomError(
-        adapter,
-        "InvalidEventRLP",
-      )
+      await expect(
+        adapter.verifyEventAndStoreHash(wrongRLPStatement, wrongRLPStatementSignature),
+      ).to.be.revertedWithCustomError(adapter, "InvalidEventRLP")
     })
 
     it("should reject when invalid event is given", async () => {
@@ -112,10 +116,9 @@ describe("Proofcast adapter", () => {
 
       const wrongRLPStatementSignature = eventAttestator.signBytes(wrongRLPStatement)
 
-      await expect(adapter.storeHashes(wrongRLPStatement, wrongRLPStatementSignature)).to.be.revertedWithCustomError(
-        adapter,
-        "InvalidEventContentLength",
-      )
+      await expect(
+        adapter.verifyEventAndStoreHash(wrongRLPStatement, wrongRLPStatementSignature),
+      ).to.be.revertedWithCustomError(adapter, "InvalidEventContentLength")
     })
 
     it("should reject when an event has an unexpected topic", async () => {
@@ -129,7 +132,7 @@ describe("Proofcast adapter", () => {
       const wrongStatement = eventAttestator.getStatement(eventWithWrongTopic)
       const wrongStatementSignature = eventAttestator.sign(eventWithWrongTopic)
 
-      await expect(adapter.storeHashes(wrongStatement, wrongStatementSignature))
+      await expect(adapter.verifyEventAndStoreHash(wrongStatement, wrongStatementSignature))
         .to.be.revertedWithCustomError(adapter, "UnexpectedEventTopic")
         .withArgs(wrongTopic)
     })
@@ -145,7 +148,7 @@ describe("Proofcast adapter", () => {
       const wrongStatement = eventAttestator.getStatement(eventWithWrongMessageId)
       const wrongStatementSignature = eventAttestator.sign(eventWithWrongMessageId)
 
-      await expect(adapter.storeHashes(wrongStatement, wrongStatementSignature))
+      await expect(adapter.verifyEventAndStoreHash(wrongStatement, wrongStatementSignature))
         .to.be.revertedWithCustomError(adapter, "InvalidMessageId")
         .withArgs(anyUint, anyUint)
     })
@@ -157,7 +160,7 @@ describe("Proofcast adapter", () => {
       const wrongStatement = Buffer.from(unallowedProtocolIdStatement.replace("0x", ""), "hex")
       const wrongStatementSignature = eventAttestator.signBytes(wrongStatement)
 
-      await expect(adapter.storeHashes(wrongStatement, wrongStatementSignature))
+      await expect(adapter.verifyEventAndStoreHash(wrongStatement, wrongStatementSignature))
         .to.be.revertedWithCustomError(adapter, "UnsupportedProtocolId")
         .withArgs("0x02")
     })
@@ -167,7 +170,10 @@ describe("Proofcast adapter", () => {
       statement = evilEventAttestator.getStatement(event)
       signature = evilEventAttestator.sign(event)
 
-      await expect(adapter.storeHashes(statement, signature)).to.be.revertedWithCustomError(adapter, "InvalidSignature")
+      await expect(adapter.verifyEventAndStoreHash(statement, signature)).to.be.revertedWithCustomError(
+        adapter,
+        "InvalidSignature",
+      )
     })
   })
 
@@ -203,7 +209,7 @@ describe("Proofcast adapter", () => {
       let statement = eventAttestator.getStatement(event)
       let signature = eventAttestator.sign(event)
 
-      await expect(adapter.storeHashes(statement, signature))
+      await expect(adapter.verifyEventAndStoreHash(statement, signature))
         .to.emit(adapter, "HashStored")
         .withArgs(ids[0], hashes[0])
         .and.not.to.emit(adapter, "TeeSignerChanged")
@@ -216,7 +222,7 @@ describe("Proofcast adapter", () => {
       statement = newEventAttestator.getStatement(event)
       signature = newEventAttestator.sign(event)
 
-      await expect(adapter.storeHashes(statement, signature))
+      await expect(adapter.verifyEventAndStoreHash(statement, signature))
         .to.emit(adapter, "TeeSignerChanged")
         .withArgs(newEventAttestator.address)
         .and.to.emit(adapter, "HashStored")
@@ -241,7 +247,7 @@ describe("Proofcast adapter", () => {
       let statement = eventAttestator.getStatement(event)
       let signature = eventAttestator.sign(event)
 
-      await expect(adapter.storeHashes(statement, signature))
+      await expect(adapter.verifyEventAndStoreHash(statement, signature))
         .to.emit(adapter, "HashStored")
         .withArgs(ids[1], hashes[1])
         .and.not.to.emit(adapter, "TeeSignerChanged")
@@ -269,11 +275,14 @@ describe("Proofcast adapter", () => {
       statement = eventAttestator2.getStatement(event)
       signature = eventAttestator2.sign(event)
 
-      await expect(adapter.storeHashes(statement, signature)).to.be.revertedWithCustomError(adapter, "InvalidSignature")
+      await expect(adapter.verifyEventAndStoreHash(statement, signature)).to.be.revertedWithCustomError(
+        adapter,
+        "InvalidSignature",
+      )
 
       await time.increase(gracePeriod / 2)
 
-      await expect(adapter.storeHashes(statement, signature))
+      await expect(adapter.verifyEventAndStoreHash(statement, signature))
         .to.emit(adapter, "HashStored")
         .and.to.emit(adapter, "HashStored")
     })
