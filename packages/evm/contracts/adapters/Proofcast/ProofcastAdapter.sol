@@ -12,6 +12,18 @@ import { IERC1820RegistryUpgradeable } from "@openzeppelin/contracts-upgradeable
 import { BlockHashAdapter } from "../BlockHashAdapter.sol";
 
 contract ProofcastAdapter is BlockHashAdapter, MessageIdCalculator, MessageHashCalculator, Ownable {
+    string public constant PROVIDER = "proofcast";
+
+    // MessageDispatched(uint256 indexed messageId, Message message)
+    bytes32 public constant MESSAGE_DISPATCHED_EVENT_TOPIC =
+        0x218247aabc759e65b5bb92ccc074f9d62cd187259f2a0984c3c9cf91f67ff7cf;
+    uint256 public constant TEE_ADDRESS_CHANGE_GRACE_PERIOD = 172800; // 48 hours
+
+    address public teeAddress;
+    address public teeAddressNew;
+    uint256 public teeAddressChangeGraceThreshold;
+    mapping(uint256 => address) public yahos;
+
     error InvalidEventRLP();
     error InvalidEventContentLength(uint256);
     error UnsupportedProtocolId(bytes1);
@@ -24,18 +36,6 @@ contract ProofcastAdapter is BlockHashAdapter, MessageIdCalculator, MessageHashC
     event TeeSignerChanged(address);
     event TeeSignerPendingChange(address, bytes, uint256);
     event YahoInitialized(uint256, address);
-
-    string public constant PROVIDER = "proofcast";
-
-    // MessageDispatched(uint256 indexed messageId, Message message)
-    bytes32 public constant MESSAGE_DISPATCHED_EVENT_TOPIC =
-        0x218247aabc759e65b5bb92ccc074f9d62cd187259f2a0984c3c9cf91f67ff7cf;
-    uint256 public constant TEE_ADDRESS_CHANGE_GRACE_PERIOD = 172800; // 48 hours
-
-    address public teeAddress;
-    address public teeAddressNew;
-    uint256 public teeAddressChangeGraceThreshold;
-    mapping(uint256 => address) public yahos;
 
     function initYaho(uint256 chainId, address yaho_) public onlyOwner {
         require(chainId != block.chainid, "Not usable Yaho (same chainId)");
