@@ -113,12 +113,15 @@ contract ProofcastAdapter is BlockHashAdapter, MessageIdCalculator, MessageHashC
 
         bytes memory messageBytes = RLPReader.toBytes(eventContent[2]);
         Message memory message = abi.decode(messageBytes, (Message));
-        uint256 expectedMessageId = calculateMessageId(domain, yahoAddress, calculateMessageHash(message));
+        bytes32 messageHash = calculateMessageHash(message);
+        uint256 expectedMessageId = calculateMessageId(domain, yahoAddress, messageHash);
 
         uint256 messageId = uint256(bytes32(RLPReader.toBytes(logs[1])));
         if (messageId != expectedMessageId) revert InvalidMessageId(messageId, expectedMessageId);
-
-        (ids, hashes) = abi.decode(message.data, (uint256[], bytes32[]));
+        ids = new uint256[](1);
+        hashes = new bytes32[](1);
+        ids[0] = messageId;
+        hashes[0] = messageHash;
     }
 
     function _getAddressFromPublicKey(bytes calldata pubKey) internal pure returns (address) {

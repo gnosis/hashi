@@ -1,38 +1,31 @@
-import { adapters } from "@hyperlane-xyz/core/dist/contracts/middleware/liquidity-layer"
-import { anyUint, anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs"
+import { anyUint } from "@nomicfoundation/hardhat-chai-matchers/withArgs"
 import { time } from "@nomicfoundation/hardhat-network-helpers"
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers"
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address"
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
 import { expect } from "chai"
-import { Contract, Event, Signer, providers } from "ethers"
+import { Contract, ContractReceipt, Event, Signer, providers } from "ethers"
 import { ethers } from "hardhat"
 
-import Message from "../../utils/Message"
-import { Chains, ZERO_ADDRESS } from "../../utils/constants"
+import { Chains } from "../../utils/constants"
 import ProofcastEventAttestator from "./ProofcastEventAttestator"
 import EVENT_SAMPLE_1 from "./samples/01_yaho-event-sample"
 import EVENT_SAMPLE_2 from "./samples/02_yaho-event-sample"
-import EVENT_SAMPLE_3 from "./samples/03_yaho-event-sample"
-
-const getBlockHashes = async (_blockIds: providers.BlockTag[]) =>
-  Promise.all(_blockIds.map((_id) => ethers.provider._getBlock(_id))).then((_blocks) =>
-    Promise.all(_blocks.map((_block) => _block.hash)),
-  )
 
 describe("Proofcast adapter", () => {
-  let event = EVENT_SAMPLE_1.event as unknown as Event
+  let receipt = EVENT_SAMPLE_1.receipt as unknown as ContractReceipt
+  let event = receipt.events?.at(0) as Event
   let ids = EVENT_SAMPLE_1.ids
   let hashes = EVENT_SAMPLE_1.hashes
 
+  const GOERLI_YAHO_ADDRESS = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
   const gracePeriod = 48 * 60 * 60
   const attestation = "0x"
 
   const deployContractsFixture = async () => {
-    const Yaho = await ethers.getContractFactory("Yaho")
     const ProofcastAdapter = await ethers.getContractFactory("ProofcastAdapter")
     const signers = await ethers.getSigners()
     const receiver = signers[1]
-    const yaho = await Yaho.deploy()
+    const yaho = await ethers.getImpersonatedSigner(GOERLI_YAHO_ADDRESS)
     const adapter = await ProofcastAdapter.deploy()
     const eventAttestator = new ProofcastEventAttestator()
 
@@ -41,7 +34,7 @@ describe("Proofcast adapter", () => {
 
   describe("storeHashes()", () => {
     let adapter: Contract,
-      yaho: Contract,
+      yaho: SignerWithAddress,
       eventAttestator: ProofcastEventAttestator,
       statement: string,
       signature: string
@@ -84,11 +77,7 @@ describe("Proofcast adapter", () => {
     })
 
     it("should store the dispatched block hashes successfully", async () => {
-      await expect(adapter.storeHashes(statement, signature))
-        .to.emit(adapter, "HashStored")
-        .withArgs(ids[0], hashes[0])
-        .and.to.emit(adapter, "HashStored")
-        .withArgs(ids[1], hashes[1])
+      await expect(adapter.storeHashes(statement, signature)).to.emit(adapter, "HashStored").withArgs(ids[0], hashes[0])
     })
 
     it("should reject when invalid event bytes are used", async () => {
@@ -217,25 +206,19 @@ describe("Proofcast adapter", () => {
       await expect(adapter.storeHashes(statement, signature))
         .to.emit(adapter, "HashStored")
         .withArgs(ids[0], hashes[0])
-        .and.to.emit(adapter, "HashStored")
-        .withArgs(ids[1], hashes[1])
         .and.not.to.emit(adapter, "TeeSignerChanged")
 
       expect(await adapter.teeAddress()).to.be.equal(previousAddress)
 
       await time.increase(gracePeriod)
 
-      event = EVENT_SAMPLE_2.event as unknown as Event
-      ids = EVENT_SAMPLE_2.ids
-      hashes = EVENT_SAMPLE_2.hashes
+      event = receipt.events?.at(1) as Event
       statement = newEventAttestator.getStatement(event)
       signature = newEventAttestator.sign(event)
 
       await expect(adapter.storeHashes(statement, signature))
         .to.emit(adapter, "TeeSignerChanged")
         .withArgs(newEventAttestator.address)
-        .and.to.emit(adapter, "HashStored")
-        .withArgs(ids[0], hashes[0])
         .and.to.emit(adapter, "HashStored")
         .withArgs(ids[1], hashes[1])
     })
@@ -260,8 +243,6 @@ describe("Proofcast adapter", () => {
 
       await expect(adapter.storeHashes(statement, signature))
         .to.emit(adapter, "HashStored")
-        .withArgs(ids[0], hashes[0])
-        .and.to.emit(adapter, "HashStored")
         .withArgs(ids[1], hashes[1])
         .and.not.to.emit(adapter, "TeeSignerChanged")
 
@@ -281,9 +262,10 @@ describe("Proofcast adapter", () => {
       // We are not using the same event sample as in the
       // prev test because otherwise the replay protection
       // would kick in (i.e. would reject with 'Hash already stored')
-      event = EVENT_SAMPLE_3.event as unknown as Event
-      ids = EVENT_SAMPLE_3.ids
-      hashes = EVENT_SAMPLE_3.hashes
+      receipt = EVENT_SAMPLE_2.receipt as unknown as ContractReceipt
+      event = receipt.events?.at(0) as Event
+      ids = EVENT_SAMPLE_2.ids
+      hashes = EVENT_SAMPLE_2.hashes
       statement = eventAttestator2.getStatement(event)
       signature = eventAttestator2.sign(event)
 
