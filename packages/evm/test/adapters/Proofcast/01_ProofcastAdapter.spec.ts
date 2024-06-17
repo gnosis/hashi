@@ -73,6 +73,18 @@ describe("Proofcast adapter", () => {
       )
     })
 
+    it("should reject when upon invalid yaho address", async () => {
+      const fakeYaho = (await ethers.getSigners())[10]
+      await expect(adapter.initYaho(Chains.Goerli, fakeYaho.address))
+        .to.emit(adapter, "YahoInitialized")
+        .withArgs(Chains.Goerli, fakeYaho.address)
+
+      await expect(adapter.verifyEventAndStoreHash(statement, signature)).to.revertedWithCustomError(
+        adapter,
+        "InvalidYahoAddress",
+      )
+    })
+
     it("should set the yaho address successfully", async () => {
       await expect(adapter.initYaho(Chains.Goerli, yaho.address))
         .to.emit(adapter, "YahoInitialized")
