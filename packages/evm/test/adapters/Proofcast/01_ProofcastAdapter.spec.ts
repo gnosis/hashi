@@ -197,6 +197,7 @@ describe("Proofcast adapter", () => {
         version: 0x00,
         protocolId: 0x00,
         chainId: Chains.Goerli,
+        privateKey: undefined,
       })
 
       await expect(adapter.setTeeSigner(newEventAttestator.publicKey, attestation))
@@ -212,7 +213,6 @@ describe("Proofcast adapter", () => {
       await expect(adapter.verifyEventAndStoreHash(statement, signature))
         .to.emit(adapter, "HashStored")
         .withArgs(ids[0], hashes[0])
-        .and.not.to.emit(adapter, "TeeSignerChanged")
 
       expect(await adapter.teeAddress()).to.be.equal(previousAddress)
 
@@ -222,14 +222,16 @@ describe("Proofcast adapter", () => {
       statement = newEventAttestator.getStatement(event)
       signature = newEventAttestator.sign(event)
 
-      await expect(adapter.verifyEventAndStoreHash(statement, signature))
+      await expect(adapter.applyNewTeeSigner())
         .to.emit(adapter, "TeeSignerChanged")
         .withArgs(newEventAttestator.address)
+
+      await expect(adapter.verifyEventAndStoreHash(statement, signature))
         .and.to.emit(adapter, "HashStored")
         .withArgs(ids[1], hashes[1])
     })
 
-    it("should wait another grace period when changing signer withing another grace period", async () => {
+    it("should wait another grace period when changing signer within another grace period", async () => {
       const { adapter, yaho, eventAttestator } = await loadFixture(setup)
       const previousAddress = await adapter.teeAddress()
       const eventAttestator1 = new ProofcastEventAttestator()
@@ -250,7 +252,6 @@ describe("Proofcast adapter", () => {
       await expect(adapter.verifyEventAndStoreHash(statement, signature))
         .to.emit(adapter, "HashStored")
         .withArgs(ids[1], hashes[1])
-        .and.not.to.emit(adapter, "TeeSignerChanged")
 
       expect(await adapter.teeAddress()).to.be.equal(previousAddress)
 
@@ -275,12 +276,16 @@ describe("Proofcast adapter", () => {
       statement = eventAttestator2.getStatement(event)
       signature = eventAttestator2.sign(event)
 
+      await expect(adapter.applyNewTeeSigner()).to.revertedWithCustomError(adapter, "GracePeriodNotElapsed")
+
       await expect(adapter.verifyEventAndStoreHash(statement, signature)).to.be.revertedWithCustomError(
         adapter,
         "InvalidSignature",
       )
 
       await time.increase(gracePeriod / 2)
+
+      await expect(adapter.applyNewTeeSigner()).to.emit(adapter, "TeeSignerChanged")
 
       await expect(adapter.verifyEventAndStoreHash(statement, signature))
         .to.emit(adapter, "HashStored")

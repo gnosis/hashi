@@ -36,6 +36,8 @@ contract ProofcastAdapter is BlockHashAdapter, MessageIdCalculator, MessageHashC
     error InvalidSender();
     error InvalidMessageId(uint256 actual, uint256 expected);
     error InvalidDestinationChainId(uint256 chainId);
+    error GracePeriodNotElapsed();
+    error InvalidNewTeeSigner();
 
     event TeeSignerChanged(address newAddress);
     event TeeSignerPendingChange(address newAddress, bytes attestation, uint256 gracePeriod);
@@ -63,12 +65,17 @@ contract ProofcastAdapter is BlockHashAdapter, MessageIdCalculator, MessageHashC
         }
     }
 
-    function verifyEventAndStoreHash(bytes calldata statement, bytes memory signature) public {
-        if (teeAddressNew != address(0) && block.timestamp > teeAddressChangeGraceThreshold) {
-            teeAddress = teeAddressNew;
-            teeAddressNew = address(0);
-            emit TeeSignerChanged(teeAddress);
-        }
+    function applyNewTeeSigner() public {
+        if (block.timestamp < teeAddressChangeGraceThreshold) revert GracePeriodNotElapsed();
+        if (teeAddressNew == address(0)) revert InvalidNewTeeSigner();
+
+        teeAddress = teeAddressNew;
+        teeAddressNew = address(0);
+
+        emit TeeSignerChanged(teeAddress);
+    }
+
+    function verifyEventAndStoreHash(bytes calldata statement, bytes memory signature) external {
         if (teeAddress == address(0)) revert InvalidTeeSigner();
         if (ECDSA.recover(sha256(statement), signature) != teeAddress) revert InvalidSignature();
 

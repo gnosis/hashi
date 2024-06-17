@@ -16,6 +16,7 @@ type Context = {
   version: number
   protocolId: number
   chainId: number
+  privateKey: string | undefined
 }
 
 const fromHex = (_0xString: string): Buffer => {
@@ -36,13 +37,22 @@ class ProofcastEventAttestator {
   public chainId: Buffer
   public address: string
   public publicKey: string
+  public privateKey: string
   private signingKey: SigningKey
 
-  constructor({ version, protocolId, chainId }: Context = { version: 0x00, protocolId: 0x00, chainId: Chains.Goerli }) {
+  constructor(
+    { version, protocolId, chainId, privateKey }: Context = {
+      version: 0x00,
+      protocolId: 0x00,
+      chainId: Chains.Goerli,
+      privateKey: undefined,
+    },
+  ) {
     this.version = Buffer.from([version])
     this.chainId = Buffer.from(chainId.toString(16).padStart(64, "0"), "hex")
     this.protocolId = Buffer.from([protocolId])
-    this.signingKey = new ethers.utils.SigningKey(crypto.randomBytes(32))
+    this.privateKey = privateKey ? privateKey : crypto.randomBytes(32).toString("hex")
+    this.signingKey = new ethers.utils.SigningKey(Buffer.from(this.privateKey, "hex"))
     this.publicKey = this.signingKey.publicKey
     this.address = ethers.utils.computeAddress(this.publicKey)
   }
