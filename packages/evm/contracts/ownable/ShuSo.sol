@@ -36,7 +36,7 @@ abstract contract ShuSo is IShuSho, OwnableUpgradeable {
     }
 
     /// @inheritdoc IShuSho
-    function getAdapterLink(uint256 domain, IAdapter adapter) public view returns (Link memory) {
+    function getAdapterLink(uint256 domain, IAdapter adapter) external view returns (Link memory) {
         return _adapters[domain][adapter];
     }
 
@@ -52,7 +52,7 @@ abstract contract ShuSo is IShuSho, OwnableUpgradeable {
     }
 
     /// @inheritdoc IShuSho
-    function getDomain(uint256 domain) public view returns (Domain memory) {
+    function getDomain(uint256 domain) external view returns (Domain memory) {
         return _domains[domain];
     }
 
