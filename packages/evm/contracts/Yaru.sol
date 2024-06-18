@@ -45,9 +45,16 @@ contract Yaru is IYaru, MessageIdCalculator, MessageHashCalculator, ReentrancyGu
                 )
             ) revert ThresholdNotMet();
 
-            try IJushin(message.receiver).onMessage(SOURCE_CHAIN_ID, messageId, message.sender, message.data) returns (
-                bytes memory returnData
-            ) {
+            try
+                IJushin(message.receiver).onMessage(
+                    messageId,
+                    SOURCE_CHAIN_ID,
+                    message.sender,
+                    message.threshold,
+                    message.adapters,
+                    message.data
+                )
+            returns (bytes memory returnData) {
                 returnDatas[i] = returnData;
             } catch {
                 revert CallFailed();
