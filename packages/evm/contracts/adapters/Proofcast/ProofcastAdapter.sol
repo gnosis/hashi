@@ -65,7 +65,7 @@ contract ProofcastAdapter is BlockHashAdapter, MessageIdCalculator, MessageHashC
         }
     }
 
-    function applyNewTeeSigner() public {
+    function applyNewTeeSigner() external {
         if (block.timestamp < teeAddressChangeGraceThreshold) revert GracePeriodNotElapsed();
         if (teeAddressNew == address(0)) revert InvalidNewTeeSigner();
 
