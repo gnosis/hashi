@@ -71,4 +71,11 @@ interface IShoyuBashi is IShuSho {
      * @notice Reverts if the threshold is already set to the given value.
      */
     function setThreshold(uint256 domain, uint256 threshold) external;
+
+    /**
+     * @dev Sets the address of the IHashi contract.
+     * @param hashi - Address of the hashi contract.
+     * @notice Only callable by the owner of this contract.
+     */
+    function setHashi(IHashi hashi) external;
 }

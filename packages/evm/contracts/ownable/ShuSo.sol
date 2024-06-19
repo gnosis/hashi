@@ -21,7 +21,7 @@ abstract contract ShuSo is IShuSho, OwnableUpgradeable {
     function init(bytes memory initParams) public initializer {
         (address _owner, IHashi _hashi) = abi.decode(initParams, (address, IHashi));
         __Ownable_init();
-        setHashi(_hashi);
+        _setHashi(_hashi);
         transferOwnership(_owner);
         emit Init(_owner, _hashi);
     }
@@ -64,8 +64,6 @@ abstract contract ShuSo is IShuSho, OwnableUpgradeable {
         if (threshold == 0) threshold = count;
         return (threshold, count);
     }
-
-    function setHashi(IHashi _hashi) public virtual;
 
     /**
      * @dev Disables the given adapters for a given domain.
