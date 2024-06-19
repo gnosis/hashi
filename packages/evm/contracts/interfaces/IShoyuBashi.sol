@@ -22,10 +22,11 @@ interface IShoyuBashi is IShuSho {
      * @dev Enables the given adapters for a given domain.
      * @param domain - Uint256 identifier for the domain for which to set adapters.
      * @param adapters - Array of adapter addresses.
+     * @param threshold - Uint256 threshold to set for the given domain.
      * @notice Only callable by the owner of this contract.
-     * @notice Reverts if adapters are out of order or contain duplicates.
+     * @notice Reverts if adapters are out of order, contain duplicates or if the threshold is not higher than half the count of the adapters
      */
-    function enableAdapters(uint256 domain, IAdapter[] memory adapters) external;
+    function enableAdapters(uint256 domain, IAdapter[] memory adapters, uint256 threshold) external;
 
     /**
      * @dev Returns the hash unanimously agreed upon by ALL of the enabled adapters.

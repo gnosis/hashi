@@ -19,8 +19,8 @@ contract ShoyuBashi is IShoyuBashi, ShuSo {
     }
 
     /// @inheritdoc IShoyuBashi
-    function enableAdapters(uint256 domain, IAdapter[] memory adapters) public {
-        _enableAdapters(domain, adapters);
+    function enableAdapters(uint256 domain, IAdapter[] memory adapters, uint256 threshold) public {
+        _enableAdapters(domain, adapters, threshold);
     }
 
     /// @inheritdoc IShoyuBashi

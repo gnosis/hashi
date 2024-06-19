@@ -97,10 +97,11 @@ abstract contract ShuSo is IShuSho, OwnableUpgradeable {
      * @dev Enables the given adapters for a given domain.
      * @param domain - Uint256 identifier for the domain for which to set adapters.
      * @param adapters - Array of adapter addresses.
-     * @notice Reverts if adapters are out of order or contain duplicates.
+     * @param threshold - Uint256 threshold to set for the given domain.
+     * @notice Reverts if adapters are out of order, contain duplicates or if the threshold is not higher than half the count of the adapters
      * @notice Only callable by the owner of this contract.
      */
-    function _enableAdapters(uint256 domain, IAdapter[] memory adapters) internal onlyOwner {
+    function _enableAdapters(uint256 domain, IAdapter[] memory adapters, uint256 threshold) internal onlyOwner {
         if (_adapters[domain][LIST_END].next == IAdapter(address(0))) {
             _adapters[domain][LIST_END].next = LIST_END;
             _adapters[domain][LIST_END].previous = LIST_END;
@@ -117,6 +118,8 @@ abstract contract ShuSo is IShuSho, OwnableUpgradeable {
             _adapters[domain][adapter].next = LIST_END;
             _domains[domain].count++;
         }
+        if (threshold < (_domains[domain].count / 2) + 1) revert InvalidThreshold(threshold);
+        _domains[domain].threshold = threshold;
         emit AdaptersEnabled(domain, adapters);
     }
 
