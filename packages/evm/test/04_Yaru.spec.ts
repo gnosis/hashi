@@ -191,7 +191,7 @@ describe("Yaru", () => {
       })
     }
 
-    it(`should be able to execute a message using 2 zk adapters`, async () => {
+    it(`should be able to execute a message using 2 adapters that don't need the corresponding reporters`, async () => {
       const threshold = 4
       const tx = await yaho.dispatchMessagesToAdapters(
         Chains.Hardhat,

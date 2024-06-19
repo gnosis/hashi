@@ -129,7 +129,7 @@ describe("Yaho", () => {
         .withArgs(3, 2)
     })
 
-    it("should dispatch a single message without calling the reporter because a zk adapter is used", async () => {
+    it("should dispatch a single message without calling the reporter because an adapter that doesn't need a reporter is used", async () => {
       const threshold = 2
       const tx = await yaho.dispatchMessage(
         Chains.Gnosis,

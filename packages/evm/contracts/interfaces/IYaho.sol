@@ -36,7 +36,7 @@ interface IYaho is IMessageHashCalculator, IMessageIdCalculator {
      * @param reporters - An array of `IReporter` contracts (not actively used in this step).
      * @param adapters - An array of `IAdapter` contracts (for later validation use).
      * @return messageId A unique identifier for the dispatched message, used for tracking and subsequent validation.
-     * @notice If you plan to use an Adapter that does not have a corresponding Reporter (such as a zk adapter), you need to specify only the adapter and use address(0) as the reporter, since the adapter will verify the MessageDispatched event emitted by Yaho.
+     * @notice If you plan to use an Adapter that does not have a corresponding Reporter (such as an adapter that uses a light client), you need to specify only the adapter and use address(0) as the reporter, since the adapter will verify the MessageDispatched event emitted by Yaho.
      *
      */
     function dispatchMessage(
@@ -57,7 +57,7 @@ interface IYaho is IMessageHashCalculator, IMessageIdCalculator {
      * @param reporters - An array of `IReporter` contracts (not actively used in this step).
      * @param adapters - An array of `IAdapter` contracts (for later validation use).
      * @return (messageId, result) A unique identifier for the dispatched message and an array of byte arrays, where each element is the result of dispatching a respective message to the corresponding Reporter.
-     * @notice If you plan to use an Adapter that does not have a corresponding Reporter (such as a zk adapter), you need to specify only the adapter and use address(0) as the reporter, since the adapter will verify the MessageDispatched event emitted by Yaho.
+     * @notice If you plan to use an Adapter that does not have a corresponding Reporter (such as an adapter that uses a light client), you need to specify only the adapter and use address(0) as the reporter, since the adapter will verify the MessageDispatched event emitted by Yaho.
      */
     function dispatchMessageToAdapters(
         uint256 targetChainId,
@@ -77,7 +77,7 @@ interface IYaho is IMessageHashCalculator, IMessageIdCalculator {
      * @param reporters - An array of `IReporter` contracts for reporting the status of each message.
      * @param adapters - An array of `IAdapter` contracts used for the validation of each message.
      * @return (messageIds, result) An array of unique identifiers for the dispatched messages and an array of bytes32 arrays, where each element is the result of dispatching a respective message to the corresponding Reporter.
-     * @notice If you plan to use an Adapter that does not have a corresponding Reporter (such as a zk adapter), you need to specify only the adapter and use address(0) as the reporter, since the adapter will verify the MessageDispatched event emitted by Yaho.
+     * @notice If you plan to use an Adapter that does not have a corresponding Reporter (such as an adapter that uses a light client), you need to specify only the adapter and use address(0) as the reporter, since the adapter will verify the MessageDispatched event emitted by Yaho.
      */
     function dispatchMessagesToAdapters(
         uint256 targetChainId,
