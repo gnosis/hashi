@@ -81,7 +81,7 @@ contract ProofcastAdapter is BlockHashAdapter, MessageIdCalculator, MessageHashC
 
         // Supports only EVM events
         bytes1 protocolId = statement[1];
-        if (protocolId != 0x00) revert UnsupportedProtocolId(protocolId);
+        if (protocolId != 0x01) revert UnsupportedProtocolId(protocolId);
 
         (uint256 domain, uint256[] memory ids, bytes32[] memory hashes) = _checkEventAndDecodeData(statement);
         _storeHashes(domain, ids, hashes);
