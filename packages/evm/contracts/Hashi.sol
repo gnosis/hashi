@@ -28,7 +28,7 @@
                   ███▌         ▐███⌐      ▀▀_             ▀▀▀███████
                   ███^         ▐███_                          ▐██▀▀　
 
-                                           Made with ❤️ by Gnosis Guild
+              Made with ❤️ by Gnosis Guild & the Cross-chain Alliance
 */
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity ^0.8.20;
