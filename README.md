@@ -51,20 +51,6 @@ We call this setup a **RAIHO** (Redundant Array of Independent Hash Oracles).
   - Query for a unanimously agreed on hash from that full set of oracles.
   - Query for a hash agreed upon by a threshold of oracles for a given block on a given chain; the provided oracles must all agree on the hash for the ID, must all be enabled as oracles for the given domain, and must exceed the threshold for the domain.
 
-**GiriGiriBashi** (ギリギリ橋) allows:
-
-- An `owner` account to:
-  - Initialize the set of oracles for each domain.
-  - Initialize the threshold of oracles that must agree on a hash for each domain.
-  - Replace quarantined oracle adapters.
-  - Set a challenge `bond` `recipient`.
-- Anyone to:
-  - Query for a unanimously agreed on hash from that full set of oracles.
-  - Query for a hash agreed upon by a threshold of oracles for a given block on a given chain; the provided oracles must all agree on the hash for the ID, must all be enabled as oracles for the given domain, and must exceed the threshold for the domain.
-  - Challenge an oracle to report on a hash.
-  - Resolve a challenge, either returning the `bond` to the challenger and quarantining the given oracle, in the case that the oracle does not report in time or reports a conflicting hash, or forwarding the challenge `bond` to the `recipient`.
-  - Declare a state of no confidence for a given domain, forcing the domain to be re-initialized by `owner`.
-
 **Yaho** (ヤッホー) allows users to:
 
 - dispatch arbitrary messages via Hashi, which:
