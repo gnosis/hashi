@@ -118,6 +118,7 @@ abstract contract ShuSo is IShuSho, OwnableUpgradeable {
         }
         if (threshold < (_domains[domain].count / 2) + 1) revert InvalidThreshold(threshold);
         _domains[domain].threshold = threshold;
+        emit ThresholdSet(domain, threshold);
         emit AdaptersEnabled(domain, adapters);
     }
 
