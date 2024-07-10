@@ -16,21 +16,20 @@ const setup = async () => {
   const hashi = await Hashi.deploy()
   const ShoyuBashi = await ethers.getContractFactory("ShoyuBashi")
   const shoyuBashi = await ShoyuBashi.deploy(wallet.address, hashi.address)
-  const MockOracleAdapter = await ethers.getContractFactory("MockOracleAdapter")
-  const mockOracleAdapter = await MockOracleAdapter.deploy()
-  const anotherOracleAdapter = await MockOracleAdapter.deploy()
+  const MockAdapter = await ethers.getContractFactory("MockAdapter")
+  const mockAdapter = await MockAdapter.deploy()
+  const anotherAdapter = await MockAdapter.deploy()
 
-  await mockOracleAdapter.setHashes(DOMAIN_ID, [0, 1, 2], [HASH_ZERO, HASH_GOOD, HASH_GOOD])
-  await anotherOracleAdapter.setHashes(DOMAIN_ID, [0, 1, 2], [HASH_ZERO, HASH_GOOD, HASH_BAD])
-  await shoyuBashi.setThreshold(DOMAIN_ID, 2)
+  await mockAdapter.setHashes(DOMAIN_ID, [0, 1, 2], [HASH_ZERO, HASH_GOOD, HASH_GOOD])
+  await anotherAdapter.setHashes(DOMAIN_ID, [0, 1, 2], [HASH_ZERO, HASH_GOOD, HASH_BAD])
 
   return {
     wallet,
     hashi,
     ShoyuBashi,
     shoyuBashi,
-    mockOracleAdapter,
-    anotherOracleAdapter,
+    mockAdapter,
+    anotherAdapter,
   }
 }
 
@@ -69,9 +68,7 @@ describe("ShoyuBashi", function () {
     })
     it("Emits HashiSet() event", async function () {
       const { shoyuBashi, wallet } = await setup()
-      await expect(shoyuBashi.setHashi(wallet.address))
-        .to.emit(shoyuBashi, "HashiSet")
-        .withArgs(shoyuBashi.address, wallet.address)
+      await expect(shoyuBashi.setHashi(wallet.address)).to.emit(shoyuBashi, "HashiSet").withArgs(wallet.address)
     })
   })
 
@@ -83,157 +80,167 @@ describe("ShoyuBashi", function () {
     })
     it("Reverts if threshold is already set", async function () {
       const { shoyuBashi } = await setup()
+      await shoyuBashi.enableAdapters(DOMAIN_ID, [ADDRESS_TWO, ADDRESS_THREE], 2)
       await expect(shoyuBashi.setThreshold(DOMAIN_ID, 2)).to.be.revertedWithCustomError(
         shoyuBashi,
-        "DuplicateThreashold",
+        "DuplicateThreshold",
       )
     })
     it("Sets threshold for the given ChainID", async function () {
       const { shoyuBashi } = await setup()
-      expect(await shoyuBashi.setThreshold(DOMAIN_ID, 3))
-      expect((await shoyuBashi.domains(DOMAIN_ID)).threshold).to.equal(3)
+      await shoyuBashi.enableAdapters(DOMAIN_ID, [ADDRESS_TWO, ADDRESS_THREE], 2)
+      expect((await shoyuBashi.getDomain(DOMAIN_ID)).threshold).to.equal(2)
     })
     it("Emits HashiSet() event", async function () {
       const { shoyuBashi } = await setup()
-      await expect(shoyuBashi.setThreshold(DOMAIN_ID, 3))
-        .to.emit(shoyuBashi, "ThresholdSet")
-        .withArgs(shoyuBashi.address, DOMAIN_ID, 3)
+      await shoyuBashi.enableAdapters(DOMAIN_ID, [ADDRESS_TWO, ADDRESS_THREE], 2)
+      await expect(shoyuBashi.setThreshold(DOMAIN_ID, 3)).to.emit(shoyuBashi, "ThresholdSet").withArgs(DOMAIN_ID, 3)
     })
   })
 
-  describe("enableOracleAdapters()", function () {
+  describe("enableAdapters()", function () {
     it("Reverts if called by non-owner account", async function () {
       const { shoyuBashi } = await setup()
       await shoyuBashi.transferOwnership(shoyuBashi.address)
-      await expect(shoyuBashi.enableOracleAdapters(DOMAIN_ID, [ADDRESS_TWO])).to.be.revertedWith(
+      await expect(shoyuBashi.enableAdapters(DOMAIN_ID, [ADDRESS_TWO], 1)).to.be.revertedWith(
         "Ownable: caller is not the owner",
       )
     })
     it("Reverts if given an empty array", async function () {
       const { shoyuBashi } = await setup()
-      await expect(shoyuBashi.enableOracleAdapters(DOMAIN_ID, [])).to.be.revertedWithCustomError(
+      await expect(shoyuBashi.enableAdapters(DOMAIN_ID, [], 1)).to.be.revertedWithCustomError(
         shoyuBashi,
         "NoAdaptersGiven",
       )
     })
-    it("Reverts if given oracle adapter is Address(0)", async function () {
+    it("Reverts if given adapter is Address(0)", async function () {
       const { shoyuBashi } = await setup()
-      await expect(shoyuBashi.enableOracleAdapters(DOMAIN_ID, [ADDRESS_ZERO])).to.be.revertedWithCustomError(
+      await expect(shoyuBashi.enableAdapters(DOMAIN_ID, [ADDRESS_ZERO], 1)).to.be.revertedWithCustomError(
         shoyuBashi,
         "InvalidAdapter",
       )
     })
-    it("Reverts if given oracle adapter is Address(1) / LIST_END", async function () {
+    it("Reverts if given adapter is Address(1) / LIST_END", async function () {
       const { shoyuBashi } = await setup()
-      await expect(shoyuBashi.enableOracleAdapters(DOMAIN_ID, [LIST_END])).to.be.revertedWithCustomError(
+      await expect(shoyuBashi.enableAdapters(DOMAIN_ID, [LIST_END], 1)).to.be.revertedWithCustomError(
         shoyuBashi,
         "InvalidAdapter",
       )
     })
     it("Reverts if adapter is already enabled", async function () {
       const { shoyuBashi } = await setup()
-      await expect(shoyuBashi.enableOracleAdapters(DOMAIN_ID, [ADDRESS_TWO]))
-      await expect(shoyuBashi.enableOracleAdapters(DOMAIN_ID, [ADDRESS_TWO])).to.be.revertedWithCustomError(
+      await expect(shoyuBashi.enableAdapters(DOMAIN_ID, [ADDRESS_TWO], 1))
+      await expect(shoyuBashi.enableAdapters(DOMAIN_ID, [ADDRESS_TWO], 1)).to.be.revertedWithCustomError(
         shoyuBashi,
         "AdapterAlreadyEnabled",
       )
     })
-    it("Enables the given oracles", async function () {
+    it("Enables the given adapters", async function () {
       const { shoyuBashi } = await setup()
-      await expect(shoyuBashi.enableOracleAdapters(DOMAIN_ID, [ADDRESS_TWO, ADDRESS_THREE]))
-      const adapters = await shoyuBashi.getOracleAdapters(DOMAIN_ID)
+      await expect(shoyuBashi.enableAdapters(DOMAIN_ID, [ADDRESS_TWO, ADDRESS_THREE], 2))
+      const adapters = await shoyuBashi.getAdapters(DOMAIN_ID)
       await expect(adapters[0]).to.equal(ADDRESS_TWO)
       await expect(adapters[1]).to.equal(ADDRESS_THREE)
-      expect((await shoyuBashi.adapters(DOMAIN_ID, LIST_END)).next).to.equal(ADDRESS_TWO)
-      expect((await shoyuBashi.adapters(DOMAIN_ID, LIST_END)).previous).to.equal(ADDRESS_THREE)
-      expect((await shoyuBashi.adapters(DOMAIN_ID, ADDRESS_TWO)).next).to.equal(ADDRESS_THREE)
-      expect((await shoyuBashi.adapters(DOMAIN_ID, ADDRESS_TWO)).previous).to.equal(LIST_END)
-      expect((await shoyuBashi.adapters(DOMAIN_ID, ADDRESS_THREE)).next).to.equal(LIST_END)
-      expect((await shoyuBashi.adapters(DOMAIN_ID, ADDRESS_THREE)).previous).to.equal(ADDRESS_TWO)
+      expect((await shoyuBashi.getAdapterLink(DOMAIN_ID, LIST_END)).next).to.equal(ADDRESS_TWO)
+      expect((await shoyuBashi.getAdapterLink(DOMAIN_ID, LIST_END)).previous).to.equal(ADDRESS_THREE)
+      expect((await shoyuBashi.getAdapterLink(DOMAIN_ID, ADDRESS_TWO)).next).to.equal(ADDRESS_THREE)
+      expect((await shoyuBashi.getAdapterLink(DOMAIN_ID, ADDRESS_TWO)).previous).to.equal(LIST_END)
+      expect((await shoyuBashi.getAdapterLink(DOMAIN_ID, ADDRESS_THREE)).next).to.equal(LIST_END)
+      expect((await shoyuBashi.getAdapterLink(DOMAIN_ID, ADDRESS_THREE)).previous).to.equal(ADDRESS_TWO)
     })
-    it("Emits OracleAdaptersEnabled() event", async function () {
+    it("Emits AdaptersEnabled() event", async function () {
       const { shoyuBashi } = await setup()
-      await expect(shoyuBashi.enableOracleAdapters(DOMAIN_ID, [ADDRESS_TWO, ADDRESS_THREE]))
-        .to.emit(shoyuBashi, "OracleAdaptersEnabled")
-        .withArgs(shoyuBashi.address, DOMAIN_ID, [ADDRESS_TWO, ADDRESS_THREE])
+      await expect(shoyuBashi.enableAdapters(DOMAIN_ID, [ADDRESS_TWO, ADDRESS_THREE], 2))
+        .to.emit(shoyuBashi, "AdaptersEnabled")
+        .withArgs(DOMAIN_ID, [ADDRESS_TWO, ADDRESS_THREE])
     })
   })
 
-  describe("disableOracleAdapters()", function () {
+  describe("disableAdapters()", function () {
     it("Reverts if called by non-owner account", async function () {
       const { shoyuBashi } = await setup()
       await shoyuBashi.transferOwnership(shoyuBashi.address)
-      await expect(shoyuBashi.disableOracleAdapters(DOMAIN_ID, [ADDRESS_TWO])).to.be.revertedWith(
+      await expect(shoyuBashi.disableAdapters(DOMAIN_ID, [ADDRESS_TWO])).to.be.revertedWith(
         "Ownable: caller is not the owner",
       )
     })
     it("Reverts if no adapters are enabled", async function () {
       const { shoyuBashi } = await setup()
-      await expect(shoyuBashi.disableOracleAdapters(DOMAIN_ID, [])).to.be.revertedWithCustomError(
+      await expect(shoyuBashi.disableAdapters(DOMAIN_ID, [])).to.be.revertedWithCustomError(
         shoyuBashi,
         "NoAdaptersEnabled",
       )
     })
     it("Reverts if given an empty array", async function () {
       const { shoyuBashi } = await setup()
-      await shoyuBashi.enableOracleAdapters(DOMAIN_ID, [ADDRESS_TWO])
-      await expect(shoyuBashi.disableOracleAdapters(DOMAIN_ID, [])).to.be.revertedWithCustomError(
+      await shoyuBashi.enableAdapters(DOMAIN_ID, [ADDRESS_TWO], 1)
+      await expect(shoyuBashi.disableAdapters(DOMAIN_ID, [])).to.be.revertedWithCustomError(
         shoyuBashi,
         "NoAdaptersGiven",
       )
     })
-    it("Reverts if given oracle adapter is Address(0)", async function () {
+    it("Reverts if given adapter is Address(0)", async function () {
       const { shoyuBashi } = await setup()
-      await shoyuBashi.enableOracleAdapters(DOMAIN_ID, [ADDRESS_TWO])
-      await expect(shoyuBashi.disableOracleAdapters(DOMAIN_ID, [ADDRESS_ZERO])).to.be.revertedWithCustomError(
+      await shoyuBashi.enableAdapters(DOMAIN_ID, [ADDRESS_TWO], 1)
+      await expect(shoyuBashi.disableAdapters(DOMAIN_ID, [ADDRESS_ZERO])).to.be.revertedWithCustomError(
         shoyuBashi,
         "InvalidAdapter",
       )
     })
-    it("Reverts if given oracle adapter is Address(1) / LIST_END", async function () {
+    it("Reverts if given adapter is Address(1) / LIST_END", async function () {
       const { shoyuBashi } = await setup()
-      await shoyuBashi.enableOracleAdapters(DOMAIN_ID, [ADDRESS_TWO])
-      await expect(shoyuBashi.disableOracleAdapters(DOMAIN_ID, [LIST_END])).to.be.revertedWithCustomError(
+      await shoyuBashi.enableAdapters(DOMAIN_ID, [ADDRESS_TWO], 1)
+      await expect(shoyuBashi.disableAdapters(DOMAIN_ID, [LIST_END])).to.be.revertedWithCustomError(
         shoyuBashi,
         "InvalidAdapter",
       )
     })
     it("Reverts if adapter is not enabled", async function () {
       const { shoyuBashi } = await setup()
-      await shoyuBashi.enableOracleAdapters(DOMAIN_ID, [ADDRESS_TWO])
-      await expect(
-        shoyuBashi.disableOracleAdapters(DOMAIN_ID, [ADDRESS_THREE, ADDRESS_TWO]),
-      ).to.be.revertedWithCustomError(shoyuBashi, "AdapterNotEnabled")
+      await shoyuBashi.enableAdapters(DOMAIN_ID, [ADDRESS_TWO], 1)
+      await expect(shoyuBashi.disableAdapters(DOMAIN_ID, [ADDRESS_THREE, ADDRESS_TWO])).to.be.revertedWithCustomError(
+        shoyuBashi,
+        "AdapterNotEnabled",
+      )
     })
-    it("Disables the given oracles", async function () {
+    it("Disables the given adapters", async function () {
       const { shoyuBashi } = await setup()
-      await shoyuBashi.enableOracleAdapters(DOMAIN_ID, [ADDRESS_TWO, ADDRESS_THREE])
-      await shoyuBashi.disableOracleAdapters(DOMAIN_ID, [ADDRESS_TWO, ADDRESS_THREE])
-      const adapters = await shoyuBashi.getOracleAdapters(DOMAIN_ID)
+      await shoyuBashi.enableAdapters(DOMAIN_ID, [ADDRESS_TWO, ADDRESS_THREE], 2)
+      await shoyuBashi.disableAdapters(DOMAIN_ID, [ADDRESS_TWO, ADDRESS_THREE])
+      const adapters = await shoyuBashi.getAdapters(DOMAIN_ID)
       await expect(adapters[0]).to.equal(undefined)
     })
-    it("Emits OracleAdaptersDisabled() event", async function () {
+    it("Emits AdaptersDisabled() event", async function () {
       const { shoyuBashi } = await setup()
-      await shoyuBashi.enableOracleAdapters(DOMAIN_ID, [ADDRESS_TWO, ADDRESS_THREE])
-      await expect(shoyuBashi.disableOracleAdapters(DOMAIN_ID, [ADDRESS_THREE, ADDRESS_TWO]))
-        .to.emit(shoyuBashi, "OracleAdaptersDisabled")
-        .withArgs(shoyuBashi.address, DOMAIN_ID, [ADDRESS_THREE, ADDRESS_TWO])
+      await shoyuBashi.enableAdapters(DOMAIN_ID, [ADDRESS_TWO, ADDRESS_THREE], 2)
+      await expect(shoyuBashi.disableAdapters(DOMAIN_ID, [ADDRESS_THREE, ADDRESS_TWO]))
+        .to.emit(shoyuBashi, "AdaptersDisabled")
+        .withArgs(DOMAIN_ID, [ADDRESS_THREE, ADDRESS_TWO])
+    })
+    it("Disables an adapter, sets the new thresholds and gets an agreed hash", async function () {
+      const { shoyuBashi, mockAdapter, anotherAdapter } = await setup()
+      await shoyuBashi.enableAdapters(DOMAIN_ID, [mockAdapter.address, anotherAdapter.address, ADDRESS_THREE], 3)
+      await expect(shoyuBashi.disableAdapters(DOMAIN_ID, [ADDRESS_THREE]))
+        .to.emit(shoyuBashi, "AdaptersDisabled")
+        .withArgs(DOMAIN_ID, [ADDRESS_THREE])
+      await shoyuBashi.setThreshold(DOMAIN_ID, 2)
+      expect(await shoyuBashi.getHash(DOMAIN_ID, 1, [mockAdapter.address, anotherAdapter.address])).to.equal(HASH_GOOD)
     })
   })
 
-  describe("getOracleAdapters()", function () {
+  describe("getAdapters()", function () {
     it("Returns empty array if no adapters are enabled", async function () {
       const { shoyuBashi } = await setup()
-      const adapters = await shoyuBashi.getOracleAdapters(DOMAIN_ID)
+      const adapters = await shoyuBashi.getAdapters(DOMAIN_ID)
       expect(adapters[0]).to.equal(undefined)
-      await shoyuBashi.enableOracleAdapters(DOMAIN_ID, [ADDRESS_TWO, ADDRESS_THREE])
-      await expect(shoyuBashi.disableOracleAdapters(DOMAIN_ID, [ADDRESS_THREE, ADDRESS_TWO]))
+      await shoyuBashi.enableAdapters(DOMAIN_ID, [ADDRESS_TWO, ADDRESS_THREE], 2)
+      await expect(shoyuBashi.disableAdapters(DOMAIN_ID, [ADDRESS_THREE, ADDRESS_TWO]))
       expect(adapters[0]).to.equal(undefined)
     })
     it("Returns array of enabled adapters", async function () {
       const { shoyuBashi } = await setup()
-      await shoyuBashi.enableOracleAdapters(DOMAIN_ID, [ADDRESS_TWO, ADDRESS_THREE])
-      const adapters = await shoyuBashi.getOracleAdapters(DOMAIN_ID)
+      await shoyuBashi.enableAdapters(DOMAIN_ID, [ADDRESS_TWO, ADDRESS_THREE], 2)
+      const adapters = await shoyuBashi.getAdapters(DOMAIN_ID)
       expect(adapters[0]).to.equal(ADDRESS_TWO)
       expect(adapters[1]).to.equal(ADDRESS_THREE)
     })
@@ -242,16 +249,15 @@ describe("ShoyuBashi", function () {
   describe("getThresholdAndCount()", function () {
     it("Returns threshold equal to count if threshold not explicitly set", async function () {
       const { shoyuBashi } = await setup()
-      await shoyuBashi.enableOracleAdapters(DOMAIN_ID, [ADDRESS_TWO, ADDRESS_THREE])
+      await shoyuBashi.enableAdapters(DOMAIN_ID, [ADDRESS_TWO, ADDRESS_THREE], 2)
       const [threshold, count] = await shoyuBashi.getThresholdAndCount(DOMAIN_ID)
       await expect(threshold).to.equal(count)
     })
     it("Returns threshold and count", async function () {
       const { shoyuBashi } = await setup()
-      await shoyuBashi.enableOracleAdapters(DOMAIN_ID, [ADDRESS_TWO, ADDRESS_THREE])
-      await shoyuBashi.setThreshold(DOMAIN_ID, 1)
+      await shoyuBashi.enableAdapters(DOMAIN_ID, [ADDRESS_TWO, ADDRESS_THREE], 2)
       const [threshold] = await shoyuBashi.getThresholdAndCount(DOMAIN_ID)
-      await expect(threshold).to.equal(1)
+      await expect(threshold).to.equal(2)
     })
   })
 
@@ -264,16 +270,16 @@ describe("ShoyuBashi", function () {
       )
     })
     it("Reverts if threshold is not met", async function () {
-      const { shoyuBashi, mockOracleAdapter } = await setup()
-      await shoyuBashi.enableOracleAdapters(DOMAIN_ID, [mockOracleAdapter.address])
+      const { shoyuBashi, mockAdapter } = await setup()
+      await shoyuBashi.enableAdapters(DOMAIN_ID, [mockAdapter.address], 2)
       await expect(shoyuBashi.getUnanimousHash(DOMAIN_ID, 1)).to.be.revertedWithCustomError(
         shoyuBashi,
         "ThresholdNotMet",
       )
     })
     it("Returns unanimous agreed on hash", async function () {
-      const { shoyuBashi, mockOracleAdapter, anotherOracleAdapter } = await setup()
-      await shoyuBashi.enableOracleAdapters(DOMAIN_ID, [mockOracleAdapter.address, anotherOracleAdapter.address])
+      const { shoyuBashi, mockAdapter, anotherAdapter } = await setup()
+      await shoyuBashi.enableAdapters(DOMAIN_ID, [mockAdapter.address, anotherAdapter.address], 2)
       expect(await shoyuBashi.getUnanimousHash(DOMAIN_ID, 1)).to.equal(HASH_GOOD)
     })
   })
@@ -287,81 +293,82 @@ describe("ShoyuBashi", function () {
       )
     })
     it("Reverts if threshold is not met", async function () {
-      const { shoyuBashi, mockOracleAdapter, anotherOracleAdapter } = await setup()
-      await shoyuBashi.enableOracleAdapters(DOMAIN_ID, [mockOracleAdapter.address, anotherOracleAdapter.address])
+      const { shoyuBashi, mockAdapter, anotherAdapter } = await setup()
+      await shoyuBashi.enableAdapters(DOMAIN_ID, [mockAdapter.address, anotherAdapter.address], 2)
+      await shoyuBashi.setThreshold(DOMAIN_ID, 3)
       await expect(shoyuBashi.getThresholdHash(DOMAIN_ID, 2)).to.be.revertedWithCustomError(
         shoyuBashi,
         "ThresholdNotMet",
       )
     })
     it("Reverts if threshold returns bytes(0)", async function () {
-      const { shoyuBashi, mockOracleAdapter, anotherOracleAdapter } = await setup()
-      await shoyuBashi.enableOracleAdapters(DOMAIN_ID, [mockOracleAdapter.address, anotherOracleAdapter.address])
+      const { shoyuBashi, mockAdapter, anotherAdapter } = await setup()
+      await shoyuBashi.enableAdapters(DOMAIN_ID, [mockAdapter.address, anotherAdapter.address], 2)
       await expect(shoyuBashi.getThresholdHash(DOMAIN_ID, 0)).to.be.revertedWithCustomError(
         shoyuBashi,
         "ThresholdNotMet",
       )
     })
     it("Returns unanimous agreed on hash", async function () {
-      const { shoyuBashi, mockOracleAdapter, anotherOracleAdapter } = await setup()
-      await shoyuBashi.enableOracleAdapters(DOMAIN_ID, [mockOracleAdapter.address, anotherOracleAdapter.address])
+      const { shoyuBashi, mockAdapter, anotherAdapter } = await setup()
+      await shoyuBashi.enableAdapters(DOMAIN_ID, [mockAdapter.address, anotherAdapter.address], 2)
       expect(await shoyuBashi.getThresholdHash(DOMAIN_ID, 1)).to.equal(HASH_GOOD)
     })
   })
 
   describe("getHash()", function () {
     it("Reverts if threshold is not met", async function () {
-      const { shoyuBashi, mockOracleAdapter } = await setup()
-      await shoyuBashi.enableOracleAdapters(DOMAIN_ID, [mockOracleAdapter.address])
-      await expect(shoyuBashi.getHash(DOMAIN_ID, 1, [mockOracleAdapter.address])).to.be.revertedWithCustomError(
+      const { shoyuBashi, mockAdapter } = await setup()
+      await shoyuBashi.enableAdapters(DOMAIN_ID, [mockAdapter.address], 2)
+      await expect(shoyuBashi.getHash(DOMAIN_ID, 1, [mockAdapter.address])).to.be.revertedWithCustomError(
         shoyuBashi,
         "ThresholdNotMet",
       )
     })
-    it("Reverts if given oracle adapters are duplicate", async function () {
+    it("Reverts if given adapters are duplicate", async function () {
       const { shoyuBashi } = await setup()
-      await shoyuBashi.enableOracleAdapters(DOMAIN_ID, [ADDRESS_TWO, ADDRESS_THREE])
+      await shoyuBashi.enableAdapters(DOMAIN_ID, [ADDRESS_TWO, ADDRESS_THREE], 2)
       await expect(shoyuBashi.getHash(DOMAIN_ID, 1, [ADDRESS_TWO, ADDRESS_TWO])).to.be.revertedWithCustomError(
         shoyuBashi,
         "DuplicateOrOutOfOrderAdapters",
       )
     })
-    it("Reverts if given oracle adapters are out of order", async function () {
+    it("Reverts if given adapters are out of order", async function () {
       const { shoyuBashi } = await setup()
-      await shoyuBashi.enableOracleAdapters(DOMAIN_ID, [ADDRESS_TWO, ADDRESS_THREE])
+      await shoyuBashi.enableAdapters(DOMAIN_ID, [ADDRESS_TWO, ADDRESS_THREE], 2)
       await expect(shoyuBashi.getHash(DOMAIN_ID, 1, [ADDRESS_THREE, ADDRESS_TWO])).to.be.revertedWithCustomError(
         shoyuBashi,
         "DuplicateOrOutOfOrderAdapters",
       )
     })
-    it("Reverts if given oracle adapter is not enabled", async function () {
+    it("Reverts if given adapter is not enabled", async function () {
       const { shoyuBashi } = await setup()
-      await shoyuBashi.enableOracleAdapters(DOMAIN_ID, [ADDRESS_TWO])
+      await shoyuBashi.enableAdapters(DOMAIN_ID, [ADDRESS_TWO], 2)
       await expect(shoyuBashi.getHash(DOMAIN_ID, 1, [ADDRESS_TWO, ADDRESS_THREE])).to.be.revertedWithCustomError(
         shoyuBashi,
         "InvalidAdapter",
       )
     })
-    it("Reverts if no oracle adapters are enabled", async function () {
+    it("Reverts if no adapters are enabled", async function () {
       const { shoyuBashi } = await setup()
       await expect(shoyuBashi.getHash(DOMAIN_ID, 1, [ADDRESS_TWO, ADDRESS_THREE])).to.be.revertedWithCustomError(
         shoyuBashi,
         "NoAdaptersEnabled",
       )
     })
-    it("Reverts if no oracle adapters are given", async function () {
+    it("Reverts if no adapters are given", async function () {
       const { shoyuBashi } = await setup()
-      await shoyuBashi.enableOracleAdapters(DOMAIN_ID, [ADDRESS_TWO])
+      await shoyuBashi.enableAdapters(DOMAIN_ID, [ADDRESS_TWO], 2)
       await expect(shoyuBashi.getHash(DOMAIN_ID, 1, [])).to.be.revertedWithCustomError(shoyuBashi, "NoAdaptersGiven")
     })
     it("Returns unanimous agreed on hash", async function () {
-      const { shoyuBashi, mockOracleAdapter, anotherOracleAdapter } = await setup()
-      await shoyuBashi.enableOracleAdapters(DOMAIN_ID, [mockOracleAdapter.address, anotherOracleAdapter.address])
+      const { shoyuBashi, mockAdapter, anotherAdapter } = await setup()
+      await shoyuBashi.enableAdapters(DOMAIN_ID, [mockAdapter.address, anotherAdapter.address], 2)
       let adapters
-      if (anotherOracleAdapter.address > mockOracleAdapter.address) {
-        adapters = [mockOracleAdapter.address, anotherOracleAdapter.address]
+      if (anotherAdapter.address > mockAdapter.address) {
+        adapters = [mockAdapter.address, anotherAdapter.address]
       } else {
-        adapters = [anotherOracleAdapter.address, mockOracleAdapter.address]
+        adapters = [anotherAdapter.address, mockAdapter.address]
       }
       expect(await shoyuBashi.getHash(DOMAIN_ID, 1, adapters)).to.equal(HASH_GOOD)
     })

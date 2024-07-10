@@ -1,37 +1,17 @@
 // SPDX-License-Identifier: LGPL-3.0-only
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.20;
 
-import { Hashi, IOracleAdapter } from "../Hashi.sol";
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import { Domain } from "../interfaces/IDomain.sol";
+import { IAdapter } from "../interfaces/IAdapter.sol";
+import { IHashi } from "../interfaces/IHashi.sol";
+import { IShuSho } from "../interfaces/IShuSho.sol";
 
-struct Link {
-    IOracleAdapter previous;
-    IOracleAdapter next;
-}
+abstract contract ShuSo is IShuSho, OwnableUpgradeable {
+    IAdapter internal constant LIST_END = IAdapter(address(0x1));
 
-abstract contract ShuSo is OwnableUpgradeable {
-    IOracleAdapter internal constant LIST_END = IOracleAdapter(address(0x1));
-
-    Hashi public hashi;
-    mapping(uint256 => mapping(IOracleAdapter => Link)) public adapters;
-    mapping(uint256 => Domain) public domains;
-
-    event HashiSet(address indexed emitter, Hashi indexed hashi);
-    event Init(address indexed emitter, address indexed owner, Hashi indexed hashi);
-    event OracleAdaptersEnabled(address indexed emitter, uint256 indexed domain, IOracleAdapter[] adapters);
-    event OracleAdaptersDisabled(address indexed emitter, uint256 indexed domain, IOracleAdapter[] adapters);
-    event ThresholdSet(address indexed emitter, uint256 domain, uint256 threshold);
-
-    error AdapterNotEnabled(address emitter, IOracleAdapter adapter);
-    error AdapterAlreadyEnabled(address emitter, IOracleAdapter adapter);
-    error DuplicateHashiAddress(address emitter, Hashi hashi);
-    error DuplicateOrOutOfOrderAdapters(address emitter, IOracleAdapter adapterOne, IOracleAdapter adapterTwo);
-    error DuplicateThreashold(address emitter, uint256 threshold);
-    error InvalidAdapter(address emitter, IOracleAdapter adapter);
-    error NoAdaptersEnabled(address emitter, uint256 domain);
-    error NoAdaptersGiven(address emitter);
-    error ThresholdNotMet(address emitter);
+    IHashi public hashi;
+    mapping(uint256 => mapping(IAdapter => Link)) private _adapters;
+    mapping(uint256 => Domain) private _domains;
 
     constructor(address _owner, address _hashi) {
         bytes memory initParams = abi.encode(_owner, _hashi);
@@ -39,194 +19,208 @@ abstract contract ShuSo is OwnableUpgradeable {
     }
 
     function init(bytes memory initParams) public initializer {
-        (address _owner, Hashi _hashi) = abi.decode(initParams, (address, Hashi));
+        (address _owner, IHashi _hashi) = abi.decode(initParams, (address, IHashi));
         __Ownable_init();
-        setHashi(_hashi);
+        _setHashi(_hashi);
         transferOwnership(_owner);
-        emit Init(address(this), _owner, _hashi);
+        emit Init(_owner, _hashi);
     }
 
-    function setHashi(Hashi _hashi) public virtual;
-
-    /// @dev Sets the address of the Hashi contract.
-    /// @param _hashi Address of the hashi contract.
-    /// @notice Only callable by the owner of this contract.
-    function _setHashi(Hashi _hashi) internal onlyOwner {
-        if (hashi == _hashi) revert DuplicateHashiAddress(address(this), _hashi);
-        hashi = _hashi;
-        emit HashiSet(address(this), hashi);
-    }
-
-    /// @dev Sets the threshold of adapters required for a given domain.
-    /// @param domain Uint256 identifier for the domain for which to set the threshold.
-    /// @param threshold Uint256 threshold to set for the given domain.
-    /// @notice Only callable by the owner of this contract.
-    /// @notice Reverts if threshold is already set to the given value.
-    function _setThreshold(uint256 domain, uint256 threshold) internal onlyOwner {
-        if (domains[domain].threshold == threshold) revert DuplicateThreashold(address(this), threshold);
-        domains[domain].threshold = threshold;
-        emit ThresholdSet(address(this), domain, threshold);
-    }
-
-    /// @dev Enables the given adapters for a given domain.
-    /// @param domain Uint256 identifier for the domain for which to set oracle adapters.
-    /// @param _adapters Array of oracleAdapter addresses.
-    /// @notice Reverts if _adapters are out of order or contain duplicates.
-    /// @notice Only callable by the owner of this contract.
-    function _enableOracleAdapters(uint256 domain, IOracleAdapter[] memory _adapters) internal onlyOwner {
-        if (adapters[domain][LIST_END].next == IOracleAdapter(address(0))) {
-            adapters[domain][LIST_END].next = LIST_END;
-            adapters[domain][LIST_END].previous = LIST_END;
+    /// @inheritdoc IShuSho
+    function checkAdapterOrderAndValidity(uint256 domain, IAdapter[] memory adapters) public view {
+        for (uint256 i = 0; i < adapters.length; i++) {
+            IAdapter adapter = adapters[i];
+            if (i > 0 && adapter <= adapters[i - 1]) revert DuplicateOrOutOfOrderAdapters(adapter, adapters[i - 1]);
+            if (_adapters[domain][adapter].next == IAdapter(address(0))) revert InvalidAdapter(adapter);
         }
-        if (_adapters.length == 0) revert NoAdaptersGiven(address(this));
-        for (uint256 i = 0; i < _adapters.length; i++) {
-            IOracleAdapter adapter = _adapters[i];
-            if (adapter == IOracleAdapter(address(0)) || adapter == LIST_END)
-                revert InvalidAdapter(address(this), adapter);
-            if (adapters[domain][adapter].next != IOracleAdapter(address(0)))
-                revert AdapterAlreadyEnabled(address(this), adapter);
-            IOracleAdapter previous = adapters[domain][LIST_END].previous;
-            adapters[domain][previous].next = adapter;
-            adapters[domain][adapter].previous = previous;
-            adapters[domain][LIST_END].previous = adapter;
-            adapters[domain][adapter].next = LIST_END;
-            domains[domain].count++;
-        }
-        emit OracleAdaptersEnabled(address(this), domain, _adapters);
     }
 
-    /// @dev Disables the given adapters for a given domain.
-    /// @param domain Uint256 identifier for the domain for which to set oracle adapters.
-    /// @param _adapters Array of oracleAdapter addresses.
-    /// @notice Reverts if _adapters are out of order or contain duplicates.
-    /// @notice Only callable by the owner of this contract.
-    function _disableOracleAdapters(uint256 domain, IOracleAdapter[] memory _adapters) internal onlyOwner {
-        if (domains[domain].count == 0) revert NoAdaptersEnabled(address(this), domain);
-        if (_adapters.length == 0) revert NoAdaptersGiven(address(this));
-        for (uint256 i = 0; i < _adapters.length; i++) {
-            IOracleAdapter adapter = _adapters[i];
-            if (adapter == IOracleAdapter(address(0)) || adapter == LIST_END)
-                revert InvalidAdapter(address(this), adapter);
-            Link memory current = adapters[domain][adapter];
-            if (current.next == IOracleAdapter(address(0))) revert AdapterNotEnabled(address(this), adapter);
-            IOracleAdapter next = current.next;
-            IOracleAdapter previous = current.previous;
-            adapters[domain][next].previous = previous;
-            adapters[domain][previous].next = next;
-            delete adapters[domain][adapter].next;
-            delete adapters[domain][adapter].previous;
-            domains[domain].count--;
-        }
-        emit OracleAdaptersDisabled(address(this), domain, _adapters);
+    /// @inheritdoc IShuSho
+    function getAdapterLink(uint256 domain, IAdapter adapter) external view returns (Link memory) {
+        return _adapters[domain][adapter];
     }
 
-    /// @dev Returns an array of enabled oracle adapters for a given domain.
-    /// @param domain Uint256 identifier for the domain for which to list oracle adapters.
-    function getOracleAdapters(uint256 domain) public view returns (IOracleAdapter[] memory) {
-        IOracleAdapter[] memory _adapters = new IOracleAdapter[](domains[domain].count);
-        IOracleAdapter currentAdapter = adapters[domain][LIST_END].next;
-        for (uint256 i = 0; i < _adapters.length; i++) {
-            _adapters[i] = currentAdapter;
-            currentAdapter = adapters[domain][currentAdapter].next;
+    /// @inheritdoc IShuSho
+    function getAdapters(uint256 domain) public view returns (IAdapter[] memory) {
+        IAdapter[] memory adapters = new IAdapter[](_domains[domain].count);
+        IAdapter currentAdapter = _adapters[domain][LIST_END].next;
+        for (uint256 i = 0; i < adapters.length; i++) {
+            adapters[i] = currentAdapter;
+            currentAdapter = _adapters[domain][currentAdapter].next;
         }
-        return _adapters;
+        return adapters;
     }
 
-    /// @dev Returns the threshold and count for a given domain
-    /// @param domain Uint256 identifier for the domain.
-    /// @return threshold Uint256 oracle threshold for the given domain.
-    /// @return count Uint256 oracle count for the given domain.
-    /// @notice If the threshold for a domain has not been set, or is explicitly set to 0, this function will return a
-    /// threshold equal to the oracle count for the given domain.
-    function getThresholdAndCount(uint256 domain) public view returns (uint256 threshold, uint256 count) {
-        threshold = domains[domain].threshold;
-        count = domains[domain].count;
+    /// @inheritdoc IShuSho
+    function getDomain(uint256 domain) external view returns (Domain memory) {
+        return _domains[domain];
+    }
+
+    /// @inheritdoc IShuSho
+    function getThresholdAndCount(uint256 domain_) public view returns (uint256, uint256) {
+        Domain storage domain = _domains[domain_];
+        uint256 threshold = domain.threshold;
+        uint256 count = domain.count;
         if (threshold == 0) threshold = count;
+        return (threshold, count);
     }
 
-    function checkAdapterOrderAndValidity(uint256 domain, IOracleAdapter[] memory _adapters) public view {
-        for (uint256 i = 0; i < _adapters.length; i++) {
-            IOracleAdapter adapter = _adapters[i];
-            if (i > 0 && adapter <= _adapters[i - 1])
-                revert DuplicateOrOutOfOrderAdapters(address(this), adapter, _adapters[i - 1]);
-            if (adapters[domain][adapter].next == IOracleAdapter(address(0)))
-                revert InvalidAdapter(address(this), adapter);
+    /**
+     * @dev Disables the given adapters for a given domain.
+     * @param domain - Uint256 identifier for the domain for which to set adapters.
+     * @param adapters - Array of adapter addresses.
+     * @notice Reverts if adapters are out of order or contain duplicates.
+     * @notice Only callable by the owner of this contract.
+     */
+    function _disableAdapters(uint256 domain, IAdapter[] memory adapters) internal onlyOwner {
+        if (_domains[domain].count == 0) revert NoAdaptersEnabled(domain);
+        if (adapters.length == 0) revert NoAdaptersGiven();
+        for (uint256 i = 0; i < adapters.length; i++) {
+            IAdapter adapter = adapters[i];
+            if (adapter == IAdapter(address(0)) || adapter == LIST_END) revert InvalidAdapter(adapter);
+            Link memory current = _adapters[domain][adapter];
+            if (current.next == IAdapter(address(0))) revert AdapterNotEnabled(adapter);
+            IAdapter next = current.next;
+            IAdapter previous = current.previous;
+            _adapters[domain][next].previous = previous;
+            _adapters[domain][previous].next = next;
+            delete _adapters[domain][adapter].next;
+            delete _adapters[domain][adapter].previous;
+            _domains[domain].count--;
         }
+        emit AdaptersDisabled(domain, adapters);
     }
 
-    /// @dev Returns the hash unanimously agreed upon by ALL of the enabled oraclesAdapters.
-    /// @param domain Uint256 identifier for the domain to query.
-    /// @param id Uint256 identifier to query.
-    /// @return hash Bytes32 hash agreed upon by the oracles for the given domain.
-    /// @notice Reverts if oracles disagree.
-    /// @notice Reverts if oracles have not yet reported the hash for the given ID.
-    /// @notice Reverts if no oracles are set for the given domain.
-    function _getUnanimousHash(uint256 domain, uint256 id) internal view returns (bytes32 hash) {
-        IOracleAdapter[] memory _adapters = getOracleAdapters(domain);
+    /**
+     * @dev Enables the given adapters for a given domain.
+     * @param domain - Uint256 identifier for the domain for which to set adapters.
+     * @param adapters - Array of adapter addresses.
+     * @param threshold - Uint256 threshold to set for the given domain.
+     * @notice Reverts if adapters are out of order, contain duplicates or if the threshold is not higher than half the count of the adapters
+     * @notice Only callable by the owner of this contract.
+     */
+    function _enableAdapters(uint256 domain, IAdapter[] memory adapters, uint256 threshold) internal onlyOwner {
+        if (_adapters[domain][LIST_END].next == IAdapter(address(0))) {
+            _adapters[domain][LIST_END].next = LIST_END;
+            _adapters[domain][LIST_END].previous = LIST_END;
+        }
+        if (adapters.length == 0) revert NoAdaptersGiven();
+        for (uint256 i = 0; i < adapters.length; i++) {
+            IAdapter adapter = adapters[i];
+            if (adapter == IAdapter(address(0)) || adapter == LIST_END) revert InvalidAdapter(adapter);
+            if (_adapters[domain][adapter].next != IAdapter(address(0))) revert AdapterAlreadyEnabled(adapter);
+            IAdapter previous = _adapters[domain][LIST_END].previous;
+            _adapters[domain][previous].next = adapter;
+            _adapters[domain][adapter].previous = previous;
+            _adapters[domain][LIST_END].previous = adapter;
+            _adapters[domain][adapter].next = LIST_END;
+            _domains[domain].count++;
+        }
+        if (threshold < (_domains[domain].count / 2) + 1) revert InvalidThreshold(threshold);
+        _domains[domain].threshold = threshold;
+        emit ThresholdSet(domain, threshold);
+        emit AdaptersEnabled(domain, adapters);
+    }
+
+    /**
+     * @dev Returns the hash unanimously agreed upon by all of the given adapters.
+     * @param domain - Uint256 identifier for the domain to query.
+     * @param id - Uint256 identifier to query.
+     * @param adapters - Array of adapter addresses to query.
+     * @return hash - Bytes32 hash agreed upon by the adapters for the given domain.
+     * @notice adapters must be in numerical order from smallest to largest and contain no duplicates.
+     * @notice Reverts if adapters are out of order or contain duplicates.
+     * @notice Reverts if adapters disagree.
+     * @notice Revert if the adapters do not yet have the hash for the given ID.
+     * @notice Reverts if no adapters are set for the given domain.
+     */
+    function _getHash(uint256 domain, uint256 id, IAdapter[] memory adapters) internal view returns (bytes32) {
         (uint256 threshold, uint256 count) = getThresholdAndCount(domain);
-        if (count == 0) revert NoAdaptersEnabled(address(this), domain);
-        if (_adapters.length < threshold) revert ThresholdNotMet(address(this));
-        hash = hashi.getHash(domain, id, _adapters);
+        if (adapters.length == 0) revert NoAdaptersGiven();
+        if (count == 0) revert NoAdaptersEnabled(domain);
+        if (adapters.length < threshold) revert ThresholdNotMet();
+        checkAdapterOrderAndValidity(domain, adapters);
+        return hashi.getHash(domain, id, adapters);
     }
 
-    /// @dev Returns the hash agreed upon by a threshold of the enabled oraclesAdapters.
-    /// @param domain Uint256 identifier for the domain to query.
-    /// @param id Uint256 identifier to query.
-    /// @return hash Bytes32 hash agreed upon by a threshold of the oracles for the given domain.
-    /// @notice Reverts if no threshold is not reached.
-    /// @notice Reverts if no oracles are set for the given domain.
+    /**
+     * @dev Returns the hash agreed upon by a threshold of the enabled adapters.
+     * @param domain - Uint256 identifier for the domain to query.
+     * @param id - Uint256 identifier to query.
+     * @return hash - Bytes32 hash agreed upon by a threshold of the adapters for the given domain.
+     * @notice If the threshold is set to 1, the function will return the hash of the first adapter in the list.
+     * @notice Reverts if no threshold is not reached.
+     * @notice Reverts if no adapters are set for the given domain.
+     */
     function _getThresholdHash(uint256 domain, uint256 id) internal view returns (bytes32 hash) {
-        IOracleAdapter[] memory _adapters = getOracleAdapters(domain);
+        IAdapter[] memory adapters = getAdapters(domain);
         (uint256 threshold, uint256 count) = getThresholdAndCount(domain);
-        if (count == 0) revert NoAdaptersEnabled(address(this), domain);
-        if (_adapters.length < threshold) revert ThresholdNotMet(address(this));
+        if (count == 0) revert NoAdaptersEnabled(domain);
+        if (adapters.length < threshold) revert ThresholdNotMet();
 
-        // get hashes
-        bytes32[] memory hashes = new bytes32[](_adapters.length);
-        for (uint i = 0; i < _adapters.length; i++) {
-            try _adapters[i].getHashFromOracle(domain, id) returns (bytes32 currentHash) {
-                hashes[i] = currentHash;
-            } catch {}
+        bytes32[] memory hashes = new bytes32[](adapters.length);
+        for (uint256 i = 0; i < adapters.length; i++) {
+            hashes[i] = adapters[i].getHash(domain, id);
         }
 
-        // find a hash agreed on by a threshold of oracles
-        for (uint i = 0; i < hashes.length; i++) {
+        for (uint256 i = 0; i < hashes.length; i++) {
+            if (i > hashes.length - threshold) break;
+
             bytes32 baseHash = hashes[i];
             if (baseHash == bytes32(0)) continue;
 
-            // increment num for each instance of the curent hash
-            uint256 num = 1;
-            for (uint j = 0; j < hashes.length; j++) {
-                if (baseHash == hashes[j] && i != j) {
+            uint256 num = 0;
+            for (uint256 j = i; j < hashes.length; j++) {
+                if (baseHash == hashes[j]) {
                     num++;
-                    // return current hash if num equals threshold
                     if (num == threshold) return hashes[i];
                 }
             }
         }
-        revert ThresholdNotMet(address(this));
+        revert ThresholdNotMet();
     }
 
-    /// @dev Returns the hash unanimously agreed upon by all of the given oraclesAdapters..
-    /// @param domain Uint256 identifier for the domain to query.
-    /// @param _adapters Array of oracle adapter addresses to query.
-    /// @param id Uint256 identifier to query.
-    /// @return hash Bytes32 hash agreed upon by the oracles for the given domain.
-    /// @notice _adapters must be in numberical order from smallest to largest and contain no duplicates.
-    /// @notice Reverts if _adapters are out of order or contain duplicates.
-    /// @notice Reverts if oracles disagree.
-    /// @notice Reverts if oracles have not yet reported the hash for the given ID.
-    /// @notice Reverts if no oracles are set for the given domain.
-    function _getHash(
-        uint256 domain,
-        uint256 id,
-        IOracleAdapter[] memory _adapters
-    ) internal view returns (bytes32 hash) {
+    /**
+     * @dev Returns the hash unanimously agreed upon by ALL of the enabled adapters.
+     * @param domain - Uint256 identifier for the domain to query.
+     * @param id - Uint256 identifier to query.
+     * @return hash - Bytes32 hash agreed upon by the adapters for the given domain.
+     * @notice Reverts if adapters disagree.
+     * @notice Revert if the adapters do not yet have the hash for the given ID.
+     * @notice Reverts if no adapters are set for the given domain.
+     */
+    function _getUnanimousHash(uint256 domain, uint256 id) internal view returns (bytes32 hash) {
+        IAdapter[] memory adapters = getAdapters(domain);
         (uint256 threshold, uint256 count) = getThresholdAndCount(domain);
-        if (_adapters.length == 0) revert NoAdaptersGiven(address(this));
-        if (count == 0) revert NoAdaptersEnabled(address(this), domain);
-        if (_adapters.length < threshold) revert ThresholdNotMet(address(this));
-        checkAdapterOrderAndValidity(domain, _adapters);
-        hash = hashi.getHash(domain, id, _adapters);
+        if (count == 0) revert NoAdaptersEnabled(domain);
+        if (adapters.length < threshold) revert ThresholdNotMet();
+        return hashi.getHash(domain, id, adapters);
+    }
+
+    /**
+     * @dev Sets the address of the IHashi contract.
+     * @param _hashi - Address of the hashi contract.
+     * @notice Only callable by the owner of this contract.
+     */
+    function _setHashi(IHashi _hashi) internal onlyOwner {
+        if (hashi == _hashi) revert DuplicateHashiAddress(_hashi);
+        hashi = _hashi;
+        emit HashiSet(hashi);
+    }
+
+    /**
+     * @dev Sets the threshold of adapters required for a given domain.
+     * @param domain - Uint256 identifier for the domain for which to set the threshold.
+     * @param threshold - Uint256 threshold to set for the given domain.
+     * @notice Only callable by the owner of this contract.
+     * @notice Reverts if threshold is already set to the given value.
+     */
+    function _setThreshold(uint256 domain, uint256 threshold) internal onlyOwner {
+        uint256 count = _domains[domain].count;
+        if (count == 0) revert CountCannotBeZero();
+        if (threshold < (count / 2) + 1) revert InvalidThreshold(threshold);
+        if (_domains[domain].threshold == threshold) revert DuplicateThreshold(threshold);
+        _domains[domain].threshold = threshold;
+        emit ThresholdSet(domain, threshold);
     }
 }

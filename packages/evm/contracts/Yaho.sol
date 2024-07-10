@@ -1,72 +1,212 @@
 // SPDX-License-Identifier: LGPL-3.0-only
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.20;
 
-import { IMessageRelay } from "./interfaces/IMessageRelay.sol";
-import { Message } from "./interfaces/IMessageDispatcher.sol";
-import { IYaho } from "./interfaces/IYaho.sol";
+import { MessageIdCalculator } from "./utils/MessageIdCalculator.sol";
 import { MessageHashCalculator } from "./utils/MessageHashCalculator.sol";
+import { IYaho } from "./interfaces/IYaho.sol";
+import { IReporter } from "./interfaces/IReporter.sol";
+import { Message } from "./interfaces/IMessage.sol";
+import { IAdapter } from "./interfaces/IAdapter.sol";
 
-contract Yaho is IYaho, MessageHashCalculator {
-    mapping(uint256 => bytes32) public hashes;
-    uint256 private count;
+contract Yaho is IYaho, MessageIdCalculator, MessageHashCalculator {
+    mapping(uint256 => bytes32) private _pendingMessageHashes;
+    uint256 public currentNonce;
 
-    /// @dev Dispatches a batch of messages, putting their into storage and emitting their contents as an event.
-    /// @param messages An array of Messages to be dispatched.
-    /// @return messageIds An array of message IDs corresponding to the dispatched messages.
-    function dispatchMessages(Message[] memory messages) public payable returns (bytes32[] memory) {
-        if (messages.length == 0) revert NoMessagesGiven(address(this));
-        bytes32[] memory messageIds = new bytes32[](messages.length);
-        for (uint256 i = 0; i < messages.length; i++) {
-            uint256 id = count;
-            hashes[id] = calculateHash(block.chainid, id, address(this), msg.sender, messages[i]);
-            messageIds[i] = bytes32(id);
-            emit MessageDispatched(bytes32(id), msg.sender, messages[i].toChainId, messages[i].to, messages[i].data);
-            count++;
-        }
-        return messageIds;
+    /// @inheritdoc IYaho
+    function dispatchMessage(
+        uint256 targetChainId,
+        uint256 threshold,
+        address receiver,
+        bytes calldata data,
+        IReporter[] calldata reporters,
+        IAdapter[] calldata adapters
+    ) external returns (uint256) {
+        _checkReportersAndAdapters(threshold, reporters, adapters);
+        (uint256 messageId, bytes32 messageHash) = _dispatchMessage(
+            targetChainId,
+            threshold,
+            receiver,
+            data,
+            reporters,
+            adapters
+        );
+        _pendingMessageHashes[messageId] = messageHash;
+        return messageId;
     }
 
-    /// @dev Relays hashes of the given messageIds to the given adapters.
-    /// @param messageIds Array of IDs of the message hashes to relay to the given adapters.
-    /// @param adapters Array of relay adapter addresses to which hashes should be relayed.
-    /// @param destinationAdapters Array of oracle adapter addresses to receive hashes.
-    /// @return adapterReciepts Reciepts from each of the relay adapters.
-    function relayMessagesToAdapters(
-        uint256[] memory messageIds,
-        address[] memory adapters,
-        address[] memory destinationAdapters
-    ) external payable returns (bytes32[] memory) {
-        if (messageIds.length == 0) revert NoMessageIdsGiven(address(this));
-        if (adapters.length == 0) revert NoAdaptersGiven(address(this));
-        if (adapters.length != destinationAdapters.length) revert UnequalArrayLengths(address(this));
-        bytes32[] memory adapterReciepts = new bytes32[](adapters.length);
-        for (uint256 i = 0; i < adapters.length; i++) {
-            adapterReciepts[i] = IMessageRelay(adapters[i]).relayMessages(messageIds, destinationAdapters[i]);
-        }
-        return adapterReciepts;
+    /// @inheritdoc IYaho
+    function dispatchMessageToAdapters(
+        uint256 targetChainId,
+        uint256 threshold,
+        address receiver,
+        bytes calldata data,
+        IReporter[] calldata reporters,
+        IAdapter[] calldata adapters
+    ) external payable returns (uint256, bytes32[] memory) {
+        _checkReportersAndAdapters(threshold, reporters, adapters);
+        (uint256 messageId, bytes32 messageHash) = _dispatchMessage(
+            targetChainId,
+            threshold,
+            receiver,
+            data,
+            reporters,
+            adapters
+        );
+        bytes32[] memory reportersReceipts = _dispatchMessageToAdapters(
+            targetChainId,
+            messageId,
+            messageHash,
+            reporters,
+            adapters
+        );
+        return (messageId, reportersReceipts);
     }
 
-    /// @dev Dispatches an array of messages and relays their hashes to an array of relay adapters.
-    /// @param messages An array of Messages to be dispatched.
-    /// @param adapters Array of relay adapter addresses to which hashes should be relayed.
-    /// @param destinationAdapters Array of oracle adapter addresses to receive hashes.
-    /// @return messageIds An array of message IDs corresponding to the dispatched messages.
-    /// @return adapterReciepts Reciepts from each of the relay adapters.
+    /// @inheritdoc IYaho
     function dispatchMessagesToAdapters(
-        Message[] memory messages,
-        address[] memory adapters,
-        address[] memory destinationAdapters
-    ) external payable returns (bytes32[] memory messageIds, bytes32[] memory) {
-        if (adapters.length == 0) revert NoAdaptersGiven(address(this));
-        messageIds = dispatchMessages(messages);
-        uint256[] memory uintIds = new uint256[](messageIds.length);
-        for (uint256 i = 0; i < messageIds.length; i++) {
-            uintIds[i] = uint256(messageIds[i]);
+        uint256 targetChainId,
+        uint256[] calldata thresholds,
+        address[] calldata receivers,
+        bytes[] calldata data,
+        IReporter[] calldata reporters,
+        IAdapter[] calldata adapters
+    ) external payable returns (uint256[] memory, bytes32[] memory) {
+        if (thresholds.length != receivers.length) revert UnequalArrayLengths(thresholds.length, receivers.length);
+        if (thresholds.length != data.length) revert UnequalArrayLengths(thresholds.length, data.length);
+
+        uint256[] memory messageIds = new uint256[](receivers.length);
+        bytes32[] memory messageHashes = new bytes32[](receivers.length);
+        for (uint256 i = 0; i < receivers.length; ) {
+            _checkReportersAndAdapters(thresholds[i], reporters, adapters);
+            (messageIds[i], messageHashes[i]) = _dispatchMessage(
+                targetChainId,
+                thresholds[i],
+                receivers[i],
+                data[i],
+                reporters,
+                adapters
+            );
+            unchecked {
+                ++i;
+            }
         }
-        bytes32[] memory adapterReciepts = new bytes32[](adapters.length);
-        for (uint256 i = 0; i < adapters.length; i++) {
-            adapterReciepts[i] = IMessageRelay(adapters[i]).relayMessages(uintIds, destinationAdapters[i]);
+
+        bytes32[] memory reportersReceipts = new bytes32[](reporters.length);
+        reportersReceipts = _dispatchMessagesToAdapters(targetChainId, messageIds, messageHashes, reporters, adapters);
+        return (messageIds, reportersReceipts);
+    }
+
+    /// @inheritdoc IYaho
+    function getPendingMessageHash(uint256 messageId) external view returns (bytes32) {
+        return _pendingMessageHashes[messageId];
+    }
+
+    /// @inheritdoc IYaho
+    function relayMessagesToAdapters(Message[] calldata messages) external payable returns (bytes32[] memory) {
+        if (messages.length == 0) revert NoMessagesGiven();
+
+        bytes32 expectedParams = keccak256(
+            abi.encode(messages[0].targetChainId, messages[0].reporters, messages[0].adapters)
+        );
+
+        bytes32[] memory messageHashes = new bytes32[](messages.length);
+        uint256[] memory messageIds = new uint256[](messages.length);
+        for (uint256 i = 0; i < messages.length; i++) {
+            Message memory message = messages[i];
+            if (
+                i > 0 &&
+                expectedParams != keccak256(abi.encode(message.targetChainId, message.reporters, message.adapters))
+            ) revert InvalidMessage(message);
+            uint256 messageId = calculateMessageId(block.chainid, address(this), calculateMessageHash(message));
+            bytes32 messageHash = _pendingMessageHashes[messageId];
+            if (messageHash == bytes32(0)) revert MessageHashNotFound(messageId);
+            messageHashes[i] = messageHash;
+            messageIds[i] = messageId;
+            delete _pendingMessageHashes[messageId];
         }
-        return (messageIds, adapterReciepts);
+
+        return
+            _dispatchMessagesToAdapters(
+                messages[0].targetChainId,
+                messageIds,
+                messageHashes,
+                messages[0].reporters,
+                messages[0].adapters
+            );
+    }
+
+    function _checkReportersAndAdapters(
+        uint256 threshold,
+        IReporter[] calldata reporters,
+        IAdapter[] calldata adapters
+    ) internal pure {
+        if (reporters.length == 0) revert NoReportersGiven();
+        if (adapters.length == 0) revert NoAdaptersGiven();
+        if (reporters.length != adapters.length) revert UnequalArrayLengths(reporters.length, adapters.length);
+        if (threshold > reporters.length || threshold == 0) revert InvalidThreshold(threshold, reporters.length);
+    }
+
+    function _dispatchMessage(
+        uint256 targetChainId,
+        uint256 threshold,
+        address receiver,
+        bytes calldata data,
+        IReporter[] calldata reporters,
+        IAdapter[] calldata adapters
+    ) internal returns (uint256, bytes32) {
+        address sender = msg.sender;
+        Message memory message = Message(
+            currentNonce,
+            targetChainId,
+            threshold,
+            sender,
+            receiver,
+            data,
+            reporters,
+            adapters
+        );
+        bytes32 messageHash = calculateMessageHash(message);
+        uint256 messageId = calculateMessageId(block.chainid, address(this), messageHash);
+        unchecked {
+            ++currentNonce;
+        }
+        emit MessageDispatched(messageId, message);
+        return (messageId, messageHash);
+    }
+
+    function _dispatchMessageToAdapters(
+        uint256 targetChainId,
+        uint256 messageId,
+        bytes32 messageHash,
+        IReporter[] memory reporters,
+        IAdapter[] memory adapters
+    ) internal returns (bytes32[] memory) {
+        uint256[] memory messageIds = new uint256[](1);
+        bytes32[] memory messageHashes = new bytes32[](1);
+        messageIds[0] = messageId;
+        messageHashes[0] = messageHash;
+        return _dispatchMessagesToAdapters(targetChainId, messageIds, messageHashes, reporters, adapters);
+    }
+
+    function _dispatchMessagesToAdapters(
+        uint256 targetChainId,
+        uint256[] memory messageIds,
+        bytes32[] memory messageHashes,
+        IReporter[] memory reporters,
+        IAdapter[] memory adapters
+    ) internal returns (bytes32[] memory) {
+        bytes32[] memory reportersReceipts = new bytes32[](reporters.length);
+
+        for (uint256 i = 0; i < reporters.length; ) {
+            IReporter reporter = reporters[i];
+            if (address(reporter) != address(0)) {
+                reportersReceipts[i] = reporter.dispatchMessages(targetChainId, adapters[i], messageIds, messageHashes);
+            }
+            unchecked {
+                ++i;
+            }
+        }
+
+        return reportersReceipts;
     }
 }

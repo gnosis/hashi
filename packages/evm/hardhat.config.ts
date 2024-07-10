@@ -1,3 +1,4 @@
+import "@nomicfoundation/hardhat-chai-matchers"
 import "@nomicfoundation/hardhat-toolbox"
 import { config as dotenvConfig } from "dotenv"
 import "hardhat-change-network"
@@ -12,9 +13,9 @@ const dotenvConfigPath: string = process.env.DOTENV_CONFIG_PATH || "./.env"
 dotenvConfig({ path: resolve(__dirname, dotenvConfigPath) })
 
 // Ensure that we have all the environment variables we need.
-const mnemonic: string | undefined = process.env.MNEMONIC
-if (!mnemonic) {
-  throw new Error("Please set your MNEMONIC in a .env file")
+const privateKey: string | undefined = process.env.PRIVATE_KEY
+if (!privateKey) {
+  throw new Error("Please set your PRIVATE_KEY in a .env file")
 }
 
 const infuraApiKey: string | undefined = process.env.INFURA_API_KEY
@@ -62,11 +63,7 @@ function getChainConfig(chain: keyof typeof chainIds): NetworkUserConfig {
   }
 
   return {
-    accounts: {
-      count: 10,
-      mnemonic,
-      path: "m/44'/60'/0'/0",
-    },
+    accounts: [privateKey as string],
     chainId: chainIds[chain],
     url: jsonRpcUrl,
   }
@@ -79,6 +76,7 @@ const config: HardhatUserConfig = {
       arbitrumOne: process.env.ARBISCAN_API_KEY || "",
       avalanche: process.env.SNOWTRACE_API_KEY || "",
       bsc: process.env.BSCSCAN_API_KEY || "",
+      chiado: process.env.CHIADO_BLOCKSCOUT_API_KEY || "",
       gnosis: process.env.GNOSISSCAN_API_KEY || "",
       goerli: process.env.ETHERSCAN_API_KEY || "",
       mainnet: process.env.ETHERSCAN_API_KEY || "",
@@ -87,6 +85,16 @@ const config: HardhatUserConfig = {
       polygonMumbai: process.env.POLYGONSCAN_API_KEY || "",
       sepolia: process.env.ETHERSCAN_API_KEY || "",
     },
+    customChains: [
+      {
+        network: "chiado",
+        chainId: 10200,
+        urls: {
+          apiURL: "https://gnosis-chiado.blockscout.com/api",
+          browserURL: "https://gnosis-chiado.blockscout.com/",
+        },
+      },
+    ],
   },
   gasReporter: {
     currency: "USD",
@@ -95,18 +103,7 @@ const config: HardhatUserConfig = {
     src: "./contracts",
   },
   networks: {
-    hardhat: {
-      accounts: {
-        accountsBalance: "1000000000000000000000",
-      },
-      // Used for testing axiom
-      // forking: {
-      //   url: getChainConfig("mainnet").url,
-      //   // block number of attestation block
-      //   blockNumber: 10000000,
-      // },
-      chainId: chainIds.hardhat,
-    },
+    hardhat: {},
     arbitrum: getChainConfig("arbitrum-mainnet"),
     avalanche: getChainConfig("avalanche"),
     bsc: getChainConfig("bsc"),
@@ -124,21 +121,14 @@ const config: HardhatUserConfig = {
     cache: "./cache",
     sources: "./contracts",
     tests: "./test",
-    // tests: "./test_axiom",
   },
   solidity: {
-    version: "0.8.17",
+    version: "0.8.20",
     settings: {
-      metadata: {
-        // Not including the metadata hash
-        // https://github.com/paulrberg/hardhat-template/issues/31
-        bytecodeHash: "none",
-      },
-      // Disable the optimizer when debugging
-      // https://hardhat.org/hardhat-network/#solidity-optimizer-support
+      viaIR: true,
       optimizer: {
         enabled: true,
-        runs: 800,
+        runs: 10000,
       },
     },
   },

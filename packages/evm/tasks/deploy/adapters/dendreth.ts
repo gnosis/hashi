@@ -7,6 +7,7 @@ import type { DendrETHAdapter__factory } from "../../../types/factories/contract
 import { verify } from "../index"
 
 task("deploy:adapter:DendrETHAdapter")
+  .addParam("sourceChainId", "Source chain id")
   .addParam("dendreth", "address of the DendrETH contract")
   .setAction(async function (taskArguments: TaskArguments, hre) {
     console.log("Deploying DendrETHAdapter...")
@@ -14,7 +15,7 @@ task("deploy:adapter:DendrETHAdapter")
     const dendrETHAdapterFactory: DendrETHAdapter__factory = <DendrETHAdapter__factory>(
       await hre.ethers.getContractFactory("DendrETHAdapter")
     )
-    const constructorArguments = [taskArguments.dendreth] as const
+    const constructorArguments = [taskArguments.sourceChainId, taskArguments.dendreth] as const
     const dendrETHAdapter: DendrETHAdapter = <DendrETHAdapter>(
       await dendrETHAdapterFactory.connect(signers[0]).deploy(...constructorArguments)
     )

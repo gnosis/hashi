@@ -10,21 +10,21 @@ const setup = async () => {
   const [wallet] = await ethers.getSigners()
   const Hashi = await ethers.getContractFactory("Hashi")
   const hashi = await Hashi.deploy()
-  const MockOracleAdapter = await ethers.getContractFactory("MockOracleAdapter")
-  const mockOracleAdapter = await MockOracleAdapter.deploy()
-  const badMockOracleAdapter = await MockOracleAdapter.deploy()
-  const nonReportingMockOracleAdapter = await MockOracleAdapter.deploy()
+  const MockAdapter = await ethers.getContractFactory("MockAdapter")
+  const mockAdapter = await MockAdapter.deploy()
+  const badMockAdapter = await MockAdapter.deploy()
+  const nonReportingMockAdapter = await MockAdapter.deploy()
 
-  await mockOracleAdapter.setHashes(DOMAIN_ID, [0, 1], [HASH_ZERO, HASH_GOOD])
-  await badMockOracleAdapter.setHashes(DOMAIN_ID, [0, 1], [HASH_BAD, HASH_BAD])
-  await nonReportingMockOracleAdapter.setHashes(DOMAIN_ID, [0, 1], [HASH_ZERO, HASH_ZERO])
+  await mockAdapter.setHashes(DOMAIN_ID, [0, 1], [HASH_ZERO, HASH_GOOD])
+  await badMockAdapter.setHashes(DOMAIN_ID, [0, 1], [HASH_BAD, HASH_BAD])
+  await nonReportingMockAdapter.setHashes(DOMAIN_ID, [0, 1], [HASH_ZERO, HASH_ZERO])
 
   return {
     wallet,
     hashi,
-    mockOracleAdapter,
-    badMockOracleAdapter,
-    nonReportingMockOracleAdapter,
+    mockAdapter,
+    badMockAdapter,
+    nonReportingMockAdapter,
   }
 }
 
@@ -36,72 +36,104 @@ describe("Hashi", function () {
     })
   })
 
-  describe("getHashFromOracle()", function () {
+  describe("getHashFromAdapter()", function () {
     it("Returns correct hash", async function () {
-      const { hashi, mockOracleAdapter } = await setup()
-      expect(await hashi.getHashFromOracle(mockOracleAdapter.address, DOMAIN_ID, 0)).to.equal(HASH_ZERO)
-      expect(await hashi.getHashFromOracle(mockOracleAdapter.address, DOMAIN_ID, 1)).to.equal(HASH_GOOD)
+      const { hashi, mockAdapter } = await setup()
+      expect(await hashi.getHashFromAdapter(DOMAIN_ID, 0, mockAdapter.address)).to.equal(HASH_ZERO)
+      expect(await hashi.getHashFromAdapter(DOMAIN_ID, 1, mockAdapter.address)).to.equal(HASH_GOOD)
     })
   })
 
-  describe("getHashesFromOracles()", function () {
-    it("Reverts if oracleAdapters length is zero", async function () {
+  describe("getHashesFromAdapters()", function () {
+    it("Reverts if adapters length is zero", async function () {
       const { hashi } = await setup()
-      await expect(hashi.getHashesFromOracles([], DOMAIN_ID, 1)).to.revertedWithCustomError(
-        hashi,
-        "NoOracleAdaptersGiven",
-      )
+      await expect(hashi.getHashesFromAdapters(DOMAIN_ID, 1, [])).to.revertedWithCustomError(hashi, "NoAdaptersGiven")
     })
-    it("Returns correct hashs from each oracle", async function () {
-      const { hashi, mockOracleAdapter, badMockOracleAdapter } = await setup()
-      const oracles = [mockOracleAdapter.address, badMockOracleAdapter.address]
-      const returnData = await hashi.getHashesFromOracles(oracles, DOMAIN_ID, 1)
+    it("Returns correct hashs from each adapter", async function () {
+      const { hashi, mockAdapter, badMockAdapter } = await setup()
+      const adapters = [mockAdapter.address, badMockAdapter.address]
+      const returnData = await hashi.getHashesFromAdapters(DOMAIN_ID, 1, adapters)
       expect(returnData[0]).to.equal(HASH_GOOD)
       expect(returnData[1]).to.equal(HASH_BAD)
     })
-    it("Returns Bytes(0) for non-reporting oracles", async function () {
-      const { hashi, mockOracleAdapter, nonReportingMockOracleAdapter } = await setup()
-      const oracles = [mockOracleAdapter.address, nonReportingMockOracleAdapter.address]
-      const returnData = await hashi.getHashesFromOracles(oracles, DOMAIN_ID, 1)
+    it("Returns Bytes(0) for non-reporting adapters", async function () {
+      const { hashi, mockAdapter, nonReportingMockAdapter } = await setup()
+      const adapters = [mockAdapter.address, nonReportingMockAdapter.address]
+      const returnData = await hashi.getHashesFromAdapters(DOMAIN_ID, 1, adapters)
       expect(returnData[0]).to.equal(HASH_GOOD)
       expect(returnData[1]).to.equal(HASH_ZERO)
     })
   })
 
   describe("getHash()", function () {
-    it("Reverts if oracleAdapters length is zero", async function () {
+    it("Reverts if adapters length is zero", async function () {
       const { hashi } = await setup()
-      await expect(hashi.getHash(DOMAIN_ID, 1, [])).to.revertedWithCustomError(hashi, "NoOracleAdaptersGiven")
+      await expect(hashi.getHash(DOMAIN_ID, 1, [])).to.revertedWithCustomError(hashi, "NoAdaptersGiven")
     })
-    it("Reverts if one of oracleAdapters is non-reporting", async function () {
-      const { hashi, mockOracleAdapter, nonReportingMockOracleAdapter } = await setup()
-      await expect(hashi.getHash(DOMAIN_ID, 1, [nonReportingMockOracleAdapter.address])).to.revertedWithCustomError(
+    it("Reverts if one of adapters is non-reporting", async function () {
+      const { hashi, mockAdapter, nonReportingMockAdapter } = await setup()
+      await expect(hashi.getHash(DOMAIN_ID, 1, [nonReportingMockAdapter.address])).to.revertedWithCustomError(
         hashi,
-        "OracleDidNotReport",
+        "HashNotAvailableInAdapter",
       )
       await expect(
-        hashi.getHash(DOMAIN_ID, 1, [mockOracleAdapter.address, nonReportingMockOracleAdapter.address]),
-      ).to.revertedWithCustomError(hashi, "OracleDidNotReport")
+        hashi.getHash(DOMAIN_ID, 1, [mockAdapter.address, nonReportingMockAdapter.address]),
+      ).to.revertedWithCustomError(hashi, "HashNotAvailableInAdapter")
     })
-    it("Reverts if oracleAdapters disagree", async function () {
-      const { hashi, mockOracleAdapter, badMockOracleAdapter } = await setup()
+    it("Reverts if adapters disagree", async function () {
+      const { hashi, mockAdapter, badMockAdapter } = await setup()
       await expect(
-        hashi.getHash(DOMAIN_ID, 1, [mockOracleAdapter.address, badMockOracleAdapter.address]),
-      ).to.revertedWithCustomError(hashi, "OraclesDisagree")
+        hashi.getHash(DOMAIN_ID, 1, [mockAdapter.address, badMockAdapter.address]),
+      ).to.revertedWithCustomError(hashi, "AdaptersDisagree")
     })
     it("Returns unanimously agreed on hash", async function () {
-      const { hashi, mockOracleAdapter } = await setup()
+      const { hashi, mockAdapter } = await setup()
       expect(
-        await hashi.getHash(DOMAIN_ID, 1, [
-          mockOracleAdapter.address,
-          mockOracleAdapter.address,
-          mockOracleAdapter.address,
-        ]),
+        await hashi.getHash(DOMAIN_ID, 1, [mockAdapter.address, mockAdapter.address, mockAdapter.address]),
       ).to.equal(HASH_GOOD)
     })
-    it("Returns hash for single oracle", async function () {
-      const { hashi, mockOracleAdapter } = await setup()
-      expect(await hashi.getHash(DOMAIN_ID, 1, [mockOracleAdapter.address])).to.equal(HASH_GOOD)
+    it("Returns hash for single adapter", async function () {
+      const { hashi, mockAdapter } = await setup()
+      expect(await hashi.getHash(DOMAIN_ID, 1, [mockAdapter.address])).to.equal(HASH_GOOD)
+    })
+  })
+
+  describe("checkHashWithThresholdFromAdapters()", function () {
+    it("should return false if the threshold is not reached", async () => {
+      const { hashi, mockAdapter, badMockAdapter, nonReportingMockAdapter } = await setup()
+      const id = 3
+      const threshold = 3
+      const adapters = [mockAdapter, badMockAdapter, nonReportingMockAdapter].map(({ address }) => address)
+      await mockAdapter.setHashes(DOMAIN_ID, [id], [HASH_GOOD])
+      expect(await hashi.checkHashWithThresholdFromAdapters(DOMAIN_ID, id, threshold, adapters)).to.be.eq(false)
+    })
+    it("should return true if the threshold is reached", async () => {
+      const { hashi, mockAdapter, badMockAdapter, nonReportingMockAdapter } = await setup()
+      const id = 3
+      const threshold = 3
+      const adapters = [mockAdapter, badMockAdapter, nonReportingMockAdapter].map(({ address }) => address)
+      await mockAdapter.setHashes(DOMAIN_ID, [id], [HASH_GOOD])
+      await badMockAdapter.setHashes(DOMAIN_ID, [id], [HASH_GOOD])
+      await nonReportingMockAdapter.setHashes(DOMAIN_ID, [id], [HASH_GOOD])
+      expect(await hashi.checkHashWithThresholdFromAdapters(DOMAIN_ID, id, threshold, adapters)).to.be.eq(true)
+    })
+    it("should revert if the threshold > adapters", async () => {
+      const { hashi, mockAdapter, badMockAdapter, nonReportingMockAdapter } = await setup()
+      const id = 3
+      const threshold = 4
+      const adapters = [mockAdapter, badMockAdapter, nonReportingMockAdapter].map(({ address }) => address)
+      await expect(hashi.checkHashWithThresholdFromAdapters(DOMAIN_ID, id, threshold, adapters))
+        .to.be.revertedWithCustomError(hashi, "InvalidThreshold")
+        .withArgs(threshold, adapters.length)
+    })
+    it("should revert if the threshold is 0", async () => {
+      const { hashi, mockAdapter, badMockAdapter, nonReportingMockAdapter } = await setup()
+      const id = 3
+      const threshold = 0
+      const adapters = [mockAdapter, badMockAdapter, nonReportingMockAdapter].map(({ address }) => address)
+      await expect(hashi.checkHashWithThresholdFromAdapters(DOMAIN_ID, id, threshold, adapters))
+        .to.be.revertedWithCustomError(hashi, "InvalidThreshold")
+        .withArgs(threshold, adapters.length)
     })
   })
 })
