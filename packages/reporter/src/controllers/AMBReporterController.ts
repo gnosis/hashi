@@ -5,16 +5,9 @@ import BaseController from "./BaseController.js"
 
 import { BaseControllerConfigs } from "./BaseController.js"
 
-interface AMBReporterControllerConfigs extends BaseControllerConfigs {
-  reportHeadersGas: number
-}
-
 class AMBReporterController extends BaseController {
-  private _reportHeadersGas: number
-
-  constructor(_configs: AMBReporterControllerConfigs) {
+  constructor(_configs: BaseControllerConfigs) {
     super(_configs, "AMBReporterController")
-    this._reportHeadersGas = _configs.reportHeadersGas
   }
 
   async onBlocks(_blockNumbers: bigint[]) {
@@ -32,8 +25,8 @@ class AMBReporterController extends BaseController {
         const { request } = await client.simulateContract({
           address: this.reporterAddress as `0x${string}`,
           abi: ABI,
-          functionName: "reportHeaders",
-          args: [[blockNumber], this.adapterAddresses[chain.name], this._reportHeadersGas],
+          functionName: "dispatchBlocks",
+          args: [chain.id, this.adapterAddresses[chain.name], [blockNumber]],
         })
 
         const txHash = await client.writeContract(request)

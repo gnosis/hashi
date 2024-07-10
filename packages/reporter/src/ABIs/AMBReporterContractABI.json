@@ -2,26 +2,79 @@
   {
     "inputs": [
       {
-        "internalType": "contract IAMB",
-        "name": "_amb",
+        "internalType": "address",
+        "name": "headerStorage",
         "type": "address"
       },
       {
-        "internalType": "contract HeaderStorage",
-        "name": "_headerStorage",
+        "internalType": "address",
+        "name": "yaho",
         "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "amb",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "targetChainId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "gas",
+        "type": "uint256"
       }
     ],
     "stateMutability": "nonpayable",
     "type": "constructor"
   },
   {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "chainId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "expectedChainId",
+        "type": "uint256"
+      }
+    ],
+    "name": "InvalidToChainId",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "sender",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "expectedYaho",
+        "type": "address"
+      }
+    ],
+    "name": "NotYaho",
+    "type": "error"
+  },
+  {
     "anonymous": false,
     "inputs": [
       {
         "indexed": true,
-        "internalType": "address",
-        "name": "emitter",
+        "internalType": "uint256",
+        "name": "targetChainId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "contract IAdapter",
+        "name": "adapter",
         "type": "address"
       },
       {
@@ -31,21 +84,52 @@
         "type": "uint256"
       },
       {
-        "indexed": true,
+        "indexed": false,
         "internalType": "bytes32",
         "name": "blockHeader",
         "type": "bytes32"
       }
     ],
-    "name": "HeaderReported",
+    "name": "BlockDispatched",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "targetChainId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "contract IAdapter",
+        "name": "adapter",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "messageId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes32",
+        "name": "messageHash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "MessageDispatched",
     "type": "event"
   },
   {
     "inputs": [],
-    "name": "amb",
+    "name": "AMB",
     "outputs": [
       {
-        "internalType": "contract IAMB",
+        "internalType": "address",
         "name": "",
         "type": "address"
       }
@@ -55,10 +139,62 @@
   },
   {
     "inputs": [],
-    "name": "headerStorage",
+    "name": "GAS",
     "outputs": [
       {
-        "internalType": "contract HeaderStorage",
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "HEADER_STORAGE",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "PROVIDER",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "TARGET_CHAIN_ID",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "YAHO",
+    "outputs": [
+      {
+        "internalType": "address",
         "name": "",
         "type": "address"
       }
@@ -69,30 +205,64 @@
   {
     "inputs": [
       {
-        "internalType": "uint256[]",
-        "name": "blockNumbers",
-        "type": "uint256[]"
+        "internalType": "uint256",
+        "name": "targetChainId",
+        "type": "uint256"
       },
       {
-        "internalType": "address",
-        "name": "ambAdapter",
+        "internalType": "contract IAdapter",
+        "name": "adapter",
         "type": "address"
       },
       {
-        "internalType": "uint256",
-        "name": "gas",
-        "type": "uint256"
+        "internalType": "uint256[]",
+        "name": "blockNumbers",
+        "type": "uint256[]"
       }
     ],
-    "name": "reportHeaders",
+    "name": "dispatchBlocks",
     "outputs": [
       {
         "internalType": "bytes32",
-        "name": "receipt",
+        "name": "",
         "type": "bytes32"
       }
     ],
-    "stateMutability": "nonpayable",
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "targetChainId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "contract IAdapter",
+        "name": "adapter",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "messageIds",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "bytes32[]",
+        "name": "messageHashes",
+        "type": "bytes32[]"
+      }
+    ],
+    "name": "dispatchMessages",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "payable",
     "type": "function"
   }
 ]

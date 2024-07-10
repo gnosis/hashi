@@ -53,7 +53,6 @@ const main = () => {
     adapterAddresses: {
       [gnosis.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.Gnosis?.AMBAdapter,
     },
-    reportHeadersGas: settings.reporterControllers.AMBReporterController.reportHeadersGas,
   })
 
   const sygmaReporterController = new SygmaReporterController({
@@ -68,7 +67,6 @@ const main = () => {
     adapterAddresses: {
       [gnosis.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.Gnosis?.SygmaAdapter,
     },
-    domainIds: settings.reporterControllers.SygmaReporterController.domainIds,
   })
 
   const telepathyReporterController = new TelepathyReporterController({

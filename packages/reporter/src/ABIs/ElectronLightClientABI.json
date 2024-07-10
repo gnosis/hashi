@@ -1,12 +1,18 @@
 [
   {
-    "inputs": [],
-    "name": "head",
-    "outputs": [
+    "inputs": [
       {
         "internalType": "uint256",
-        "name": "",
+        "name": "slot",
         "type": "uint256"
+      }
+    ],
+    "name": "headers",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
       }
     ],
     "stateMutability": "view",

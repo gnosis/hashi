@@ -8,6 +8,7 @@ import BaseController from "./BaseController.js"
 
 import { BaseControllerConfigs } from "./BaseController.js"
 
+// TODO: Update to comply with Hashi v0.2.0
 interface TelepathyReporterControllerConfigs extends BaseControllerConfigs {
   lightClientAddresses: { [chainName: string]: `0x${string}` }
   baseProofUrl: string

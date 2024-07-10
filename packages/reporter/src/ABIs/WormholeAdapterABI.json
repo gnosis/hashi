@@ -2,24 +2,9 @@
   {
     "inputs": [
       {
-        "internalType": "contract IWormhole",
-        "name": "wormhole_",
-        "type": "address"
-      },
-      {
         "internalType": "address",
-        "name": "reporter_",
+        "name": "wormhole",
         "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "sourceChainId_",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint16",
-        "name": "wormholeSourceChainId_",
-        "type": "uint16"
       }
     ],
     "stateMutability": "nonpayable",
@@ -34,7 +19,7 @@
       },
       {
         "internalType": "bytes32",
-        "name": "reportedBlockHash",
+        "name": "blockHash",
         "type": "bytes32"
       },
       {
@@ -64,27 +49,6 @@
   },
   {
     "inputs": [
-      {
-        "internalType": "address",
-        "name": "emitter",
-        "type": "address"
-      },
-      {
-        "internalType": "uint16",
-        "name": "chainId",
-        "type": "uint16"
-      }
-    ],
-    "name": "InvalidEmitterChainId",
-    "type": "error"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "emitter",
-        "type": "address"
-      },
       {
         "components": [
           {
@@ -179,19 +143,8 @@
     "type": "error"
   },
   {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "emitter",
-        "type": "address"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "reporter",
-        "type": "bytes32"
-      }
-    ],
-    "name": "InvalidReporter",
+    "inputs": [],
+    "name": "UnauthorizedWormholeReceive",
     "type": "error"
   },
   {
@@ -206,12 +159,107 @@
       {
         "indexed": true,
         "internalType": "bytes32",
-        "name": "hashes",
+        "name": "hash",
         "type": "bytes32"
       }
     ],
     "name": "HashStored",
     "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "previousOwner",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
+    "name": "OwnershipTransferred",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "chainId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint16",
+        "name": "endpointId",
+        "type": "uint16"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "reporter",
+        "type": "address"
+      }
+    ],
+    "name": "ReporterSet",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "WORMHOLE",
+    "outputs": [
+      {
+        "internalType": "contract IWormhole",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint32",
+        "name": "",
+        "type": "uint32"
+      }
+    ],
+    "name": "chainIds",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint32",
+        "name": "",
+        "type": "uint32"
+      }
+    ],
+    "name": "enabledReporters",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
   },
   {
     "inputs": [
@@ -226,11 +274,11 @@
         "type": "uint256"
       }
     ],
-    "name": "getHashFromOracle",
+    "name": "getHash",
     "outputs": [
       {
         "internalType": "bytes32",
-        "name": "hash",
+        "name": "",
         "type": "bytes32"
       }
     ],
@@ -238,24 +286,13 @@
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "name": "hashes",
+    "inputs": [],
+    "name": "owner",
     "outputs": [
       {
-        "internalType": "bytes32",
+        "internalType": "address",
         "name": "",
-        "type": "bytes32"
+        "type": "address"
       }
     ],
     "stateMutability": "view",
@@ -281,28 +318,32 @@
   },
   {
     "inputs": [],
-    "name": "reporter",
-    "outputs": [
-      {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
-    ],
-    "stateMutability": "view",
+    "name": "renounceOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "sourceChainId",
-    "outputs": [
+    "inputs": [
       {
         "internalType": "uint256",
-        "name": "",
+        "name": "chainId",
         "type": "uint256"
+      },
+      {
+        "internalType": "uint16",
+        "name": "wormholeChainId",
+        "type": "uint16"
+      },
+      {
+        "internalType": "address",
+        "name": "reporter",
+        "type": "address"
       }
     ],
-    "stateMutability": "view",
+    "name": "setReporterByChain",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -319,29 +360,16 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "wormhole",
-    "outputs": [
+    "inputs": [
       {
-        "internalType": "contract IWormhole",
-        "name": "",
+        "internalType": "address",
+        "name": "newOwner",
         "type": "address"
       }
     ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "wormholeSourceChainId",
-    "outputs": [
-      {
-        "internalType": "uint16",
-        "name": "",
-        "type": "uint16"
-      }
-    ],
-    "stateMutability": "view",
+    "name": "transferOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   }
 ]

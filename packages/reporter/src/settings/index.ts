@@ -215,12 +215,6 @@ export const settings = {
     LayerZeroReporterController: {
       reportHeadersValue: parseEther(process.env.LAYER_ZERO_REPORT_HEADERS_VALUE as string),
     },
-    SygmaReporterController: {
-      domainIds: {
-        [gnosis.name]: 6,
-        [mainnet.name]: 1,
-      },
-    },
     TelepathyReporterController: {
       baseProofUrl: process.env.TELEPATHY_PROOF_API_URL as string,
     },

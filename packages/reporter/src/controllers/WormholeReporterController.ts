@@ -4,7 +4,7 @@ import { Chain } from "viem"
 
 import BaseController from "./BaseController.js"
 import sleep from "../utils/sleep.js"
-import HeaderReporterABI from "../ABIs/WormhomeHeaderReporterABI.json" assert { type: "json" }
+import ReporterABI from "../ABIs/WormhomeReporterABI.json" assert { type: "json" }
 import AdapterABI from "../ABIs/WormholeAdapterABI.json" assert { type: "json" }
 import WormholeABI from "../ABIs/WormholeABI.json" assert { type: "json" }
 
@@ -47,9 +47,10 @@ class WormholeReporterController extends BaseController {
       this.logger.info(`reporting block header for block ${blockNumber} ...`)
       const { request } = await client.simulateContract({
         address: this.reporterAddress as `0x${string}`,
-        abi: HeaderReporterABI,
-        functionName: "reportHeaders",
-        args: [[blockNumber]],
+        abi: ReporterABI,
+        functionName: "dispatchBlocks",
+        // targetChainId & adapter are not used in _dispatch(), here set to 0
+        args: [0, "0x0000000000000000000000000000000000000000", [blockNumber]],
       })
 
       let txHash = await client.writeContract(request)

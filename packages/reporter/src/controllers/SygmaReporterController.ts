@@ -5,16 +5,9 @@ import BaseController from "./BaseController.js"
 
 import { BaseControllerConfigs } from "./BaseController.js"
 
-interface SygmaReporterControllerConfigs extends BaseControllerConfigs {
-  domainIds: { [chainName: string]: number }
-}
-
 class SygmaReporterController extends BaseController {
-  private _domainIds: { [chainName: string]: number }
-
-  constructor(_configs: SygmaReporterControllerConfigs) {
+  constructor(_configs: BaseControllerConfigs) {
     super(_configs, "SygmaReporterController")
-    this._domainIds = _configs.domainIds
   }
 
   async onBlocks(_blockNumbers: bigint[]) {
@@ -30,13 +23,8 @@ class SygmaReporterController extends BaseController {
         const { request } = await client.simulateContract({
           address: this.reporterAddresses[chain.name],
           abi: ABI,
-          functionName: "reportHeadersToDomain",
-          args: [
-            [blockNumber],
-            this.adapterAddresses[chain.name],
-            this._domainIds[chain.name as keyof typeof this._domainIds],
-            "0x",
-          ],
+          functionName: "dispatchBlocks",
+          args: [chain.id, this.adapterAddresses[chain.name], [blockNumber]],
         })
         const txHash = await client.writeContract(request)
         this.logger.info(`headers reporter from ${this.sourceChain.name} to ${chain.name}: ${txHash}`)

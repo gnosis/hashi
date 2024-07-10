@@ -31,7 +31,7 @@ class Multiclient {
     }, {})
   }
 
-  getClientByChain(_chain: Chain) {
+  getClientByChain(_chain: Chain): any {
     return this._clients[_chain.name]
   }
 }
