@@ -31,8 +31,8 @@ class StandardReporterController extends BaseController {
         const { request } = await client.simulateContract({
           address: this.reporterAddresses[chain.name],
           abi: ABI,
-          functionName: "reportHeaders",
-          args: [[blockNumber], this.adapterAddresses[chain.name]],
+          functionName: "dispatchBlocks",
+          args: [chain.id, this.adapterAddresses[chain.name], [blockNumber]],
           value: this._reportHeadersValue,
         })
 
