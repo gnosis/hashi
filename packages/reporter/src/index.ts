@@ -22,6 +22,7 @@ import SygmaReporterController from "./controllers/SygmaReporterController.js"
 import StandardReporterController from "./controllers/StandardReporterController.js"
 import TelepathyReporterController from "./controllers/TelepathyReporterController.js"
 import WormholeReporterController from "./controllers/WormholeReporterController.js"
+import CCIPReporterController from "./controllers/CCIPReporterController.js"
 import Coordinator from "./Coordinator.js"
 import { settings } from "./settings/index.js"
 import logger from "./utils/logger.js"
@@ -69,228 +70,241 @@ const main = () => {
     },
   })
 
-  // const sygmaReporterController = new SygmaReporterController({
-  //   type: "classic",
-  //   sourceChain,
-  //   destinationChains,
-  //   logger,
-  //   multiClient,
-  //   reporterAddresses: {
-  //     [gnosis.name]: unidirectionalReportersAddresses[sourceChain.name]?.[gnosis.name]?.SygmaReporter,
-  //   },
-  //   adapterAddresses: {
-  //     [gnosis.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.Gnosis?.SygmaAdapter,
-  //   },
-  // })
+  const ccipReporterController = new CCIPReporterController({
+    type: "classic",
+    sourceChain,
+    destinationChains: destinationChains.filter(({ name }) => name === gnosisChiado.name),
+    logger,
+    multiClient,
+    reporterAddress: unidirectionalReportersAddresses[sourceChain.name]?.[destinationChains[0].name]?.CCIPReporter,
+    adapterAddresses: {
+      [gnosisChiado.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[destinationChains[0].name]?.CCIPAdapter,
+    },
+  })
 
-  // const telepathyReporterController = new TelepathyReporterController({
-  //   type: "lightClient",
-  //   sourceChain,
-  //   destinationChains,
-  //   logger,
-  //   multiClient,
-  //   adapterAddresses: {
-  //     [gnosis.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.Gnosis?.TelepathyAdapter,
-  //     [arbitrum.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.["Arbitrum One"]?.TelepathyAdapter,
-  //     [optimism.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.["OP Mainnet"]?.TelepathyAdapter,
-  //     [bsc.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.["BNB Smart Chain"]?.TelepathyAdapter,
-  //     [polygon.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.Polygon?.TelepathyAdapter,
-  //   },
-  //   baseProofUrl: settings.reporterControllers.TelepathyReporterController.baseProofUrl,
-  //   lightClientAddresses: {
-  //     [gnosis.name]: lightClientAddresses.Gnosis?.[sourceChain.name]?.TelepathyLightClient,
-  //     [arbitrum.name]: lightClientAddresses["Arbitrum One"]?.[sourceChain.name]?.TelepathyLightClient,
-  //     [optimism.name]: lightClientAddresses["OP Mainnet"]?.[sourceChain.name]?.TelepathyLightClient,
-  //     [bsc.name]: lightClientAddresses["BNB Smart Chain"]?.[sourceChain.name]?.TelepathyLightClient,
-  //     [polygon.name]: lightClientAddresses.Polygon?.[sourceChain.name]?.TelepathyLightClient,
-  //   },
-  // })
+  const sygmaReporterController = new SygmaReporterController({
+    type: "classic",
+    sourceChain,
+    destinationChains,
+    logger,
+    multiClient,
+    reporterAddresses: {
+      [gnosis.name]: unidirectionalReportersAddresses[sourceChain.name]?.[gnosis.name]?.SygmaReporter,
+    },
+    adapterAddresses: {
+      [gnosis.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.Gnosis?.SygmaAdapter,
+    },
+  })
 
-  // const wormholeReporterController = new WormholeReporterController({
-  //   type: "classic",
-  //   sourceChain,
-  //   destinationChains,
-  //   logger,
-  //   multiClient,
-  //   reporterAddress: (settings.contractAddresses.reporterAddresses as any)[sourceChain.name]?.WormholeHeaderReporter,
-  //   adapterAddresses: {
-  //     [gnosis.name]: (settings.contractAddresses.adapterAddresses as any)?.Gnosis?.WormholeAdapter,
-  //     [optimism.name]: (settings.contractAddresses.adapterAddresses as any)["OP Mainnet"]?.WormholeAdapter,
-  //     [bsc.name]: (settings.contractAddresses.adapterAddresses as any)["BNB Smart Chain"]?.WormholeAdapter,
-  //     [polygon.name]: (settings.contractAddresses.adapterAddresses as any)?.Polygon.WormholeAdapter,
-  //     [avalanche.name]: (settings.contractAddresses.adapterAddresses as any)?.Avalanche.WormholeAdapter,
-  //   },
-  //   wormholeScanBaseUrl: settings.reporterControllers.WormholeReporterController.wormholeScanBaseUrl,
-  //   wormholeAddress: (settings.contractAddresses as any)[sourceChain.name]?.Wormhole,
-  //   wormholeChainIds: settings.reporterControllers.WormholeReporterController.wormholeChainIds,
-  // })
+  const telepathyReporterController = new TelepathyReporterController({
+    type: "lightClient",
+    sourceChain,
+    destinationChains,
+    logger,
+    multiClient,
+    adapterAddresses: {
+      [gnosis.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.Gnosis?.TelepathyAdapter,
+      [arbitrum.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.["Arbitrum One"]?.TelepathyAdapter,
+      [optimism.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.["OP Mainnet"]?.TelepathyAdapter,
+      [bsc.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.["BNB Smart Chain"]?.TelepathyAdapter,
+      [polygon.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.Polygon?.TelepathyAdapter,
+    },
+    baseProofUrl: settings.reporterControllers.TelepathyReporterController.baseProofUrl,
+    lightClientAddresses: {
+      [gnosis.name]: lightClientAddresses.Gnosis?.[sourceChain.name]?.TelepathyLightClient,
+      [arbitrum.name]: lightClientAddresses["Arbitrum One"]?.[sourceChain.name]?.TelepathyLightClient,
+      [optimism.name]: lightClientAddresses["OP Mainnet"]?.[sourceChain.name]?.TelepathyLightClient,
+      [bsc.name]: lightClientAddresses["BNB Smart Chain"]?.[sourceChain.name]?.TelepathyLightClient,
+      [polygon.name]: lightClientAddresses.Polygon?.[sourceChain.name]?.TelepathyLightClient,
+    },
+  })
 
-  // // TODO: add check to prevent to always run OptimismReporterController even when destinationChains does not include optimism
-  // const optimismReporterController = new OptimismReporterController({
-  //   type: "native",
-  //   sourceChain,
-  //   logger,
-  //   multiClient,
-  //   reporterAddress:
-  //     settings.contractAddresses.reporterAddresses.unidirectional.Ethereum["OP Mainnet"]
-  //       .L1CrossDomainMessengerHeaderReporter,
-  //   adapterAddresses: {
-  //     [optimism.name]:
-  //       settings.contractAddresses.adapterAddresses.unidirectional.Ethereum["OP Mainnet"].L2CrossDomainMessengerAdapter,
-  //   },
-  // })
+  const wormholeReporterController = new WormholeReporterController({
+    type: "classic",
+    sourceChain,
+    destinationChains,
+    logger,
+    multiClient,
+    reporterAddress: (settings.contractAddresses.reporterAddresses as any)[sourceChain.name]?.WormholeHeaderReporter,
+    adapterAddresses: {
+      [gnosis.name]: (settings.contractAddresses.adapterAddresses as any)?.Gnosis?.WormholeAdapter,
+      [optimism.name]: (settings.contractAddresses.adapterAddresses as any)["OP Mainnet"]?.WormholeAdapter,
+      [bsc.name]: (settings.contractAddresses.adapterAddresses as any)["BNB Smart Chain"]?.WormholeAdapter,
+      [polygon.name]: (settings.contractAddresses.adapterAddresses as any)?.Polygon.WormholeAdapter,
+      [avalanche.name]: (settings.contractAddresses.adapterAddresses as any)?.Avalanche.WormholeAdapter,
+    },
+    wormholeScanBaseUrl: settings.reporterControllers.WormholeReporterController.wormholeScanBaseUrl,
+    wormholeAddress: (settings.contractAddresses as any)[sourceChain.name]?.Wormhole,
+    wormholeChainIds: settings.reporterControllers.WormholeReporterController.wormholeChainIds,
+  })
 
-  // const axelarReporterController = new StandardReporterController({
-  //   name: "AxelarReporterController",
-  //   type: "classic",
-  //   sourceChain,
-  //   destinationChains,
-  //   logger,
-  //   multiClient,
-  //   reporterAddresses: {
-  //     [bsc.name]: unidirectionalReportersAddresses[sourceChain.name]?.[bsc.name]?.AxelarReporter,
-  //   },
-  //   adapterAddresses: {
-  //     [bsc.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[bsc.name]?.AxelarAdapter,
-  //   },
-  //   reportHeadersValue: settings.reporterControllers.AxelarReporterController.reportHeadersValue,
-  // })
+  // TODO: add check to prevent to always run OptimismReporterController even when destinationChains does not include optimism
+  const optimismReporterController = new OptimismReporterController({
+    type: "native",
+    sourceChain,
+    logger,
+    multiClient,
+    reporterAddress:
+      settings.contractAddresses.reporterAddresses.unidirectional.Ethereum["OP Mainnet"]
+        .L1CrossDomainMessengerHeaderReporter,
+    adapterAddresses: {
+      [optimism.name]:
+        settings.contractAddresses.adapterAddresses.unidirectional.Ethereum["OP Mainnet"].L2CrossDomainMessengerAdapter,
+    },
+  })
 
-  // const connextReporterController = new StandardReporterController({
-  //   name: "ConnextReporterController",
-  //   type: "classic",
-  //   sourceChain,
-  //   destinationChains,
-  //   logger,
-  //   multiClient,
-  //   reporterAddresses: {
-  //     [gnosis.name]: unidirectionalReportersAddresses[sourceChain.name]?.[gnosis.name]?.ConnextReporter,
-  //   },
-  //   adapterAddresses: {
-  //     [gnosis.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[gnosis.name]?.ConnextAdapter,
-  //   },
-  //   reportHeadersValue: settings.reporterControllers.ConnextReporterController.reportHeadersValue,
-  // })
+  const axelarReporterController = new StandardReporterController({
+    name: "AxelarReporterController",
+    type: "classic",
+    sourceChain,
+    destinationChains,
+    logger,
+    multiClient,
+    reporterAddresses: {
+      [bsc.name]: unidirectionalReportersAddresses[sourceChain.name]?.[bsc.name]?.AxelarReporter,
+    },
+    adapterAddresses: {
+      [bsc.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[bsc.name]?.AxelarAdapter,
+    },
+    reportHeadersValue: settings.reporterControllers.AxelarReporterController.reportHeadersValue,
+  })
 
-  // const celerReporterController = new StandardReporterController({
-  //   name: "CelerReporterController",
-  //   type: "classic",
-  //   sourceChain,
-  //   destinationChains,
-  //   logger,
-  //   multiClient,
-  //   reporterAddresses: {
-  //     [polygon.name]: unidirectionalReportersAddresses[sourceChain.name]?.[polygon.name]?.CelerReporter,
-  //   },
-  //   adapterAddresses: {
-  //     [polygon.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[polygon.name]?.CelerAdapter,
-  //   },
-  //   reportHeadersValue: settings.reporterControllers.CelerReporterController.reportHeadersValue,
-  // })
+  const connextReporterController = new StandardReporterController({
+    name: "ConnextReporterController",
+    type: "classic",
+    sourceChain,
+    destinationChains,
+    logger,
+    multiClient,
+    reporterAddresses: {
+      [gnosis.name]: unidirectionalReportersAddresses[sourceChain.name]?.[gnosis.name]?.ConnextReporter,
+    },
+    adapterAddresses: {
+      [gnosis.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[gnosis.name]?.ConnextAdapter,
+    },
+    reportHeadersValue: settings.reporterControllers.ConnextReporterController.reportHeadersValue,
+  })
 
-  // const layerZeroReporterController = new StandardReporterController({
-  //   name: "LayerZeroReporterController",
-  //   type: "classic",
-  //   sourceChain,
-  //   destinationChains,
-  //   logger,
-  //   multiClient,
-  //   reporterAddresses: {
-  //     [avalanche.name]: unidirectionalReportersAddresses[sourceChain.name]?.[avalanche.name]?.LayerZeroReporter,
-  //     [bsc.name]: unidirectionalReportersAddresses[sourceChain.name]?.[bsc.name]?.LayerZeroReporter,
-  //   },
-  //   adapterAddresses: {
-  //     [avalanche.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[avalanche.name]?.LayerZeroAdapter,
-  //     [bsc.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[bsc.name]?.LayerZeroAdapter,
-  //   },
-  //   reportHeadersValue: settings.reporterControllers.LayerZeroReporterController.reportHeadersValue,
-  // })
+  const celerReporterController = new StandardReporterController({
+    name: "CelerReporterController",
+    type: "classic",
+    sourceChain,
+    destinationChains,
+    logger,
+    multiClient,
+    reporterAddresses: {
+      [polygon.name]: unidirectionalReportersAddresses[sourceChain.name]?.[polygon.name]?.CelerReporter,
+    },
+    adapterAddresses: {
+      [polygon.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[polygon.name]?.CelerAdapter,
+    },
+    reportHeadersValue: settings.reporterControllers.CelerReporterController.reportHeadersValue,
+  })
 
-  // const hyperlaneReporterController = new StandardReporterController({
-  //   name: "HyperlaneReporterController",
-  //   type: "classic",
-  //   sourceChain,
-  //   destinationChains,
-  //   logger,
-  //   multiClient,
-  //   reporterAddresses: {
-  //     [bsc.name]: unidirectionalReportersAddresses[sourceChain.name]?.[bsc.name]?.HyperlaneReporter,
-  //   },
-  //   adapterAddresses: {
-  //     [bsc.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[bsc.name]?.HyperlaneAdapter,
-  //   },
-  // })
+  const layerZeroReporterController = new StandardReporterController({
+    name: "LayerZeroReporterController",
+    type: "classic",
+    sourceChain,
+    destinationChains,
+    logger,
+    multiClient,
+    reporterAddresses: {
+      [avalanche.name]: unidirectionalReportersAddresses[sourceChain.name]?.[avalanche.name]?.LayerZeroReporter,
+      [bsc.name]: unidirectionalReportersAddresses[sourceChain.name]?.[bsc.name]?.LayerZeroReporter,
+    },
+    adapterAddresses: {
+      [avalanche.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[avalanche.name]?.LayerZeroAdapter,
+      [bsc.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[bsc.name]?.LayerZeroAdapter,
+    },
+    reportHeadersValue: settings.reporterControllers.LayerZeroReporterController.reportHeadersValue,
+  })
 
-  // const ccipReporterController = new StandardReporterController({
-  //   name: "CCIPReporterController",
-  //   type: "classic",
-  //   sourceChain,
-  //   destinationChains,
-  //   logger,
-  //   multiClient,
-  //   reporterAddresses: {
-  //     [optimismGoerli.name]: unidirectionalReportersAddresses[sourceChain.name]?.[optimismGoerli.name]?.CCIPReporter,
-  //     [bscTestnet.name]: unidirectionalReportersAddresses[sourceChain.name]?.[bscTestnet.name]?.CCIPReporter,
-  //     [avalanche.name]: unidirectionalReportersAddresses[sourceChain.name]?.[avalanche.name]?.CCIPReporter,
-  //   },
-  //   adapterAddresses: {
-  //     [optimismGoerli.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[optimismGoerli.name]?.CCIPAdapter,
-  //     [bscTestnet.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[bscTestnet.name]?.CCIPAdapter,
-  //     [avalanche.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[avalanche.name]?.CCIPAdapter,
-  //   },
-  //   reportHeadersValue: settings.reporterControllers.CCIPReporterController.reportHeadersValue,
-  // })
+  const hyperlaneReporterController = new StandardReporterController({
+    name: "HyperlaneReporterController",
+    type: "classic",
+    sourceChain,
+    destinationChains,
+    logger,
+    multiClient,
+    reporterAddresses: {
+      [bsc.name]: unidirectionalReportersAddresses[sourceChain.name]?.[bsc.name]?.HyperlaneReporter,
+    },
+    adapterAddresses: {
+      [bsc.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[bsc.name]?.HyperlaneAdapter,
+    },
+  })
 
-  // const zetaReporterController = new StandardReporterController({
-  //   name: "ZetaReporterController",
-  //   type: "classic",
-  //   sourceChain,
-  //   destinationChains,
-  //   logger,
-  //   multiClient,
-  //   reporterAddresses: {
-  //     [bscTestnet.name]: unidirectionalReportersAddresses[sourceChain.name]?.[bscTestnet.name]?.ZetaChainReporter,
-  //   },
-  //   adapterAddresses: {
-  //     [bscTestnet.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[bscTestnet.name]?.ZetaChainAdapter,
-  //   },
-  //   reportHeadersValue: settings.reporterControllers.ZetaReporterController.reportHeadersValue,
-  // })
+  const ccipReporterController = new StandardReporterController({
+    name: "CCIPReporterController",
+    type: "classic",
+    sourceChain,
+    destinationChains,
+    logger,
+    multiClient,
+    reporterAddresses: {
+      [optimismGoerli.name]: unidirectionalReportersAddresses[sourceChain.name]?.[optimismGoerli.name]?.CCIPReporter,
+      [bscTestnet.name]: unidirectionalReportersAddresses[sourceChain.name]?.[bscTestnet.name]?.CCIPReporter,
+      [avalanche.name]: unidirectionalReportersAddresses[sourceChain.name]?.[avalanche.name]?.CCIPReporter,
+    },
+    adapterAddresses: {
+      [optimismGoerli.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[optimismGoerli.name]?.CCIPAdapter,
+      [bscTestnet.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[bscTestnet.name]?.CCIPAdapter,
+      [avalanche.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[avalanche.name]?.CCIPAdapter,
+    },
+    reportHeadersValue: settings.reporterControllers.CCIPReporterController.reportHeadersValue,
+  })
 
-  // const electronReporterController = new ElectronReporterController({
-  //   type: "lightClient",
-  //   sourceChain,
-  //   destinationChains,
-  //   logger,
-  //   multiClient,
-  //   adapterAddresses: {
-  //     [gnosisChiado.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.["Gnosis Chiado"]?.ElectronAdapter,
-  //   },
-  //   headerStorageAddress: (settings.contractAddresses as any)[sourceChain.name].HeaderStorage,
-  //   lightClientAddresses: {
-  //     [gnosisChiado.name]: lightClientAddresses["Gnosis Chiado"]?.[sourceChain.name]?.ElectronLightClient,
-  //   },
-  //   beaconchaBaseUrl: (settings.reporterControllers.ElectronReporterController.beaconchaBaseUrls as any)[
-  //     sourceChain.name
-  //   ],
-  //   beaconApiBaseUrl: (settings.beaconApiUrls as any)[sourceChain.name],
-  // })
+  const zetaReporterController = new StandardReporterController({
+    name: "ZetaReporterController",
+    type: "classic",
+    sourceChain,
+    destinationChains,
+    logger,
+    multiClient,
+    reporterAddresses: {
+      [bscTestnet.name]: unidirectionalReportersAddresses[sourceChain.name]?.[bscTestnet.name]?.ZetaChainReporter,
+    },
+    adapterAddresses: {
+      [bscTestnet.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[bscTestnet.name]?.ZetaChainAdapter,
+    },
+    reportHeadersValue: settings.reporterControllers.ZetaReporterController.reportHeadersValue,
+  })
+
+  const electronReporterController = new ElectronReporterController({
+    type: "lightClient",
+    sourceChain,
+    destinationChains,
+    logger,
+    multiClient,
+    adapterAddresses: {
+      [gnosisChiado.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.["Gnosis Chiado"]?.ElectronAdapter,
+    },
+    headerStorageAddress: (settings.contractAddresses as any)[sourceChain.name].HeaderStorage,
+    lightClientAddresses: {
+      [gnosisChiado.name]: lightClientAddresses["Gnosis Chiado"]?.[sourceChain.name]?.ElectronLightClient,
+    },
+    beaconchaBaseUrl: (settings.reporterControllers.ElectronReporterController.beaconchaBaseUrls as any)[
+      sourceChain.name
+    ],
+    beaconApiBaseUrl: (settings.beaconApiUrls as any)[sourceChain.name],
+  })
 
   const coordinator = new Coordinator({
     controllers: [
       ambReporterController,
-      // sygmaReporterController,
-      // telepathyReporterController,
-      // wormholeReporterController,
-      // optimismReporterController,
-      // axelarReporterController,
-      // connextReporterController,
-      // celerReporterController,
-      // layerZeroReporterController,
-      // hyperlaneReporterController,
-      // ccipReporterController,
-      // zetaReporterController,
-      // electronReporterController,
+      ccipReporterController,
+      sygmaReporterController,
+      telepathyReporterController,
+      wormholeReporterController,
+      optimismReporterController,
+      axelarReporterController,
+      connextReporterController,
+      celerReporterController,
+      layerZeroReporterController,
+      hyperlaneReporterController,
+      ccipReporterController,
+      zetaReporterController,
+      electronReporterController,
     ].filter((_controller) => controllersEnabled?.includes(_controller.name)),
     intervalFetchBlocksMs: settings.Coordinator.intervalFetchBlocksMs,
     logger,

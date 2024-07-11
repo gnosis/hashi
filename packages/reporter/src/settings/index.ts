@@ -85,6 +85,7 @@ export const settings = {
           },
           [gnosisChiado.name]: {
             AMBAdapter: process.env.CHIADO_ADAPTER as `0x${string}`,
+            CCIPAdapter: process.env.SEPOLIA_CHIADO_CCIP_ADAPTER as `0x${string}`,
           },
         },
         [goerli.name]: {
@@ -146,6 +147,7 @@ export const settings = {
           },
           [gnosisChiado.name]: {
             AMBReporter: process.env.SEPOLIA_CHIADO_REPORTER as `0x${string}`,
+            CCIPReporter: process.env.SEPOLIA_CHIADO_CCIP_REPORTER as `0x${string}`,
           },
         },
         [goerli.name]: {
