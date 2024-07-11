@@ -12,7 +12,7 @@
     "prettier:write": "prettier --write \"**/*.{js,json,md,sol,ts,yml}\"",
     "start:dev": "nodemon"
   },
-  "packageManager": "yarn@3.2.1",
+  "packageManager": "yarn@3.2.2",
   "dependencies": {
     "@chainsafe/persistent-merkle-tree": "^0.6.1",
     "@chainsafe/ssz": "^0.14.0",
@@ -35,8 +35,9 @@
     "eslint": "^8.51.0",
     "eslint-config-prettier": "^9.0.0",
     "nodemon": "^3.0.1",
+    "patch-package": "^8.0.0",
     "prettier": "^3.0.3",
     "ts-node": "^10.9.2",
-    "typescript": "^5.2.2"
+    "typescript": "~5.2.2"
   }
 }

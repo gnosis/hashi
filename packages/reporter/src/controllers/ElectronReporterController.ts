@@ -72,7 +72,7 @@ class ElectronReporterController extends BaseController {
 
       this.logger.info("Getting log index ...")
       const logIndex = receipt.logs.findIndex(
-        ({ address, topics }) =>
+        ({ address, topics }: { address: string; topics: string[] }) =>
           address.toLowerCase() === this.headerStorageAddress.toLowerCase() && topics[0] === EXPECTED_TOPIC,
       )
 

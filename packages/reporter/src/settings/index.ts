@@ -51,6 +51,7 @@ export const settings = {
           [gnosis.name]: {
             TelepathyAdapter: process.env.GNOSIS_TELEPATHY_ADAPTER as `0x${string}`,
             AMBAdapter: process.env.GNOSIS_AMB_ADAPTER as `0x${string}`,
+            AMBReporter: process.env.GNOSIS_AMB_REPORTER as `0x${string}`,
             ConnextAdapter: process.env.GNOSIS_CONNEXT_ADAPTER_MAINNET as `0x${string}`,
             SygmaAdapter: process.env.GNOSIS_SYGMA_ADAPTER as `0x${string}`, // this works with many chains
           },
@@ -81,6 +82,9 @@ export const settings = {
           },
           [bscTestnet.name]: {
             CCIPAdapter: process.env.BSC_TESTNET_CCIP_ADAPTER_SEPOLIA as `0x${string}`,
+          },
+          [gnosisChiado.name]: {
+            AMBAdapter: process.env.CHIADO_ADAPTER as `0x${string}`,
           },
         },
         [goerli.name]: {
@@ -139,6 +143,9 @@ export const settings = {
           },
           [bscTestnet.name]: {
             CCIPReporter: process.env.SEPOLIA_CCIP_REPORTER_BSC_TESTNET as `0x${string}`,
+          },
+          [gnosisChiado.name]: {
+            AMBReporter: process.env.SEPOLIA_CHIADO_REPORTER as `0x${string}`,
           },
         },
         [goerli.name]: {

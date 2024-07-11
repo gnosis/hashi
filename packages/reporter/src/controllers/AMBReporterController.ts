@@ -22,6 +22,7 @@ class AMBReporterController extends BaseController {
             chain.name
           } ...`,
         )
+
         const { request } = await client.simulateContract({
           address: this.reporterAddress as `0x${string}`,
           abi: ABI,
@@ -30,6 +31,7 @@ class AMBReporterController extends BaseController {
         })
 
         const txHash = await client.writeContract(request)
+
         this.logger.info(`headers reporter from ${this.sourceChain.name} to ${chain.name}: ${txHash}`)
       }
     } catch (_error) {
