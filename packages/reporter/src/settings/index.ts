@@ -11,6 +11,7 @@ import {
   mainnet,
   optimism,
   optimismGoerli,
+  optimismSepolia,
   polygon,
   sepolia,
 } from "viem/chains"
@@ -77,6 +78,9 @@ export const settings = {
           },*/
         },
         [sepolia.name]: {
+          [optimismSepolia.name]: {
+            LayerZeroAdapter: process.env.OPTIMISM_SEPOLIA_LZ_ADAPTER as `0x${string}`,
+          },
           [optimismGoerli.name]: {
             CCIPAdapter: process.env.OPTIMISM_GOERLI_CCIP_ADAPTER_SEPOLIA as `0x${string}`,
           },
@@ -86,6 +90,7 @@ export const settings = {
           [gnosisChiado.name]: {
             AMBAdapter: process.env.CHIADO_ADAPTER as `0x${string}`,
             CCIPAdapter: process.env.SEPOLIA_CHIADO_CCIP_ADAPTER as `0x${string}`,
+            LayerZeroAdapter: process.env.SEPOLIA_CHIADO_LZ_ADAPTER as `0x${string}`,
           },
         },
         [goerli.name]: {
@@ -139,6 +144,9 @@ export const settings = {
           },
         },
         [sepolia.name]: {
+          [optimismSepolia.name]: {
+            LayerZeroReporter: process.env.SEPOLIA_CHIADO_LZ_REPORTER as `0x${string}`,
+          },
           [optimismGoerli.name]: {
             CCIPReporter: process.env.SEPOLIA_CCIP_REPORTER_OPTIMISM_GOERLI as `0x${string}`,
           },
@@ -148,6 +156,7 @@ export const settings = {
           [gnosisChiado.name]: {
             AMBReporter: process.env.SEPOLIA_CHIADO_REPORTER as `0x${string}`,
             CCIPReporter: process.env.SEPOLIA_CHIADO_CCIP_REPORTER as `0x${string}`,
+            LayerZeroReporter: process.env.SEPOLIA_CHIADO_LZ_REPORTER as `0x${string}`,
           },
         },
         [goerli.name]: {

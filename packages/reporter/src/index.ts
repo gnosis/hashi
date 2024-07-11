@@ -11,18 +11,18 @@ import {
   polygon,
   mainnet,
   sepolia,
+  optimismSepolia,
 } from "viem/chains"
 import { Chain } from "viem"
 
 import Multiclient from "./MultiClient.js"
-import AMBReporterController from "./controllers/AMBReporterController.js"
 import ElectronReporterController from "./controllers/ElectronReporterController.js"
 import OptimismReporterController from "./controllers/OptimismReporterController.js"
 import SygmaReporterController from "./controllers/SygmaReporterController.js"
 import StandardReporterController from "./controllers/StandardReporterController.js"
 import TelepathyReporterController from "./controllers/TelepathyReporterController.js"
 import WormholeReporterController from "./controllers/WormholeReporterController.js"
-import CCIPReporterController from "./controllers/CCIPReporterController.js"
+
 import Coordinator from "./Coordinator.js"
 import { settings } from "./settings/index.js"
 import logger from "./utils/logger.js"
@@ -58,27 +58,18 @@ const main = () => {
     rpcUrls: settings.rpcUrls,
   })
 
-  const ambReporterController = new AMBReporterController({
+  const ambReporterController = new StandardReporterController({
+    name: "AMBReporterController",
     type: "classic",
     sourceChain,
     destinationChains: destinationChains.filter(({ name }) => name === gnosisChiado.name),
     logger,
     multiClient,
-    reporterAddress: unidirectionalReportersAddresses[sourceChain.name]?.[destinationChains[0].name]?.AMBReporter,
-    adapterAddresses: {
-      [gnosisChiado.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[destinationChains[0].name]?.AMBAdapter,
+    reporterAddresses: {
+      [gnosisChiado.name]: unidirectionalReportersAddresses[sourceChain.name]?.[gnosisChiado.name]?.AMBReporter,
     },
-  })
-
-  const ccipReporterController = new CCIPReporterController({
-    type: "classic",
-    sourceChain,
-    destinationChains: destinationChains.filter(({ name }) => name === gnosisChiado.name),
-    logger,
-    multiClient,
-    reporterAddress: unidirectionalReportersAddresses[sourceChain.name]?.[destinationChains[0].name]?.CCIPReporter,
     adapterAddresses: {
-      [gnosisChiado.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[destinationChains[0].name]?.CCIPAdapter,
+      [gnosisChiado.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[gnosisChiado.name]?.AMBAdapter,
     },
   })
 
@@ -206,15 +197,22 @@ const main = () => {
     type: "classic",
     sourceChain,
     destinationChains,
+
     logger,
     multiClient,
     reporterAddresses: {
       [avalanche.name]: unidirectionalReportersAddresses[sourceChain.name]?.[avalanche.name]?.LayerZeroReporter,
       [bsc.name]: unidirectionalReportersAddresses[sourceChain.name]?.[bsc.name]?.LayerZeroReporter,
+      [gnosisChiado.name]: unidirectionalReportersAddresses[sourceChain.name]?.[gnosisChiado.name]?.LayerZeroReporter,
+      [optimismSepolia.name]:
+        unidirectionalReportersAddresses[sourceChain.name]?.[optimismSepolia.name]?.LayerZeroReporter,
     },
     adapterAddresses: {
       [avalanche.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[avalanche.name]?.LayerZeroAdapter,
       [bsc.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[bsc.name]?.LayerZeroAdapter,
+      [gnosisChiado.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[gnosisChiado.name]?.LayerZeroAdapter,
+      [optimismSepolia.name]:
+        unidirectionalAdaptersAddresses[sourceChain.name]?.[optimismSepolia.name]?.LayerZeroAdapter,
     },
     reportHeadersValue: settings.reporterControllers.LayerZeroReporterController.reportHeadersValue,
   })
@@ -245,11 +243,13 @@ const main = () => {
       [optimismGoerli.name]: unidirectionalReportersAddresses[sourceChain.name]?.[optimismGoerli.name]?.CCIPReporter,
       [bscTestnet.name]: unidirectionalReportersAddresses[sourceChain.name]?.[bscTestnet.name]?.CCIPReporter,
       [avalanche.name]: unidirectionalReportersAddresses[sourceChain.name]?.[avalanche.name]?.CCIPReporter,
+      [gnosisChiado.name]: unidirectionalReportersAddresses[sourceChain.name]?.[gnosisChiado.name]?.CCIPReporter,
     },
     adapterAddresses: {
       [optimismGoerli.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[optimismGoerli.name]?.CCIPAdapter,
       [bscTestnet.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[bscTestnet.name]?.CCIPAdapter,
       [avalanche.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[avalanche.name]?.CCIPAdapter,
+      [gnosisChiado.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[gnosisChiado.name]?.CCIPAdapter,
     },
     reportHeadersValue: settings.reporterControllers.CCIPReporterController.reportHeadersValue,
   })
@@ -279,7 +279,7 @@ const main = () => {
     adapterAddresses: {
       [gnosisChiado.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.["Gnosis Chiado"]?.ElectronAdapter,
     },
-    headerStorageAddress: (settings.contractAddresses as any)[sourceChain.name].HeaderStorage,
+    headerStorageAddress: (settings.contractAddresses as any)[sourceChain.name]?.HeaderStorage,
     lightClientAddresses: {
       [gnosisChiado.name]: lightClientAddresses["Gnosis Chiado"]?.[sourceChain.name]?.ElectronLightClient,
     },

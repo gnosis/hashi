@@ -47,6 +47,7 @@ class Coordinator {
   }
 
   start() {
+    console.log("controllers: ", this.controllers)
     this.fetchBlocks()
     this.intervals.push(
       setInterval(() => {
