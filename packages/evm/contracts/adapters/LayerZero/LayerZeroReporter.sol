@@ -2,33 +2,41 @@
 pragma solidity ^0.8.20;
 
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
-import { ILayerZeroEndpoint } from "./interfaces/ILayerZeroEndpoint.sol";
+import { ILayerZeroEndpointV2, MessagingParams } from "./interfaces/ILayerZeroEndpointV2.sol";
 import { Reporter } from "../Reporter.sol";
+import { OptionsBuilder } from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/libs/OptionsBuilder.sol";
 
 contract LayerZeroReporter is Reporter, Ownable {
-    string public constant PROVIDER = "layer-zero";
-    ILayerZeroEndpoint public immutable LAYER_ZERO_ENDPOINT;
+    using OptionsBuilder for bytes;
 
-    mapping(uint256 => uint16) public endpointIds;
-    uint256 public fee;
+    string public constant PROVIDER = "layer-zero";
+    ILayerZeroEndpointV2 public immutable LAYER_ZERO_ENDPOINT;
+
+    mapping(uint256 => uint32) public endpointIds;
+    uint128 public fee;
+    address refundAddress;
 
     error EndpointIdNotAvailable();
 
-    event EndpointIdSet(uint256 indexed chainId, uint16 indexed endpointId);
+    event EndpointIdSet(uint256 indexed chainId, uint32 indexed endpointId);
     event FeeSet(uint256 fee);
 
     constructor(address headerStorage, address yaho, address lzEndpoint) Reporter(headerStorage, yaho) {
-        LAYER_ZERO_ENDPOINT = ILayerZeroEndpoint(lzEndpoint);
+        LAYER_ZERO_ENDPOINT = ILayerZeroEndpointV2(lzEndpoint);
     }
 
-    function setEndpointIdByChainId(uint256 chainId, uint16 endpointId) external onlyOwner {
+    function setEndpointIdByChainId(uint256 chainId, uint32 endpointId) external onlyOwner {
         endpointIds[chainId] = endpointId;
         emit EndpointIdSet(chainId, endpointId);
     }
 
-    function setFee(uint256 fee_) external onlyOwner {
+    function setFee(uint128 fee_) external onlyOwner {
         fee = fee_;
         emit FeeSet(fee);
+    }
+
+    function setRefundAddress(address refundAddress_) external onlyOwner {
+        refundAddress = refundAddress_;
     }
 
     function _dispatch(
@@ -37,19 +45,19 @@ contract LayerZeroReporter is Reporter, Ownable {
         uint256[] memory ids,
         bytes32[] memory hashes
     ) internal override returns (bytes32) {
-        uint16 targetEndpointId = endpointIds[targetChainId];
+        uint32 targetEndpointId = endpointIds[targetChainId];
         if (targetEndpointId == 0) revert EndpointIdNotAvailable();
-        bytes memory payload = abi.encode(ids, hashes);
-        bytes memory path = abi.encodePacked(adapter, address(this));
-        // solhint-disable-next-line check-send-result
-        LAYER_ZERO_ENDPOINT.send{ value: fee }(
+        bytes memory options = OptionsBuilder.newOptions().addExecutorLzReceiveOption(fee, 0);
+        bytes memory message = abi.encode(ids, hashes);
+        MessagingParams memory params = MessagingParams(
             targetEndpointId,
-            path,
-            payload,
-            payable(msg.sender), // _refundAddress: refund address
-            address(0), // _zroPaymentAddress: future parameter
-            bytes("") // _adapterParams: adapterParams (see "Advanced Features")
+            bytes32(abi.encode(adapter)),
+            message,
+            options,
+            false // receiver in lz Token
         );
+        // solhint-disable-next-line check-send-result
+        LAYER_ZERO_ENDPOINT.send{ value: msg.value }(params, refundAddress);
         return bytes32(0);
     }
 }

@@ -1,5 +1,6 @@
 import {
   arbitrum,
+  arbitrumSepolia,
   avalanche,
   bsc,
   bscTestnet,
@@ -8,10 +9,10 @@ import {
   goerli,
   optimism,
   optimismGoerli,
+  optimismSepolia,
   polygon,
   mainnet,
   sepolia,
-  optimismSepolia,
 } from "viem/chains"
 import { Chain } from "viem"
 
@@ -34,6 +35,7 @@ const main = () => {
   const chains = [
     arbitrum,
     avalanche,
+    arbitrumSepolia,
     bsc,
     bscTestnet,
     gnosis,
@@ -62,13 +64,15 @@ const main = () => {
     name: "AMBReporterController",
     type: "classic",
     sourceChain,
-    destinationChains: destinationChains.filter(({ name }) => name === gnosisChiado.name),
+    destinationChains: destinationChains.filter(({ name }) => name === gnosis.name || name === gnosisChiado.name),
     logger,
     multiClient,
     reporterAddresses: {
+      [gnosis.name]: unidirectionalReportersAddresses[sourceChain.name]?.[gnosis.name]?.AMBReporter,
       [gnosisChiado.name]: unidirectionalReportersAddresses[sourceChain.name]?.[gnosisChiado.name]?.AMBReporter,
     },
     adapterAddresses: {
+      [gnosis.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[gnosis.name]?.AMBAdapter,
       [gnosisChiado.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[gnosisChiado.name]?.AMBAdapter,
     },
   })
@@ -197,22 +201,28 @@ const main = () => {
     type: "classic",
     sourceChain,
     destinationChains,
-
     logger,
     multiClient,
     reporterAddresses: {
-      [avalanche.name]: unidirectionalReportersAddresses[sourceChain.name]?.[avalanche.name]?.LayerZeroReporter,
+      // [avalanche.name]: unidirectionalReportersAddresses[sourceChain.name]?.[avalanche.name]?.LayerZeroReporter,
+      // [gnosisChiado.name]: unidirectionalReportersAddresses[sourceChain.name]?.[gnosisChiado.name]?.LayerZeroReporter,
+      // [optimismSepolia.name]:
+      //   unidirectionalReportersAddresses[sourceChain.name]?.[optimismSepolia.name]?.LayerZeroReporter,
+      [polygon.name]: unidirectionalReportersAddresses[sourceChain.name]?.[polygon.name]?.LayerZeroReporter,
       [bsc.name]: unidirectionalReportersAddresses[sourceChain.name]?.[bsc.name]?.LayerZeroReporter,
-      [gnosisChiado.name]: unidirectionalReportersAddresses[sourceChain.name]?.[gnosisChiado.name]?.LayerZeroReporter,
-      [optimismSepolia.name]:
-        unidirectionalReportersAddresses[sourceChain.name]?.[optimismSepolia.name]?.LayerZeroReporter,
+      [arbitrumSepolia.name]:
+        unidirectionalReportersAddresses[sourceChain.name]?.[arbitrumSepolia.name]?.LayerZeroReporter,
     },
     adapterAddresses: {
-      [avalanche.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[avalanche.name]?.LayerZeroAdapter,
+      [polygon.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[polygon.name]?.LayerZeroAdapter,
       [bsc.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[bsc.name]?.LayerZeroAdapter,
-      [gnosisChiado.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[gnosisChiado.name]?.LayerZeroAdapter,
+
+      [arbitrumSepolia.name]:
+        unidirectionalAdaptersAddresses[sourceChain.name]?.[arbitrumSepolia.name]?.LayerZeroAdapter,
       [optimismSepolia.name]:
         unidirectionalAdaptersAddresses[sourceChain.name]?.[optimismSepolia.name]?.LayerZeroAdapter,
+      // [gnosisChiado.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[gnosisChiado.name]?.LayerZeroAdapter,
+      // [avalanche.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[avalanche.name]?.LayerZeroAdapter,
     },
     reportHeadersValue: settings.reporterControllers.LayerZeroReporterController.reportHeadersValue,
   })

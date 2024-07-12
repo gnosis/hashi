@@ -2,6 +2,7 @@ import "dotenv/config"
 import { parseEther } from "viem"
 import {
   arbitrum,
+  arbitrumSepolia,
   avalanche,
   bsc,
   bscTestnet,
@@ -47,18 +48,18 @@ export const settings = {
             AxelarAdapter: process.env.BSC_AXELAR_ADAPTER_MAINNET as `0x${string}`,
             TelepathyAdapter: process.env.BSC_TELEPATHY_ADAPTER as `0x${string}`,
             HyperlaneAdapter: process.env.BSC_HYPERLANE_ADAPTER as `0x${string}`,
-            LayerZeroAdapter: process.env.BSC_LAYER_ZERO_ADAPTER_MAINNET as `0x${string}`,
+            LayerZeroAdapter: process.env.BSC_MAINNET_LAYER_ZERO_ADAPTER as `0x${string}`,
           },
           [gnosis.name]: {
             TelepathyAdapter: process.env.GNOSIS_TELEPATHY_ADAPTER as `0x${string}`,
             AMBAdapter: process.env.GNOSIS_AMB_ADAPTER as `0x${string}`,
-            AMBReporter: process.env.GNOSIS_AMB_REPORTER as `0x${string}`,
             ConnextAdapter: process.env.GNOSIS_CONNEXT_ADAPTER_MAINNET as `0x${string}`,
             SygmaAdapter: process.env.GNOSIS_SYGMA_ADAPTER as `0x${string}`, // this works with many chains
           },
           [polygon.name]: {
             TelepathyAdapter: process.env.POLYGON_TELEPATHY_ADAPTER as `0x${string}`,
             CelerAdapter: process.env.POLYGON_CELER_ADAPTER_MAINNET as `0x${string}`,
+            LayerZeroAdapter: process.env.POLYGON_MAINNET_LAYER_ZERO_ADAPTER as `0x${string}`,
           },
           [optimism.name]: {
             TelepathyAdapter: process.env.OPTIMISM_TELEPATHY_ADAPTER as `0x${string}`,
@@ -88,9 +89,12 @@ export const settings = {
             CCIPAdapter: process.env.BSC_TESTNET_CCIP_ADAPTER_SEPOLIA as `0x${string}`,
           },
           [gnosisChiado.name]: {
-            AMBAdapter: process.env.CHIADO_ADAPTER as `0x${string}`,
+            AMBAdapter: process.env.CHIADO_SEPOLIA_ADAPTER as `0x${string}`,
             CCIPAdapter: process.env.SEPOLIA_CHIADO_CCIP_ADAPTER as `0x${string}`,
             LayerZeroAdapter: process.env.SEPOLIA_CHIADO_LZ_ADAPTER as `0x${string}`,
+          },
+          [arbitrumSepolia.name]: {
+            LayerZeroAdapter: process.env.SEPOLIA_ARB_LZ_ADAPTER as `0x${string}`,
           },
         },
         [goerli.name]: {
@@ -124,7 +128,7 @@ export const settings = {
           [bsc.name]: {
             AxelarReporter: process.env.MAINNET_AXELAR_REPORTER_BSC as `0x${string}`,
             HyperlaneReporter: process.env.MAINNET_HYPERLANE_REPORTER_BSC as `0x${string}`,
-            LayerZeroReporter: process.env.MAINNET_LAYER_ZERO_REPORTER_BSC as `0x${string}`,
+            LayerZeroReporter: process.env.MAINNET_LAYER_ZERO_REPORTER as `0x${string}`,
           },
           [gnosis.name]: {
             AMBReporter: process.env.MAINNET_AMB_REPORTER as `0x${string}`,
@@ -137,6 +141,7 @@ export const settings = {
           },
           [polygon.name]: {
             CelerReporter: process.env.MAINNET_CELER_REPORTER_POLYGON as `0x${string}`,
+            LayerZeroReporter: process.env.MAINNET_LAYER_ZERO_REPORTER as `0x${string}`,
           },
           [avalanche.name]: {
             LayerZeroReporter: process.env.MAINNET_LAYER_ZERO_REPORTER_AVALANCHE as `0x${string}`,
@@ -157,6 +162,9 @@ export const settings = {
             AMBReporter: process.env.SEPOLIA_CHIADO_REPORTER as `0x${string}`,
             CCIPReporter: process.env.SEPOLIA_CHIADO_CCIP_REPORTER as `0x${string}`,
             LayerZeroReporter: process.env.SEPOLIA_CHIADO_LZ_REPORTER as `0x${string}`,
+          },
+          [arbitrumSepolia.name]: {
+            LayerZeroReporter: process.env.SEPOLIA_ARB_LZ_REPORTER as `0x${string}`,
           },
         },
         [goerli.name]: {
