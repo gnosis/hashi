@@ -6,16 +6,30 @@
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "forceConsistentCasingInFileNames": true,
-    "lib": ["es6", "ESNext", "DOM"],
-    "module": "NodeNext",
+    "lib": [
+      "es6",
+      "ESNext",
+      "DOM"
+    ],
+    "module": "ESNext",
+    "moduleResolution": "node",
     "noImplicitAny": true,
     "outDir": "./dist",
+     "rootDir": "./src",
     "removeComments": true,
     "resolveJsonModule": true,
     "sourceMap": true,
     "strict": true,
-    "target": "ES2020"
+    "target": "ESNext"
   },
-  "exclude": ["node_modules"],
-  "include": ["./src/**/*"]
+  "exclude": [
+    "node_modules"
+  ],
+  "include": [
+    "./src/**/*"
+  ],
+  "ts-node": {
+    "esm": true,
+    "experimentalSpecifierResolution": "node"
+  }
 }
