@@ -5,8 +5,9 @@ import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { ILayerZeroEndpointV2, MessagingParams } from "./interfaces/ILayerZeroEndpointV2.sol";
 import { Reporter } from "../Reporter.sol";
 import { OptionsBuilder } from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/libs/OptionsBuilder.sol";
+import { OAppCore } from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/OAppCore.sol";
 
-contract LayerZeroReporter is Reporter, Ownable {
+contract LayerZeroReporter is Reporter, Ownable, OAppCore {
     using OptionsBuilder for bytes;
 
     string public constant PROVIDER = "layer-zero";
@@ -21,7 +22,16 @@ contract LayerZeroReporter is Reporter, Ownable {
     event EndpointIdSet(uint256 indexed chainId, uint32 indexed endpointId);
     event FeeSet(uint256 fee);
 
-    constructor(address headerStorage, address yaho, address lzEndpoint) Reporter(headerStorage, yaho) {
+    constructor(
+        address headerStorage,
+        address yaho,
+        address lzEndpoint,
+        address delegate,
+        address refundAddress_,
+        uint128 defaultFee_
+    ) Reporter(headerStorage, yaho) OAppCore(lzEndpoint, delegate) {
+        refundAddress = refundAddress_;
+        fee = defaultFee_;
         LAYER_ZERO_ENDPOINT = ILayerZeroEndpointV2(lzEndpoint);
     }
 
@@ -35,8 +45,12 @@ contract LayerZeroReporter is Reporter, Ownable {
         emit FeeSet(fee);
     }
 
-    function setRefundAddress(address refundAddress_) external onlyOwner {
+    function setDefaultRefundAddress(address refundAddress_) external onlyOwner {
         refundAddress = refundAddress_;
+    }
+
+    function oAppVersion() public pure virtual override returns (uint64 senderVersion, uint64 receiverVersion) {
+        return (1, 1);
     }
 
     function _dispatch(

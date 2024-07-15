@@ -4,9 +4,10 @@ pragma solidity ^0.8.20;
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { ILayerZeroReceiver } from "./interfaces/ILayerZeroReceiver.sol";
 import { Origin } from "./interfaces/ILayerZeroEndpointV2.sol";
+import { OAppCore } from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/OAppCore.sol";
 import { BlockHashAdapter } from "../BlockHashAdapter.sol";
 
-contract LayerZeroAdapter is BlockHashAdapter, Ownable, ILayerZeroReceiver {
+contract LayerZeroAdapter is BlockHashAdapter, Ownable, ILayerZeroReceiver, OAppCore {
     string public constant PROVIDER = "layer-zero";
     address public immutable LAYER_ZERO_ENDPOINT;
 
@@ -17,7 +18,7 @@ contract LayerZeroAdapter is BlockHashAdapter, Ownable, ILayerZeroReceiver {
 
     event ReporterSet(uint256 indexed chainId, uint32 indexed endpointId, address indexed reporter);
 
-    constructor(address lzEndpoint) {
+    constructor(address lzEndpoint, address delegate) OAppCore(lzEndpoint, delegate) {
         LAYER_ZERO_ENDPOINT = lzEndpoint;
     }
 
@@ -34,6 +35,18 @@ contract LayerZeroAdapter is BlockHashAdapter, Ownable, ILayerZeroReceiver {
         ) revert UnauthorizedLayerZeroReceive();
         (uint256[] memory ids, bytes32[] memory hashes) = abi.decode(_message, (uint256[], bytes32[]));
         _storeHashes(chainIds[_origin.srcEid], ids, hashes);
+    }
+
+    function nextNonce(uint32 /*_srcEid*/, bytes32 /*_sender*/) public pure override returns (uint64 nonce) {
+        return 0;
+    }
+
+    function allowInitializePath(Origin calldata origin) public view override returns (bool) {
+        return peers[origin.srcEid] == origin.sender;
+    }
+
+    function oAppVersion() public pure virtual override returns (uint64 senderVersion, uint64 receiverVersion) {
+        return (1, 1);
     }
 
     function setReporterByChain(uint256 chainId, uint32 endpointId, address reporter) external onlyOwner {
