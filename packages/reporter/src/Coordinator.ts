@@ -47,7 +47,13 @@ class Coordinator {
   }
 
   start() {
-    console.log("controllers: ", this.controllers)
+    this.logger.info(`Start Reporter with config${this.controllers}`)
+    this.logger.info(`Source chain: ${this.sourceChain}`)
+    this.logger.info(`Query block length: ${this._queryBlockLength}`)
+    this.logger.info(`Block Buffer: ${this._blockBuffer}`)
+    this.logger.info(`Interval to fetch blocks (ms): ${this._intervalFetchBlocksMs}`)
+    this.logger.info(`Interval to update light clients: ${this._intervalsUpdateLightClients}`)
+
     this.fetchBlocks()
     this.intervals.push(
       setInterval(() => {
