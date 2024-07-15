@@ -4,6 +4,7 @@ import {
   arbitrum,
   arbitrumSepolia,
   avalanche,
+  base,
   bsc,
   bscTestnet,
   gnosis,
@@ -65,6 +66,7 @@ export const settings = {
             TelepathyAdapter: process.env.OPTIMISM_TELEPATHY_ADAPTER as `0x${string}`,
             L2CrossDomainMessengerAdapter: process.env
               .OPTIMISM_L2_CROSS_DOMAIN_MESSENGER_ADAPTER_ADDRESS as `0x${string}`,
+            LayerZeroAdapter: process.env.OPTIMISM_MAINNET_LAYER_ZERO_ADAPTER as `0x${string}`,
           },
           [arbitrum.name]: {
             TelepathyAdapter: process.env.ARBITRUM_TELEPATHY_ADAPTER as `0x${string}`,
@@ -72,6 +74,9 @@ export const settings = {
           [avalanche.name]: {
             LayerZeroAdapter: process.env.AVALANCHE_LAYER_ZERO_ADAPTER_MAINNET as `0x${string}`,
             CCIPAdapter: process.env.AVALANCHE_CCIP_ADAPTER_MAINNET as `0x${string}`,
+          },
+          [base.name]: {
+            LayerZeroAdapter: process.env.BASE_MAINNET_LAYER_ZERO_ADAPTER as `0x${string}`,
           },
           /*[goerli.name]: {
             AMBReporter: "0xedc0b1d3de4496e0d917af42f29cb71eb2982319" as `0x${string}`,
@@ -138,6 +143,10 @@ export const settings = {
           [optimism.name]: {
             L1CrossDomainMessengerHeaderReporter: process.env
               .MAINNET_L1_CROSS_DOMAIN_MESSENGER_HEADER_REPORTER_ADDRESS as `0x${string}`,
+            LayerZeroReporter: process.env.MAINNET_LAYER_ZERO_REPORTER as `0x${string}`,
+          },
+          [base.name]: {
+            LayerZeroReporter: process.env.MAINNET_LAYER_ZERO_REPORTER as `0x${string}`,
           },
           [polygon.name]: {
             CelerReporter: process.env.MAINNET_CELER_REPORTER_POLYGON as `0x${string}`,

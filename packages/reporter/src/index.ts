@@ -2,6 +2,7 @@ import {
   arbitrum,
   arbitrumSepolia,
   avalanche,
+  base,
   bsc,
   bscTestnet,
   gnosis,
@@ -36,6 +37,7 @@ const main = () => {
     arbitrum,
     avalanche,
     arbitrumSepolia,
+    base,
     bsc,
     bscTestnet,
     gnosis,
@@ -49,7 +51,6 @@ const main = () => {
   ]
   const sourceChain: Chain = Object.values(chains).find((_chain) => _chain.id === sourceChainId) as Chain
   const destinationChains: Chain[] = Object.values(chains).filter((_chain) => destinationChainIds?.includes(_chain.id))
-
   const unidirectionalAdaptersAddresses = settings.contractAddresses.adapterAddresses.unidirectional as any
   const unidirectionalReportersAddresses = settings.contractAddresses.reporterAddresses.unidirectional as any
   const lightClientAddresses = settings.contractAddresses.lightClientAddresses as any
@@ -210,13 +211,16 @@ const main = () => {
       //   unidirectionalReportersAddresses[sourceChain.name]?.[optimismSepolia.name]?.LayerZeroReporter,
       [polygon.name]: unidirectionalReportersAddresses[sourceChain.name]?.[polygon.name]?.LayerZeroReporter,
       [bsc.name]: unidirectionalReportersAddresses[sourceChain.name]?.[bsc.name]?.LayerZeroReporter,
+      [base.name]: unidirectionalReportersAddresses[sourceChain.name]?.[base.name]?.LayerZeroReporter,
+      [optimism.name]: unidirectionalReportersAddresses[sourceChain.name]?.[optimism.name]?.LayerZeroReporter,
       [arbitrumSepolia.name]:
         unidirectionalReportersAddresses[sourceChain.name]?.[arbitrumSepolia.name]?.LayerZeroReporter,
     },
     adapterAddresses: {
       [polygon.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[polygon.name]?.LayerZeroAdapter,
       [bsc.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[bsc.name]?.LayerZeroAdapter,
-
+      [base.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[base.name].LayerZeroAdapter,
+      [optimism.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[optimism.name].layerZeroAdapter,
       [arbitrumSepolia.name]:
         unidirectionalAdaptersAddresses[sourceChain.name]?.[arbitrumSepolia.name]?.LayerZeroAdapter,
       [optimismSepolia.name]:
