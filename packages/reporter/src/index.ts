@@ -219,8 +219,8 @@ const main = () => {
     adapterAddresses: {
       [polygon.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[polygon.name]?.LayerZeroAdapter,
       [bsc.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[bsc.name]?.LayerZeroAdapter,
-      [base.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[base.name].LayerZeroAdapter,
-      [optimism.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[optimism.name].layerZeroAdapter,
+      [base.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[base.name]?.LayerZeroAdapter,
+      [optimism.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[optimism.name]?.LayerZeroAdapter,
       [arbitrumSepolia.name]:
         unidirectionalAdaptersAddresses[sourceChain.name]?.[arbitrumSepolia.name]?.LayerZeroAdapter,
       [optimismSepolia.name]:
