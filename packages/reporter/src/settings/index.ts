@@ -94,7 +94,7 @@ export const settings = {
             CCIPAdapter: process.env.BSC_TESTNET_CCIP_ADAPTER_SEPOLIA as `0x${string}`,
           },
           [gnosisChiado.name]: {
-            AMBAdapter: process.env.CHIADO_SEPOLIA_ADAPTER as `0x${string}`,
+            AMBAdapter: process.env.SEPOLIA_CHIADO_AMB_ADAPTER as `0x${string}`,
             CCIPAdapter: process.env.SEPOLIA_CHIADO_CCIP_ADAPTER as `0x${string}`,
             LayerZeroAdapter: process.env.SEPOLIA_CHIADO_LZ_ADAPTER as `0x${string}`,
             WormholeAdapter: process.env.SEPOLIA_CHIADO_WORMHOLE_ADAPTER as `0x${string}`,
@@ -172,7 +172,7 @@ export const settings = {
             CCIPReporter: process.env.SEPOLIA_CCIP_REPORTER_BSC_TESTNET as `0x${string}`,
           },
           [gnosisChiado.name]: {
-            AMBReporter: process.env.SEPOLIA_CHIADO_REPORTER as `0x${string}`,
+            AMBReporter: process.env.SEPOLIA_CHIADO_AMB_REPORTER as `0x${string}`,
             CCIPReporter: process.env.SEPOLIA_CHIADO_CCIP_REPORTER as `0x${string}`,
             LayerZeroReporter: process.env.SEPOLIA_CHIADO_LZ_REPORTER as `0x${string}`,
             WormholeReporter: process.env.SEPOLIA_CHIADO_WORMHOLE_REPORTER as `0x${string}`,
