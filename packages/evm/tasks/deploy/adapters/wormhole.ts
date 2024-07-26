@@ -4,18 +4,13 @@ import type { TaskArguments } from "hardhat/types"
 
 import { verify } from ".."
 import type { WormholeAdapter } from "../../../types/contracts/adapters/Wormhole/WormholeAdapter"
-import type { WormholeHeaderReporter } from "../../../types/contracts/adapters/Wormhole/WormholeHeaderReporter"
-import type { WormholeMessageRelay } from "../../../types/contracts/adapters/Wormhole/WormholeMessageRelay"
+import type { WormholeReporter } from "../../../types/contracts/adapters/Wormhole/WormholeReporter"
 import type { WormholeAdapter__factory } from "../../../types/factories/contracts/adapters/Wormhole/WormholeAdapter__factory"
-import type { WormholeHeaderReporter__factory } from "../../../types/factories/contracts/adapters/Wormhole/WormholeHeaderReporter__factory"
-import type { WormholeMessageRelay__factory } from "../../../types/factories/contracts/adapters/Wormhole/WormholeMessageRelay__factory"
+import type { WormholeReporter__factory } from "../../../types/factories/contracts/adapters/Wormhole/WormholeReporter__factory"
 
 // Deploy on destination chain
 task("deploy:Wormhole:Adapter")
   .addParam("wormhole", "address of the Wormhole contract", undefined, types.string)
-  .addParam("reporter", "address of the hash reporter", undefined, types.string)
-  .addParam("chainId", "source chain id", undefined, types.string)
-  .addParam("wormholeChainId", "wormhole source chain id", undefined, types.string)
   .addFlag("verify", "whether to verify the contract on Etherscan")
   .setAction(async function (taskArguments: TaskArguments, hre) {
     console.log("Deploying WormholeAdapter...")
@@ -23,12 +18,7 @@ task("deploy:Wormhole:Adapter")
     const wormholeAdapterFactory: WormholeAdapter__factory = <WormholeAdapter__factory>(
       await hre.ethers.getContractFactory("WormholeAdapter")
     )
-    const constructorArguments = [
-      taskArguments.wormhole,
-      taskArguments.reporter,
-      taskArguments.chainId,
-      taskArguments.wormholeChainId,
-    ] as const
+    const constructorArguments = [taskArguments.wormhole] as const
     const wormholeAdapter: WormholeAdapter = <WormholeAdapter>(
       await wormholeAdapterFactory.connect(signers[0]).deploy(...constructorArguments)
     )
@@ -38,41 +28,22 @@ task("deploy:Wormhole:Adapter")
   })
 
 // Deploy source chain
-task("deploy:Wormhole:HeaderReporter")
-  .addParam("wormhole", "address of the Wormhole contract", undefined, types.string)
-  .addParam("headerStorage", "address of the header storage contract", undefined, types.string)
-  .addFlag("verify", "whether to verify the contract on Etherscan")
-  .setAction(async function (taskArguments: TaskArguments, hre) {
-    console.log("Deploying WormholeHeaderReporter...")
-    const signers: SignerWithAddress[] = await hre.ethers.getSigners()
-    const wormholeHeaderReporterFactory: WormholeHeaderReporter__factory = <WormholeHeaderReporter__factory>(
-      await hre.ethers.getContractFactory("WormholeHeaderReporter")
-    )
-    const constructorArguments = [taskArguments.wormhole, taskArguments.headerStorage] as const
-    const wormholeHeaderReporter: WormholeHeaderReporter = <WormholeHeaderReporter>(
-      await wormholeHeaderReporterFactory.connect(signers[0]).deploy(...constructorArguments)
-    )
-    await wormholeHeaderReporter.deployed()
-    console.log("WormholeHeaderReporter deployed to:", wormholeHeaderReporter.address)
-    if (taskArguments.verify) await verify(hre, wormholeHeaderReporter, constructorArguments)
-  })
-
-// Deploy source chain
-task("deploy:Wormhole:MessageRelay")
-  .addParam("wormhole", "address of the Wormhole contract", undefined, types.string)
+task("deploy:Wormhole:Reporter")
   .addParam("yaho", "address of the Yaho contract", undefined, types.string)
+  .addParam("wormhole", "address of the Wormhole contract", undefined, types.string)
+  .addParam("headerstorage", "address of the header storage contract", undefined, types.string)
   .addFlag("verify", "whether to verify the contract on Etherscan")
   .setAction(async function (taskArguments: TaskArguments, hre) {
-    console.log("Deploying WormholeMessageRelay...")
+    console.log("Deploying WormholeReporter...")
     const signers: SignerWithAddress[] = await hre.ethers.getSigners()
-    const wormholeMessageRelayFactory: WormholeMessageRelay__factory = <WormholeMessageRelay__factory>(
-      await hre.ethers.getContractFactory("WormholeMessageRelay")
+    const wormholeReporterFactory: WormholeReporter__factory = <WormholeReporter__factory>(
+      await hre.ethers.getContractFactory("WormholeReporter")
     )
-    const constructorArguments = [taskArguments.wormhole, taskArguments.yaho] as const
-    const wormholeMessageRelay: WormholeMessageRelay = <WormholeMessageRelay>(
-      await wormholeMessageRelayFactory.connect(signers[0]).deploy(...constructorArguments)
+    const constructorArguments = [taskArguments.headerstorage, taskArguments.yaho, taskArguments.wormhole] as const
+    const wormholeReporter: WormholeReporter = <WormholeReporter>(
+      await wormholeReporterFactory.connect(signers[0]).deploy(...constructorArguments)
     )
-    await wormholeMessageRelay.deployed()
-    console.log("WormholeMessageRelay deployed to:", wormholeMessageRelay.address)
-    if (taskArguments.verify) await verify(hre, wormholeMessageRelay, constructorArguments)
+    await wormholeReporter.deployed()
+    console.log("WormholeHeaderReporter deployed to:", wormholeReporter.address)
+    if (taskArguments.verify) await verify(hre, wormholeReporter, constructorArguments)
   })
