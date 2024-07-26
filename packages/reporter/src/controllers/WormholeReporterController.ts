@@ -32,6 +32,7 @@ class WormholeReporterController extends BaseController {
 
   async onBlocks(_blockNumbers: bigint[]) {
     const release = await this._mutex.acquire()
+
     try {
       const wormholeChainId = this._wormholeChainIds[this.sourceChain.name]
       const client = this.multiClient.getClientByChain(this.sourceChain)
@@ -57,14 +58,16 @@ class WormholeReporterController extends BaseController {
       this.logger.info(`header reported from ${this.sourceChain.name} to Wormhole Network: ${txHash}`)
 
       let vaaBytes = null
+      let sequence = Number(nextSequence)
+
       while (true) {
         try {
           this.logger.info("Waiting for signed VAA ...")
+
           const { data } = await this._wormholeScanClient.get(
-            `v1/signed_vaa/${wormholeChainId}/000000000000000000000000${this.reporterAddress?.slice(
-              wormholeChainId,
-            )}/${Number(nextSequence)}`,
+            `v1/signed_vaa/${wormholeChainId}/000000000000000000000000${this.reporterAddress?.slice(2)}/${sequence}`,
           )
+
           vaaBytes = "0x" + Buffer.from(data.vaaBytes, "base64").toString("hex")
           this.logger.info("Signed VAA available! Proceeding ...")
           break

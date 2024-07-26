@@ -97,6 +97,7 @@ export const settings = {
             AMBAdapter: process.env.CHIADO_SEPOLIA_ADAPTER as `0x${string}`,
             CCIPAdapter: process.env.SEPOLIA_CHIADO_CCIP_ADAPTER as `0x${string}`,
             LayerZeroAdapter: process.env.SEPOLIA_CHIADO_LZ_ADAPTER as `0x${string}`,
+            WormholeAdapter: process.env.SEPOLIA_CHIADO_WORMHOLE_ADAPTER as `0x${string}`,
           },
           [arbitrumSepolia.name]: {
             LayerZeroAdapter: process.env.SEPOLIA_ARB_LZ_ADAPTER as `0x${string}`,
@@ -110,6 +111,9 @@ export const settings = {
             ElectronAdapter: process.env.CHIADO_ELECTRON_ADAPTER_GOERLI as `0x${string}`,
           },
         },
+      },
+      [gnosisChiado.name]: {
+        WormholeAdapter: process.env.SEPOLIA_CHIADO_WORMHOLE_ADAPTER as `0x${string}`,
       },
       [gnosis.name]: {
         WormholeAdapter: process.env.GNOSIS_WORMHOLE_ADAPTER as `0x${string}`,
@@ -171,6 +175,7 @@ export const settings = {
             AMBReporter: process.env.SEPOLIA_CHIADO_REPORTER as `0x${string}`,
             CCIPReporter: process.env.SEPOLIA_CHIADO_CCIP_REPORTER as `0x${string}`,
             LayerZeroReporter: process.env.SEPOLIA_CHIADO_LZ_REPORTER as `0x${string}`,
+            WormholeReporter: process.env.SEPOLIA_CHIADO_WORMHOLE_REPORTER as `0x${string}`,
           },
           [arbitrumSepolia.name]: {
             LayerZeroReporter: process.env.SEPOLIA_ARB_LZ_REPORTER as `0x${string}`,
@@ -184,6 +189,9 @@ export const settings = {
       },
       [mainnet.name]: {
         WormholeHeaderReporter: process.env.MAINNET_WORMHOLE_HEADER_REPORTER as `0x${string}`,
+      },
+      [sepolia.name]: {
+        WormholeReporter: process.env.SEPOLIA_CHIADO_WORMHOLE_REPORTER as `0x${string}`,
       },
     },
     lightClientAddresses: {
@@ -225,6 +233,9 @@ export const settings = {
       Wormhole: process.env.MAINNET_WORMHOLE_ADDRESS as `0x${string}`,
       HeaderStorage: process.env.MAINNET_HEADER_STORAGE as `0x${string}`,
     },
+    [sepolia.name]: {
+      Wormhole: process.env.SEPOLIA_WORMHOLE_ADDRESS as `0x${string}`,
+    },
   },
   reporterControllers: {
     AMBReporterController: {
@@ -254,10 +265,12 @@ export const settings = {
       baseProofUrl: process.env.TELEPATHY_PROOF_API_URL as string,
     },
     WormholeReporterController: {
+      wormholeAddress: process.env.WORMHOLE_CONTRACT_ADDRESS as `0x${string}`,
       wormholeChainIds: {
         [mainnet.name]: 2,
+        [sepolia.name]: 10002,
       },
-      wormholeScanBaseUrl: "https://api.wormholescan.io",
+      wormholeScanBaseUrl: process.env.WORMHOLE_SCAN_BASE_URL as string,
     },
     ZetaReporterController: {
       reportHeadersValue: parseEther(process.env.ZETA_CHAIN_REPORT_HEADERS_VALUE as string),
