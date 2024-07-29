@@ -37,6 +37,7 @@ export const settings = {
     [bsc.name]: process.env.BSC_RPC_URL as string,
     [arbitrum.name]: process.env.ARBITRUM_RPC_URL as string,
     [sepolia.name]: process.env.SEPOLIA_RPC_URL as string,
+    [base.name]: process.env.BASE_RPC_URL as string,
   },
   beaconApiUrls: {
     [goerli.name]: process.env.GOERLI_BEACON_API_URL as string,
@@ -82,6 +83,23 @@ export const settings = {
             AMBReporter: "0xedc0b1d3de4496e0d917af42f29cb71eb2982319" as `0x${string}`,
             SygmaReporter: "0x2f96d347c932ac73b56e9352ecc0707e25173d88" as `0x${string}`,
           },*/
+        },
+        [base.name]: {
+          [polygon.name]: {
+            LayerZeroAdapter: process.env.BASE_POLYGON_LZ_ADAPTER as `0x${string}`,
+          },
+          [bsc.name]: {
+            LayerZeroAdapter: process.env.BASE_BNB_LZ_ADAPTER as `0x${string}`,
+          },
+          [gnosis.name]: {
+            LayerZeroAdapter: process.env.BASE_GNO_LZ_ADAPTER as `0x${string}`,
+          },
+          [arbitrum.name]: {
+            LayerZeroAdapter: process.env.BASE_ARBITRUM_LZ_ADAPTER as `0x${string}`,
+          },
+          [optimism.name]: {
+            LayerZeroAdapter: process.env.BASE_OPTIMISM_LZ_ADAPTER as `0x${string}`,
+          },
         },
         [sepolia.name]: {
           [optimismSepolia.name]: {
@@ -159,6 +177,23 @@ export const settings = {
           [avalanche.name]: {
             LayerZeroReporter: process.env.MAINNET_LAYER_ZERO_REPORTER_AVALANCHE as `0x${string}`,
             CCIPReporter: process.env.MAINNET_CCIP_REPORTER_AVALANCHE as `0x${string}`,
+          },
+        },
+        [base.name]: {
+          [polygon.name]: {
+            LayerZeroReporter: process.env.BASE_LZ_REPORTER as `0x${string}`,
+          },
+          [bsc.name]: {
+            LayerZeroReporter: process.env.BASE_LZ_REPORTER as `0x${string}`,
+          },
+          [gnosis.name]: {
+            LayerZeroReporter: process.env.BASE_LZ_REPORTER as `0x${string}`,
+          },
+          [arbitrum.name]: {
+            LayerZeroReporter: process.env.BASE_LZ_REPORTER as `0x${string}`,
+          },
+          [optimism.name]: {
+            LayerZeroReporter: process.env.BASE_LZ_REPORTER as `0x${string}`,
           },
         },
         [sepolia.name]: {

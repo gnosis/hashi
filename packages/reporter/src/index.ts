@@ -31,6 +31,7 @@ import logger from "./utils/logger.js"
 
 const main = () => {
   const controllersEnabled = process.env.REPORTERS_ENABLED?.split(",")
+
   const sourceChainId = Number(process.env.SOURCE_CHAIN_ID)
   const destinationChainIds = process.env.DESTINATION_CHAIN_IDS?.split(",").map((_chainId) => Number(_chainId))
   const chains = [
@@ -212,16 +213,20 @@ const main = () => {
       //   unidirectionalReportersAddresses[sourceChain.name]?.[optimismSepolia.name]?.LayerZeroReporter,
       [polygon.name]: unidirectionalReportersAddresses[sourceChain.name]?.[polygon.name]?.LayerZeroReporter,
       [bsc.name]: unidirectionalReportersAddresses[sourceChain.name]?.[bsc.name]?.LayerZeroReporter,
+      [gnosis.name]: unidirectionalReportersAddresses[sourceChain.name]?.[gnosis.name]?.LayerZeroReporter,
       [base.name]: unidirectionalReportersAddresses[sourceChain.name]?.[base.name]?.LayerZeroReporter,
       [optimism.name]: unidirectionalReportersAddresses[sourceChain.name]?.[optimism.name]?.LayerZeroReporter,
+      [arbitrum.name]: unidirectionalReportersAddresses[sourceChain.name]?.[arbitrum.name]?.LayerZeroReporter,
       [arbitrumSepolia.name]:
         unidirectionalReportersAddresses[sourceChain.name]?.[arbitrumSepolia.name]?.LayerZeroReporter,
     },
     adapterAddresses: {
       [polygon.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[polygon.name]?.LayerZeroAdapter,
       [bsc.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[bsc.name]?.LayerZeroAdapter,
+      [gnosis.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[gnosis.name]?.LayerZeroAdapter,
       [base.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[base.name]?.LayerZeroAdapter,
       [optimism.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[optimism.name]?.LayerZeroAdapter,
+      [arbitrum.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[arbitrum.name]?.LayerZeroAdapter,
       [arbitrumSepolia.name]:
         unidirectionalAdaptersAddresses[sourceChain.name]?.[arbitrumSepolia.name]?.LayerZeroAdapter,
       [optimismSepolia.name]:
@@ -317,7 +322,6 @@ const main = () => {
       celerReporterController,
       layerZeroReporterController,
       hyperlaneReporterController,
-      ccipReporterController,
       zetaReporterController,
       electronReporterController,
     ].filter((_controller) => controllersEnabled?.includes(_controller.name)),

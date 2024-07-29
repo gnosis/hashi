@@ -25,7 +25,10 @@ class StandardReporterController extends BaseController {
       const blockNumber = _blockNumbers[_blockNumbers.length - 1]
 
       for (const chain of this.destinationChains as Chain[]) {
-        if (!this.adapterAddresses[chain.name]) continue
+        if (!this.adapterAddresses[chain.name]) {
+          this.logger.info(`Adapter address is missing for ${chain.name}. Skipping...`)
+          continue
+        }
 
         this.logger.info(`reporting block header for block ${blockNumber} on ${chain.name} ...`)
         const { request } = await client.simulateContract({
@@ -38,6 +41,8 @@ class StandardReporterController extends BaseController {
 
         const txHash = await client.writeContract(request)
         this.logger.info(`headers reporter from ${this.sourceChain.name} to ${chain.name}: ${txHash}`)
+
+        await new Promise((resolve) => setTimeout(resolve, 12000))
       }
     } catch (_error) {
       this.logger.error(_error)
