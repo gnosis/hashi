@@ -21,7 +21,7 @@ abstract contract ShuSo is IShuSho, OwnableUpgradeable {
     function init(bytes memory initParams) public initializer {
         (address _owner, IHashi _hashi) = abi.decode(initParams, (address, IHashi));
         __Ownable_init();
-        setHashi(_hashi);
+        _setHashi(_hashi);
         transferOwnership(_owner);
         emit Init(_owner, _hashi);
     }
@@ -36,7 +36,7 @@ abstract contract ShuSo is IShuSho, OwnableUpgradeable {
     }
 
     /// @inheritdoc IShuSho
-    function getAdapterLink(uint256 domain, IAdapter adapter) public view returns (Link memory) {
+    function getAdapterLink(uint256 domain, IAdapter adapter) external view returns (Link memory) {
         return _adapters[domain][adapter];
     }
 
@@ -52,7 +52,7 @@ abstract contract ShuSo is IShuSho, OwnableUpgradeable {
     }
 
     /// @inheritdoc IShuSho
-    function getDomain(uint256 domain) public view returns (Domain memory) {
+    function getDomain(uint256 domain) external view returns (Domain memory) {
         return _domains[domain];
     }
 
@@ -64,8 +64,6 @@ abstract contract ShuSo is IShuSho, OwnableUpgradeable {
         if (threshold == 0) threshold = count;
         return (threshold, count);
     }
-
-    function setHashi(IHashi _hashi) public virtual;
 
     /**
      * @dev Disables the given adapters for a given domain.
@@ -97,10 +95,11 @@ abstract contract ShuSo is IShuSho, OwnableUpgradeable {
      * @dev Enables the given adapters for a given domain.
      * @param domain - Uint256 identifier for the domain for which to set adapters.
      * @param adapters - Array of adapter addresses.
-     * @notice Reverts if adapters are out of order or contain duplicates.
+     * @param threshold - Uint256 threshold to set for the given domain.
+     * @notice Reverts if adapters are out of order, contain duplicates or if the threshold is not higher than half the count of the adapters
      * @notice Only callable by the owner of this contract.
      */
-    function _enableAdapters(uint256 domain, IAdapter[] memory adapters) internal onlyOwner {
+    function _enableAdapters(uint256 domain, IAdapter[] memory adapters, uint256 threshold) internal onlyOwner {
         if (_adapters[domain][LIST_END].next == IAdapter(address(0))) {
             _adapters[domain][LIST_END].next = LIST_END;
             _adapters[domain][LIST_END].previous = LIST_END;
@@ -117,6 +116,9 @@ abstract contract ShuSo is IShuSho, OwnableUpgradeable {
             _adapters[domain][adapter].next = LIST_END;
             _domains[domain].count++;
         }
+        if (threshold < (_domains[domain].count / 2) + 1) revert InvalidThreshold(threshold);
+        _domains[domain].threshold = threshold;
+        emit ThresholdSet(domain, threshold);
         emit AdaptersEnabled(domain, adapters);
     }
 
@@ -217,12 +219,8 @@ abstract contract ShuSo is IShuSho, OwnableUpgradeable {
         uint256 count = _domains[domain].count;
         if (count == 0) revert CountCannotBeZero();
         if (threshold < (count / 2) + 1) revert InvalidThreshold(threshold);
-        if (_domains[domain].threshold == threshold) revert DuplicateThreashold(threshold);
+        if (_domains[domain].threshold == threshold) revert DuplicateThreshold(threshold);
         _domains[domain].threshold = threshold;
         emit ThresholdSet(domain, threshold);
-    }
-
-    function _setDomainThreshold(uint256 domainId, uint256 threshold) internal {
-        _domains[domainId].threshold = threshold;
     }
 }

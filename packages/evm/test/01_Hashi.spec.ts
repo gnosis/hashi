@@ -126,7 +126,7 @@ describe("Hashi", function () {
         .to.be.revertedWithCustomError(hashi, "InvalidThreshold")
         .withArgs(threshold, adapters.length)
     })
-    it("should revert false if the threshold is 0", async () => {
+    it("should revert if the threshold is 0", async () => {
       const { hashi, mockAdapter, badMockAdapter, nonReportingMockAdapter } = await setup()
       const id = 3
       const threshold = 0
@@ -134,14 +134,6 @@ describe("Hashi", function () {
       await expect(hashi.checkHashWithThresholdFromAdapters(DOMAIN_ID, id, threshold, adapters))
         .to.be.revertedWithCustomError(hashi, "InvalidThreshold")
         .withArgs(threshold, adapters.length)
-    })
-    it("should revert false if we don't provide any adapter", async () => {
-      const { hashi } = await setup()
-      const id = 3
-      const threshold = 3
-      await expect(
-        hashi.checkHashWithThresholdFromAdapters(DOMAIN_ID, id, threshold, []),
-      ).to.be.revertedWithCustomError(hashi, "NoAdaptersGiven")
     })
   })
 })

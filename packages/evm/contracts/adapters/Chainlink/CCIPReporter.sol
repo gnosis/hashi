@@ -11,11 +11,13 @@ contract CCIPReporter is Reporter, Ownable {
 
     IRouterClient public immutable CCIP_ROUTER;
 
+    uint256 public fee;
     mapping(uint256 => uint64) public chainSelectors;
 
     error ChainSelectorNotAvailable();
 
     event ChainSelectorSet(uint256 indexed chainId, uint64 indexed chainSelector);
+    event FeeSet(uint256 fee);
 
     constructor(address headerStorage, address yaho, address ccipRouter) Reporter(headerStorage, yaho) {
         CCIP_ROUTER = IRouterClient(ccipRouter);
@@ -24,6 +26,11 @@ contract CCIPReporter is Reporter, Ownable {
     function setChainSelectorByChainId(uint256 chainId, uint64 chainSelector) external onlyOwner {
         chainSelectors[chainId] = chainSelector;
         emit ChainSelectorSet(chainId, chainSelector);
+    }
+
+    function setFee(uint256 fee_) external onlyOwner {
+        fee = fee_;
+        emit FeeSet(fee_);
     }
 
     function _dispatch(
@@ -42,7 +49,7 @@ contract CCIPReporter is Reporter, Ownable {
             extraArgs: Client._argsToBytes(Client.EVMExtraArgsV1({ gasLimit: 200_000, strict: false })),
             feeToken: address(0) // Pay fees with native
         });
-        CCIP_ROUTER.ccipSend{ value: msg.value }(targetChainSelector, message);
+        CCIP_ROUTER.ccipSend{ value: fee }(targetChainSelector, message);
         return bytes32(0);
     }
 }

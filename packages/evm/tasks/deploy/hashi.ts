@@ -6,13 +6,11 @@ import { verify } from "."
 import type { Hashi } from "../../types/contracts/Hashi"
 import type { Yaho } from "../../types/contracts/Yaho"
 import type { Yaru } from "../../types/contracts/Yaru"
-import type { GiriGiriBashi } from "../../types/contracts/ownable/GiriGiriBashi"
 import type { ShoyuBashi } from "../../types/contracts/ownable/ShoyuBashi"
 import type { HeaderStorage } from "../../types/contracts/utils/HeaderStorage"
 import type { Hashi__factory } from "../../types/factories/contracts/Hashi__factory"
 import type { Yaho__factory } from "../../types/factories/contracts/Yaho__factory"
 import type { Yaru__factory } from "../../types/factories/contracts/Yaru__factory"
-import type { GiriGiriBashi__factory } from "../../types/factories/contracts/ownable/GiriGiriBashi__factory"
 import type { ShoyuBashi__factory } from "../../types/factories/contracts/ownable/ShoyuBashi__factory"
 import type { HeaderStorage__factory } from "../../types/factories/contracts/utils/HeaderStorage__factory"
 
@@ -45,26 +43,6 @@ task("deploy:ShoyuBashi")
     await shoyuBashi.deployed()
     console.log("ShoyuBashi deployed to:", shoyuBashi.address)
     if (taskArguments.verify) await verify(hre, shoyuBashi, constructorArguments)
-  })
-
-task("deploy:GiriGiriBashi")
-  .addParam("owner", "address to set as the owner of this contract")
-  .addParam("hashi", "address of the hashi contract")
-  .addParam("recipient", "address that will receive bonds for unsuccessful challenges")
-  .addFlag("verify", "whether to verify the contract on Etherscan")
-  .setAction(async function (taskArguments: TaskArguments, hre) {
-    console.log("Deploying GiriGiriBashi...")
-    const signers: SignerWithAddress[] = await hre.ethers.getSigners()
-    const giriGiriBashiFactory: GiriGiriBashi__factory = <GiriGiriBashi__factory>(
-      await hre.ethers.getContractFactory("GiriGiriBashi")
-    )
-    const constructorArguments = [taskArguments.owner, taskArguments.hashi, taskArguments.recipient] as const
-    const giriGiriBashi: GiriGiriBashi = <GiriGiriBashi>(
-      await giriGiriBashiFactory.connect(signers[0]).deploy(...constructorArguments)
-    )
-    await giriGiriBashi.deployed()
-    console.log("GiriGiriBashi deployed to:", giriGiriBashi.address)
-    if (taskArguments.verify) await verify(hre, giriGiriBashi, constructorArguments)
   })
 
 task("deploy:HeaderStorage")

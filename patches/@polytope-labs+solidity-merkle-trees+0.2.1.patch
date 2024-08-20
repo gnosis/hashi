@@ -1,0 +1,13 @@
+diff --git a/node_modules/@polytope-labs/solidity-merkle-trees/src/trie/substrate/SubstrateTrieDB.sol b/node_modules/@polytope-labs/solidity-merkle-trees/src/trie/substrate/SubstrateTrieDB.sol
+index 40b7397..6eb68b1 100644
+--- a/node_modules/@polytope-labs/solidity-merkle-trees/src/trie/substrate/SubstrateTrieDB.sol
++++ b/node_modules/@polytope-labs/solidity-merkle-trees/src/trie/substrate/SubstrateTrieDB.sol
+@@ -5,7 +5,7 @@ import "../Bytes.sol";
+ import {NibbleSliceOps} from "../NibbleSlice.sol";
+ 
+ import {ScaleCodec} from "./ScaleCodec.sol";
+-import "openzeppelin/utils/Strings.sol";
++import "@openzeppelin/contracts/utils/Strings.sol";
+ 
+ // SPDX-License-Identifier: Apache2
+ 

@@ -1,5 +1,6 @@
 {
-  "name": "@gnosis/hashi",
+  "name": "@gnosis/hashi-evm",
+  "private": true,
   "description": "",
   "version": "0.1.1",
   "author": {
@@ -37,7 +38,9 @@
     "eslint-config-prettier": "^8.5.0",
     "ethers": "^5.7.2",
     "fs-extra": "^10.1.0",
-    "hardhat": "^2.19.4",
+    "hardhat": "2.19.4",
+    "hardhat-change-network": "^0.0.7",
+    "hardhat-deploy": "^0.11.31",
     "hardhat-gas-reporter": "^1.0.9",
     "lint-staged": "^13.0.4",
     "lodash": "^4.17.21",
@@ -74,17 +77,11 @@
   },
   "scripts": {
     "clean": "shx rm -rf ./artifacts ./cache ./coverage ./types ./coverage.json && yarn typechain",
-    "commit": "git-cz",
     "build": "hardhat compile",
-    "compile": "cross-env TS_NODE_TRANSPILE_ONLY=true hardhat compile",
     "coverage": "hardhat coverage --solcoverjs ./.solcover.js --temp artifacts --testfiles \"test/**/*.ts\" && yarn typechain",
-    "deploy:hashi": "hardhat deploy:Hashi",
-    "deploy:girigiribashi": "hardhat deploy:ShoyuBashi",
-    "deploy:headerstorage": "hardhat deploy:HeaderStorage",
     "lint": "yarn lint:sol && yarn lint:ts && yarn prettier:check",
     "lint:sol": "solhint --max-warnings 0 \"contracts/**/*.sol\"",
     "lint:ts": "eslint --ignore-path ./.eslintignore --ext .js,.ts .",
-    "postinstall": "DOTENV_CONFIG_PATH=./.env.example yarn typechain",
     "postpublish": "pinst --enable",
     "prepublishOnly": "pinst --disable",
     "prettier:check": "prettier --check \"**/*.{js,json,md,sol,ts,yml}\"",
@@ -93,16 +90,13 @@
     "typechain": "cross-env TS_NODE_TRANSPILE_ONLY=true hardhat typechain"
   },
   "dependencies": {
-    "@axelar-network/axelar-gmp-sdk-solidity": "^5.6.2",
-    "@chainlink/contracts-ccip": "^0.7.6",
-    "@connext/interfaces": "^2.0.0",
-    "@hyperlane-xyz/core": "^3.1.10",
-    "@openzeppelin/contracts-upgradeable": "^4.8.1",
-    "@polytope-labs/solidity-merkle-trees": "^0.2.1",
-    "@routerprotocol/evm-gateway-contracts": "^1.1.13",
-    "hardhat-change-network": "^0.0.7",
-    "hardhat-deploy": "^0.11.31",
-    "openzeppelin": "npm:@openzeppelin/contracts@4.3.3",
-    "solidity-rlp": "^2.0.8"
+    "@axelar-network/axelar-gmp-sdk-solidity": "5.6.2",
+    "@chainlink/contracts-ccip": "0.7.6",
+    "@connext/interfaces": "2.0.0",
+    "@hyperlane-xyz/core": "3.1.10",
+    "@openzeppelin/contracts-upgradeable": "4.8.1",
+    "@polytope-labs/solidity-merkle-trees": "0.2.1",
+    "@routerprotocol/evm-gateway-contracts": "1.1.13",
+    "solidity-rlp": "2.0.8"
   }
 }

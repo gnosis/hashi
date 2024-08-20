@@ -31,7 +31,7 @@ contract DendrETHAdapter is BlockHashAdapter {
     }
 
     /// @notice Stores the block header for a given block only if it exists
-    //          in the DendrETH Light Client for the chainId.
+    //          in the DendrETH Light Client for the SOURCE_CHAIN_ID.
     function storeBlockHeader(
         uint64 slot,
         uint256 blockNumber,
