@@ -3,8 +3,8 @@ pragma solidity ^0.8.20;
 
 library SSZ {
     // G-indicies for the BeaconBlockHeader -> bodyRoot -> executionPayload -> {blockNumber, blockHash}
-    uint256 internal constant EXECUTION_PAYLOAD_BLOCK_NUMBER_INDEX = 3222;
-    uint256 internal constant EXECUTION_PAYLOAD_BLOCK_HASH_INDEX = 3228;
+    uint256 internal constant EXECUTION_PAYLOAD_BLOCK_NUMBER_INDEX = 6438;
+    uint256 internal constant EXECUTION_PAYLOAD_BLOCK_HASH_INDEX = 6444;
 
     // G-index for the BeaconBlockHeader -> slot
     uint256 internal constant SLOT_INDEX = 8;
