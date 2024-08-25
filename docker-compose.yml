@@ -8,7 +8,8 @@ services:
       - "27017:27017"
     networks:
       - mongo-network
-    volumes: -mongo-data:/data/db
+    volumes:
+      - mongo-data:/data/db
 
   executor:
     build:
