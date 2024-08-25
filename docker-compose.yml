@@ -1,0 +1,38 @@
+version: "3.8"
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    networks:
+      - mongo-network
+    volumes: -mongo-data:/data/db
+
+  executor:
+    build:
+      context: .
+      dockerfile: Dockerfile.executor
+    container_name: executor
+    networks:
+      - mongo-network
+    depends_on:
+      - mongodb
+
+  relayer:
+    build:
+      context: .
+      dockerfile: Dockerfile.relayer
+    container_name: relayer
+    networks:
+      - mongo-network
+    depends_on:
+      - mongodb
+networks:
+  mongo-network:
+    driver: bridge
+
+volumes:
+  mongo-data:
+    driver: local

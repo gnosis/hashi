@@ -6,19 +6,29 @@
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "forceConsistentCasingInFileNames": true,
-    "lib": ["es6", "ESNext", "DOM"],
+    "lib": [
+      "es6",
+      "ESNext",
+      "DOM"
+    ],
     "module": "ESNext",
     "moduleResolution": "node",
     "noImplicitAny": true,
     "outDir": "./dist",
+     "rootDir": "./src",
     "removeComments": true,
     "resolveJsonModule": true,
     "sourceMap": true,
     "strict": true,
-    "target": "ESNext"
+    "target": "ESNext",
+    "skipLibCheck": true,
   },
-  "exclude": ["node_modules"],
-  "include": ["./src/**/*"],
+  "exclude": [
+    "node_modules"
+  ],
+  "include": [
+    "./src/**/*"
+  ],
   "ts-node": {
     "esm": true,
     "experimentalSpecifierResolution": "node"

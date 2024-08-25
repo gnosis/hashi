@@ -1,0 +1,30 @@
+FROM node:18-alpine 
+
+WORKDIR /usr/src/app
+COPY package.json yarn.lock ./
+
+COPY packages/common/package.json  ./packages/common/
+COPY packages/executor/package.json  ./packages/executor/
+
+RUN yarn install --ignore-scripts
+
+WORKDIR /usr/src/app/packages/common
+RUN yarn install --ignore-scripts
+
+WORKDIR /usr/src/app/packages/executor
+RUN yarn install  --ignore-scripts
+
+WORKDIR /usr/src/app
+
+COPY packages/common/ ./packages/common/
+COPY packages/executor/ ./packages/executor/
+
+WORKDIR /usr/src/app/packages/common
+RUN yarn compile
+
+
+
+WORKDIR /usr/src/app/packages/executor
+RUN yarn compile
+
+CMD ["yarn", "start"]
