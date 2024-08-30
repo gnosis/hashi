@@ -25,7 +25,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.relayer
-    container_name: relayer
+    container_name: hashi-relayer
     networks:
       - mongo-network
     depends_on:

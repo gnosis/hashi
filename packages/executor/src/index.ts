@@ -1,8 +1,8 @@
-import 'dotenv/config'
-import { createWalletClient, http, Chain, publicActions, Log } from "viem"
+import "dotenv/config"
+import { createWalletClient, http, Chain, publicActions, Log, createPublicClient } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import * as chains from "viem/chains"
-import { MongoClient} from "mongodb"
+import { MongoClient } from "mongodb"
 import { adapterAbi, Batcher, logger, Message, Watcher, yahoAbi, yaruAbi } from "@gnosis/hashi-common"
 
 const mongoClient = new MongoClient(process.env.MONGO_DB_URI as string)
@@ -12,13 +12,14 @@ const db = mongoClient.db("hashi")
 const sourceChain = Object.values(chains).find(({ id }) => id.toString() === (process.env.SOURCE_CHAIN_ID as string))
 if (!sourceChain) throw new Error("Invalid SOURCE_CHAIN_ID")
 const targetChain = Object.values(chains).find(({ id }) => id.toString() === (process.env.TARGET_CHAIN_ID as string))
-if (!sourceChain) throw new Error("Invalid TARGET_CHAIN_ID")
+if (!targetChain) throw new Error("Invalid TARGET_CHAIN_ID")
 
 const sourceClient = createWalletClient({
   account: privateKeyToAccount(process.env.PK as `0x${string}`),
   chain: sourceChain as Chain | undefined,
   transport: http(process.env.SOURCE_RPC as string),
 }).extend(publicActions)
+
 const targetClient = createWalletClient({
   account: privateKeyToAccount(process.env.PK as `0x${string}`),
   chain: targetChain as Chain | undefined,
@@ -37,7 +38,11 @@ const watchers = adapters.map(
       service: `ExecutorWatcher:${_adapter.slice(0, 6)}${_adapter.slice(_adapter.length - 4, _adapter.length)}`,
       watchIntervalTimeMs: Number(process.env.WATCH_INTERVAL_TIME_MS as string),
       onLogs: async (_logs: Log[]) => {
-        const messageIds = _logs.map((_log) => _log.topics[1])
+        const messageIds = _logs
+          .map((_log) => _log.topics[1])
+          .filter((id): id is `0x${string}` => id !== undefined) // Filter out undefined values
+          .map((id) => BigInt(id)) // Convert each string to bigint
+
         // NOTE: without setting fromBlock and toBlock, it's not possible to getContractEvents
         const blockNumber = await sourceClient.getBlockNumber()
         const messageDispatchedLogs = await sourceClient.getContractEvents({
@@ -49,8 +54,9 @@ const watchers = adapters.map(
           },
           fromBlock: blockNumber - BigInt(process.env.BLOCKS_WINDOW as string),
           toBlock: blockNumber,
+          strict: true,
         })
-
+        logger.info(`Found corresponding ${messageDispatchedLogs.length} message dispatch logs`)
         const messages = messageDispatchedLogs.map((_log) => Message.fromLog(_log))
         for (const message of messages) {
           const hashStoredLog = _logs.find((_log) => _log.topics[1] === message.id) as Log
