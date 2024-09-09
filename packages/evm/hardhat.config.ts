@@ -36,6 +36,7 @@ const chainIds = {
   "polygon-mainnet": 137,
   "polygon-mumbai": 80001,
   sepolia: 11155111,
+  "lukso-testnet": 4201,
 }
 
 function getChainConfig(chain: keyof typeof chainIds): NetworkUserConfig {
@@ -56,6 +57,9 @@ function getChainConfig(chain: keyof typeof chainIds): NetworkUserConfig {
         break
       case "chiado":
         jsonRpcUrl = "https://rpc.chiadochain.net/"
+        break
+      case "lukso-testnet":
+        jsonRpcUrl = "https://rpc.testnet.lukso.network"
         break
       default:
         jsonRpcUrl = `https://${chain}.infura.io/v3/${infuraApiKey}`
@@ -109,6 +113,7 @@ const config: HardhatUserConfig = {
     bsc: getChainConfig("bsc"),
     gnosis: getChainConfig("gnosis"),
     chiado: getChainConfig("chiado"),
+    "lukso-testnet": getChainConfig("lukso-testnet"),
     mainnet: getChainConfig("mainnet"),
     optimism: getChainConfig("optimism-mainnet"),
     "polygon-mainnet": getChainConfig("polygon-mainnet"),
