@@ -1302,10 +1302,27 @@
   resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-4.3.3.tgz#ff6ee919fc2a1abaf72b22814bfb72ed129ec137"
   integrity sha512-tDBopO1c98Yk7Cv/PZlHqrvtVjlgK5R4J6jxLwoO7qxK4xqOiZG+zSkIvGFpPZ0ikc3QOED3plgdqjgNTnBc7g==
 
+"@polytope-labs/ismp-solidity@^0.6.1":
+  version "0.6.1"
+  resolved "https://registry.yarnpkg.com/@polytope-labs/ismp-solidity/-/ismp-solidity-0.6.1.tgz#040cfd8362475d6a513fd7b05f7992450df4947f"
+  integrity sha512-IUIej203J/sKgPJswkiUitfiPqUtJlg3ZAdDjB9LyelwbFr8ZBuRBNSZtu3FbLMSC5N7/l4e/LY5+MiC3VtXRQ==
+  dependencies:
+    "@polytope-labs/solidity-merkle-trees" "^0.2.3"
+    openzeppelin-solidity "^4.8.1"
+    prettier "^3.3.3"
+    prettier-plugin-solidity "^1.3.1"
+
 "@polytope-labs/solidity-merkle-trees@0.2.1":
   version "0.2.1"
   resolved "https://registry.yarnpkg.com/@polytope-labs/solidity-merkle-trees/-/solidity-merkle-trees-0.2.1.tgz#7c3399c071ee246df92f37b8cebc9f545a915917"
   integrity sha512-aoJbZXWgIDgvwWEXQL3cEqFAXdTzaOxo3r373LMOtm8W/v9RnRNVW/gplWQGVZs+tvdwGP9Sp6ToKknIIPwQ5g==
+
+"@polytope-labs/solidity-merkle-trees@^0.2.3":
+  version "0.2.3"
+  resolved "https://registry.yarnpkg.com/@polytope-labs/solidity-merkle-trees/-/solidity-merkle-trees-0.2.3.tgz#d8346c14190cf41574c20a34b333e26465932622"
+  integrity sha512-aUcUjVNX0CXJNk7pS0jpqbfhi3w9VUI21/3IyTOblw0iAmctkUGq5TDwQBR7zXZnuTxpXbBPPEuXW1uhI2BHDA==
+  dependencies:
+    openzeppelin-solidity "^4.8.1"
 
 "@routerprotocol/evm-gateway-contracts@1.1.13":
   version "1.1.13"
@@ -5484,6 +5501,11 @@ open@^7.4.2:
     is-docker "^2.0.0"
     is-wsl "^2.1.1"
 
+openzeppelin-solidity@^4.8.1:
+  version "4.8.1"
+  resolved "https://registry.yarnpkg.com/openzeppelin-solidity/-/openzeppelin-solidity-4.8.1.tgz#2ab492a5a53a5520401e94df36e43807de7a3b50"
+  integrity sha512-KM0pVpfrCBdifqN2ZeJZFvFuoGz3GmI4Ty/ceKNkcaf7VVWo/rLOfc5EiLh+Ukb5NadNmYo8WMeGhFA8hVWDpg==
+
 optionator@^0.8.1:
   version "0.8.3"
   resolved "https://registry.yarnpkg.com/optionator/-/optionator-0.8.3.tgz#84fa1d036fe9d3c7e21d99884b601167ec8fb495"
@@ -5747,6 +5769,14 @@ prettier-plugin-solidity@^1.0.0:
     semver "^7.5.4"
     solidity-comments-extractor "^0.0.8"
 
+prettier-plugin-solidity@^1.3.1:
+  version "1.4.1"
+  resolved "https://registry.yarnpkg.com/prettier-plugin-solidity/-/prettier-plugin-solidity-1.4.1.tgz#8060baf18853a9e34d2e09e47e87b4f19e15afe9"
+  integrity sha512-Mq8EtfacVZ/0+uDKTtHZGW3Aa7vEbX/BNx63hmVg6YTiTXSiuKP0amj0G6pGwjmLaOfymWh3QgXEZkjQbU8QRg==
+  dependencies:
+    "@solidity-parser/parser" "^0.18.0"
+    semver "^7.5.4"
+
 prettier@^2.1.2, prettier@^2.3.1, prettier@^2.8.3, prettier@^2.8.7:
   version "2.8.8"
   resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.8.8.tgz#e8c5d7e98a4305ffe3de2e1fc4aca1a71c28b1da"
@@ -5756,6 +5786,11 @@ prettier@^3.0.3:
   version "3.2.5"
   resolved "https://registry.yarnpkg.com/prettier/-/prettier-3.2.5.tgz#e52bc3090586e824964a8813b09aba6233b28368"
   integrity sha512-3/GWa9aOC0YeD7LUfvOG2NiDyhOWRvt1k+rcKhOuYnMY24iiCphgneUfJDyFXd6rZCAnuLBv6UeAULtrhT/F4A==
+
+prettier@^3.3.3:
+  version "3.3.3"
+  resolved "https://registry.yarnpkg.com/prettier/-/prettier-3.3.3.tgz#30c54fe0be0d8d12e6ae61dbb10109ea00d53105"
+  integrity sha512-i2tDNA0O5IrMO757lfrdQZCc2jPNDVntV0m/+4whiDfWaTKfMNgR7Qz0NAeGz/nRqF4m5/6CLzbP4/liHt12Ew==
 
 process-nextick-args@~2.0.0:
   version "2.0.1"
