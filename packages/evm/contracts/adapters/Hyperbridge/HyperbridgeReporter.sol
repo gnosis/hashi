@@ -41,8 +41,7 @@ contract HyperbridgeReporter is Reporter, Ownable, BaseIsmpModule {
             payer: address(this)
         });
 
-        // dispatch cross-chain message, returns request Id
-        // without msg.value payments are collected in stablecoins
+        // dispatch cross-chain message, returns request id
         return IDispatcher(host()).dispatch(post);
     }
 }

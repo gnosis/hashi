@@ -12,16 +12,16 @@ contract HyperbridgeAdapter is BlockHashAdapter, Ownable, BaseIsmpModule {
 
     error UnauthorizedRequest();
 
-    event ReporterSet(uint256 indexed chainId, uint16 indexed chainId, address indexed reporter);
+    event ReporterSet(uint256 indexed chainId, address indexed reporter);
 
-    function setReporterByChain(uint256 chainId, uint16 chainId, address reporter) external onlyOwner {
+    function setReporterByChain(uint256 chainId, address reporter) external onlyOwner {
         bytes32 stateMachineId = keccak256(StateMachine.evm(chainId));
         enabledReportersPaths[stateMachineId] = keccak256(reporter);
         chainIds[stateMachineId] = chainId;
         emit ReporterSet(chainId, chainId, reporter);
     }
 
-    /// Process incoming blockhashes
+    /// Process incoming requests
     function onAccept(
         IncomingPostRequest calldata incoming
     ) external override onlyHost {
