@@ -35,9 +35,9 @@ contract HyperbridgeReporter is Reporter, Ownable, BaseIsmpModule {
             body: payload,
             // no timeouts
             timeout: 0,
-            // todo: relayer fee for delivery. self-relay also supported
+            // requests will be self-relayed
             fee: 0, 
-            // who gets the relayer fee refunds in the case of a timeout?
+            // relayer fee refunds 
             payer: address(this)
         });
 
