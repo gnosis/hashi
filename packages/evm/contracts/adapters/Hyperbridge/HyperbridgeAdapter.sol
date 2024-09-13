@@ -7,8 +7,8 @@ import { BaseIsmpModule, IncomingPostRequest } from "@polytope-labs/ismp-solidit
 import { StateMachine } from "@polytope-labs/ismp-solidity/interfaces/StateMachine.sol";
 
 contract HyperbridgeAdapter is BlockHashAdapter, Ownable, BaseIsmpModule {
-    mapping(uint32 => bytes32) public enabledReporters;
-    mapping(uint32 => uint256) public chainIds;
+    mapping(bytes32 => bytes32) public enabledReporters;
+    mapping(bytes32 => uint256) public chainIds;
 
     error UnauthorizedRequest();
 
@@ -16,20 +16,17 @@ contract HyperbridgeAdapter is BlockHashAdapter, Ownable, BaseIsmpModule {
 
     function setReporterByChain(uint256 chainId, address reporter) external onlyOwner {
         bytes32 stateMachineId = keccak256(StateMachine.evm(chainId));
-        enabledReportersPaths[stateMachineId] = keccak256(reporter);
+        enabledReporters[stateMachineId] = keccak256(abi.encodePacked(reporter));
         chainIds[stateMachineId] = chainId;
-        emit ReporterSet(chainId, chainId, reporter);
+        emit ReporterSet(chainId, reporter);
     }
 
     /// Process incoming requests
-    function onAccept(
-        IncomingPostRequest calldata incoming
-    ) external override onlyHost {
+    function onAccept(IncomingPostRequest calldata incoming) external override onlyHost {
         bytes32 stateMachineId = keccak256(incoming.request.source);
-        if (enabledReportersPaths[stateMachineId] != keccak256(incoming.request.from))
-            revert UnauthorizedRequest();
+        if (enabledReporters[stateMachineId] != keccak256(incoming.request.from)) revert UnauthorizedRequest();
         uint256 sourceChainId = chainIds[stateMachineId];
-        (uint256[] memory ids, bytes32[] memory hashes) = abi.decode(payload, (uint256[], bytes32[]));
+        (uint256[] memory ids, bytes32[] memory hashes) = abi.decode(incoming.request.body, (uint256[], bytes32[]));
         _storeHashes(sourceChainId, ids, hashes);
     }
 }
