@@ -207,18 +207,12 @@ const main = () => {
     logger,
     multiClient,
     reporterAddresses: {
-      // [avalanche.name]: unidirectionalReportersAddresses[sourceChain.name]?.[avalanche.name]?.LayerZeroReporter,
-      // [gnosisChiado.name]: unidirectionalReportersAddresses[sourceChain.name]?.[gnosisChiado.name]?.LayerZeroReporter,
-      // [optimismSepolia.name]:
-      //   unidirectionalReportersAddresses[sourceChain.name]?.[optimismSepolia.name]?.LayerZeroReporter,
       [polygon.name]: unidirectionalReportersAddresses[sourceChain.name]?.[polygon.name]?.LayerZeroReporter,
       [bsc.name]: unidirectionalReportersAddresses[sourceChain.name]?.[bsc.name]?.LayerZeroReporter,
       [gnosis.name]: unidirectionalReportersAddresses[sourceChain.name]?.[gnosis.name]?.LayerZeroReporter,
       [base.name]: unidirectionalReportersAddresses[sourceChain.name]?.[base.name]?.LayerZeroReporter,
       [optimism.name]: unidirectionalReportersAddresses[sourceChain.name]?.[optimism.name]?.LayerZeroReporter,
       [arbitrum.name]: unidirectionalReportersAddresses[sourceChain.name]?.[arbitrum.name]?.LayerZeroReporter,
-      [arbitrumSepolia.name]:
-        unidirectionalReportersAddresses[sourceChain.name]?.[arbitrumSepolia.name]?.LayerZeroReporter,
     },
     adapterAddresses: {
       [polygon.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[polygon.name]?.LayerZeroAdapter,
@@ -227,12 +221,6 @@ const main = () => {
       [base.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[base.name]?.LayerZeroAdapter,
       [optimism.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[optimism.name]?.LayerZeroAdapter,
       [arbitrum.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[arbitrum.name]?.LayerZeroAdapter,
-      [arbitrumSepolia.name]:
-        unidirectionalAdaptersAddresses[sourceChain.name]?.[arbitrumSepolia.name]?.LayerZeroAdapter,
-      [optimismSepolia.name]:
-        unidirectionalAdaptersAddresses[sourceChain.name]?.[optimismSepolia.name]?.LayerZeroAdapter,
-      // [gnosisChiado.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[gnosisChiado.name]?.LayerZeroAdapter,
-      // [avalanche.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.[avalanche.name]?.LayerZeroAdapter,
     },
     reportHeadersValue: settings.reporterControllers.LayerZeroReporterController.reportHeadersValue,
   })

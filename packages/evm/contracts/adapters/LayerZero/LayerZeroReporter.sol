@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
-import { ILayerZeroEndpointV2, MessagingParams } from "./interfaces/ILayerZeroEndpointV2.sol";
+import { ILayerZeroEndpointV2, MessagingParams, MessagingFee, MessagingReceipt } from "./interfaces/ILayerZeroEndpointV2.sol";
 import { Reporter } from "../Reporter.sol";
 import { OptionsBuilder } from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/libs/OptionsBuilder.sol";
 import { OAppCore } from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/OAppCore.sol";
@@ -52,7 +52,6 @@ contract LayerZeroReporter is Reporter, Ownable, OAppCore {
     function oAppVersion() public pure virtual override returns (uint64 senderVersion, uint64 receiverVersion) {
         return (1, 1);
     }
-
     function _dispatch(
         uint256 targetChainId,
         address adapter,
@@ -71,7 +70,10 @@ contract LayerZeroReporter is Reporter, Ownable, OAppCore {
             false // receiver in lz Token
         );
         // solhint-disable-next-line check-send-result
-        LAYER_ZERO_ENDPOINT.send{ value: msg.value }(params, refundAddress);
-        return bytes32(0);
+        MessagingFee memory msgFee = LAYER_ZERO_ENDPOINT.quote(params, address(this));
+        MessagingReceipt memory receipt = LAYER_ZERO_ENDPOINT.send{ value: msgFee.nativeFee }(params, refundAddress);
+        return receipt.guid;
     }
+
+    receive() external payable {}
 }

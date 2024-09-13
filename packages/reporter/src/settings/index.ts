@@ -86,19 +86,104 @@ export const settings = {
         },
         [base.name]: {
           [polygon.name]: {
-            LayerZeroAdapter: process.env.BASE_POLYGON_LZ_ADAPTER as `0x${string}`,
+            LayerZeroAdapter: process.env.POLYGON_LZ_ADAPTER as `0x${string}`,
           },
           [bsc.name]: {
-            LayerZeroAdapter: process.env.BASE_BNB_LZ_ADAPTER as `0x${string}`,
+            LayerZeroAdapter: process.env.BSC_LZ_ADAPTER as `0x${string}`,
           },
           [gnosis.name]: {
-            LayerZeroAdapter: process.env.BASE_GNO_LZ_ADAPTER as `0x${string}`,
+            LayerZeroAdapter: process.env.GNOSIS_LZ_ADAPTER as `0x${string}`,
           },
           [arbitrum.name]: {
-            LayerZeroAdapter: process.env.BASE_ARBITRUM_LZ_ADAPTER as `0x${string}`,
+            LayerZeroAdapter: process.env.ARBITRUM_LZ_ADAPTER as `0x${string}`,
           },
           [optimism.name]: {
-            LayerZeroAdapter: process.env.BASE_OPTIMISM_LZ_ADAPTER as `0x${string}`,
+            LayerZeroAdapter: process.env.OPTIMISM_LZ_ADAPTER as `0x${string}`,
+          },
+        },
+        [gnosis.name]: {
+          [polygon.name]: {
+            LayerZeroAdapter: process.env.POLYGON_LZ_ADAPTER as `0x${string}`,
+          },
+          [bsc.name]: {
+            LayerZeroAdapter: process.env.BSC_LZ_ADAPTER as `0x${string}`,
+          },
+          [base.name]: {
+            LayerZeroAdapter: process.env.BASE_LZ_ADAPTER as `0x${string}`,
+          },
+          [arbitrum.name]: {
+            LayerZeroAdapter: process.env.ARBITRUM_LZ_ADAPTER as `0x${string}`,
+          },
+          [optimism.name]: {
+            LayerZeroAdapter: process.env.OPTIMISM_LZ_ADAPTER as `0x${string}`,
+          },
+        },
+        [polygon.name]: {
+          [base.name]: {
+            LayerZeroAdapter: process.env.BASE_LZ_ADAPTER as `0x${string}`,
+          },
+          [bsc.name]: {
+            LayerZeroAdapter: process.env.BSC_LZ_ADAPTER as `0x${string}`,
+          },
+          [gnosis.name]: {
+            LayerZeroAdapter: process.env.GNOSIS_LZ_ADAPTER as `0x${string}`,
+          },
+          [arbitrum.name]: {
+            LayerZeroAdapter: process.env.ARBITRUM_LZ_ADAPTER as `0x${string}`,
+          },
+          [optimism.name]: {
+            LayerZeroAdapter: process.env.OPTIMISM_LZ_ADAPTER as `0x${string}`,
+          },
+        },
+        [bsc.name]: {
+          [polygon.name]: {
+            LayerZeroAdapter: process.env.POLYGON_LZ_ADAPTER as `0x${string}`,
+          },
+          [base.name]: {
+            LayerZeroAdapter: process.env.BASE_LZ_ADAPTER as `0x${string}`,
+          },
+          [gnosis.name]: {
+            LayerZeroAdapter: process.env.GNOSIS_LZ_ADAPTER as `0x${string}`,
+          },
+          [arbitrum.name]: {
+            LayerZeroAdapter: process.env.ARBITRUM_LZ_ADAPTER as `0x${string}`,
+          },
+          [optimism.name]: {
+            LayerZeroAdapter: process.env.OPTIMISM_LZ_ADAPTER as `0x${string}`,
+          },
+        },
+        [optimism.name]: {
+          [polygon.name]: {
+            LayerZeroAdapter: process.env.POLYGON_LZ_ADAPTER as `0x${string}`,
+          },
+          [bsc.name]: {
+            LayerZeroAdapter: process.env.BSC_LZ_ADAPTER as `0x${string}`,
+          },
+          [gnosis.name]: {
+            LayerZeroAdapter: process.env.GNOSIS_LZ_ADAPTER as `0x${string}`,
+          },
+          [arbitrum.name]: {
+            LayerZeroAdapter: process.env.ARBITRUM_LZ_ADAPTER as `0x${string}`,
+          },
+          [base.name]: {
+            LayerZeroAdapter: process.env.BASE_LZ_ADAPTER as `0x${string}`,
+          },
+        },
+        [arbitrum.name]: {
+          [polygon.name]: {
+            LayerZeroAdapter: process.env.POLYGON_LZ_ADAPTER as `0x${string}`,
+          },
+          [bsc.name]: {
+            LayerZeroAdapter: process.env.BSC_LZ_ADAPTER as `0x${string}`,
+          },
+          [gnosis.name]: {
+            LayerZeroAdapter: process.env.GNOSIS_LZ_ADAPTER as `0x${string}`,
+          },
+          [base.name]: {
+            LayerZeroAdapter: process.env.BASE_LZ_ADAPTER as `0x${string}`,
+          },
+          [optimism.name]: {
+            LayerZeroAdapter: process.env.OPTIMISM_LZ_ADAPTER as `0x${string}`,
           },
         },
         [sepolia.name]: {
@@ -194,6 +279,91 @@ export const settings = {
           },
           [optimism.name]: {
             LayerZeroReporter: process.env.BASE_LZ_REPORTER as `0x${string}`,
+          },
+        },
+        [gnosis.name]: {
+          [polygon.name]: {
+            LayerZeroReporter: process.env.GNOSIS_LZ_REPORTER as `0x${string}`,
+          },
+          [bsc.name]: {
+            LayerZeroReporter: process.env.GNOSIS_LZ_REPORTER as `0x${string}`,
+          },
+          [base.name]: {
+            LayerZeroReporter: process.env.GNOSIS_LZ_REPORTER as `0x${string}`,
+          },
+          [arbitrum.name]: {
+            LayerZeroReporter: process.env.GNOSIS_LZ_REPORTER as `0x${string}`,
+          },
+          [optimism.name]: {
+            LayerZeroReporter: process.env.GNOSIS_LZ_REPORTER as `0x${string}`,
+          },
+        },
+        [optimism.name]: {
+          [polygon.name]: {
+            LayerZeroReporter: process.env.OPTIMISM_LZ_REPORTER as `0x${string}`,
+          },
+          [bsc.name]: {
+            LayerZeroReporter: process.env.OPTIMISM_LZ_REPORTER as `0x${string}`,
+          },
+          [base.name]: {
+            LayerZeroReporter: process.env.OPTIMISM_LZ_REPORTER as `0x${string}`,
+          },
+          [arbitrum.name]: {
+            LayerZeroReporter: process.env.OPTIMISM_LZ_REPORTER as `0x${string}`,
+          },
+          [gnosis.name]: {
+            LayerZeroReporter: process.env.OPTIMISM_LZ_REPORTER as `0x${string}`,
+          },
+        },
+        [arbitrum.name]: {
+          [polygon.name]: {
+            LayerZeroReporter: process.env.ARBITRUM_LZ_REPORTER as `0x${string}`,
+          },
+          [bsc.name]: {
+            LayerZeroReporter: process.env.ARBITRUM_LZ_REPORTER as `0x${string}`,
+          },
+          [base.name]: {
+            LayerZeroReporter: process.env.ARBITRUM_LZ_REPORTER as `0x${string}`,
+          },
+          [optimism.name]: {
+            LayerZeroReporter: process.env.ARBITRUM_LZ_REPORTER as `0x${string}`,
+          },
+          [gnosis.name]: {
+            LayerZeroReporter: process.env.ARBITRUM_LZ_REPORTER as `0x${string}`,
+          },
+        },
+        [polygon.name]: {
+          [arbitrum.name]: {
+            LayerZeroReporter: process.env.POLYGON_LZ_REPORTER as `0x${string}`,
+          },
+          [bsc.name]: {
+            LayerZeroReporter: process.env.POLYGON_LZ_REPORTER as `0x${string}`,
+          },
+          [base.name]: {
+            LayerZeroReporter: process.env.POLYGON_LZ_REPORTER as `0x${string}`,
+          },
+          [optimism.name]: {
+            LayerZeroReporter: process.env.POLYGON_LZ_REPORTER as `0x${string}`,
+          },
+          [gnosis.name]: {
+            LayerZeroReporter: process.env.POLYGON_LZ_REPORTER as `0x${string}`,
+          },
+        },
+        [bsc.name]: {
+          [arbitrum.name]: {
+            LayerZeroReporter: process.env.BSC_LZ_REPORTER as `0x${string}`,
+          },
+          [polygon.name]: {
+            LayerZeroReporter: process.env.BSC_LZ_REPORTER as `0x${string}`,
+          },
+          [base.name]: {
+            LayerZeroReporter: process.env.BSC_LZ_REPORTER as `0x${string}`,
+          },
+          [optimism.name]: {
+            LayerZeroReporter: process.env.BSC_LZ_REPORTER as `0x${string}`,
+          },
+          [gnosis.name]: {
+            LayerZeroReporter: process.env.BSC_LZ_REPORTER as `0x${string}`,
           },
         },
         [sepolia.name]: {
