@@ -4,7 +4,6 @@ pragma solidity ^0.8.20;
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { Reporter } from "../Reporter.sol";
-
 import { StateMachine } from "@polytope-labs/ismp-solidity/interfaces/StateMachine.sol";
 import { BaseIsmpModule } from "@polytope-labs/ismp-solidity/interfaces/IIsmpModule.sol";
 import { IDispatcher, DispatchPost } from "@polytope-labs/ismp-solidity/interfaces/IDispatcher.sol";
