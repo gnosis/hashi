@@ -2,9 +2,9 @@
 pragma solidity ^0.8.20;
 
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
-import { BlockHashAdapter } from "../BlockHashAdapter.sol";
 import { BaseIsmpModule, IncomingPostRequest } from "@polytope-labs/ismp-solidity/interfaces/IIsmpModule.sol";
 import { StateMachine } from "@polytope-labs/ismp-solidity/interfaces/StateMachine.sol";
+import { BlockHashAdapter } from "../BlockHashAdapter.sol";
 
 contract HyperbridgeAdapter is BlockHashAdapter, Ownable, BaseIsmpModule {
     mapping(bytes32 => bytes32) public enabledReporters;
