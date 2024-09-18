@@ -41,8 +41,6 @@ class StandardReporterController extends BaseController {
 
         const txHash = await client.writeContract(request)
         this.logger.info(`headers reporter from ${this.sourceChain.name} to ${chain.name}: ${txHash}`)
-
-        await new Promise((resolve) => setTimeout(resolve, 12000))
       }
     } catch (_error) {
       this.logger.error(_error)

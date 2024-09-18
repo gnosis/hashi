@@ -20,7 +20,6 @@ import { Chain } from "viem"
 import Multiclient from "./MultiClient.js"
 import ElectronReporterController from "./controllers/ElectronReporterController.js"
 import OptimismReporterController from "./controllers/OptimismReporterController.js"
-import SygmaReporterController from "./controllers/SygmaReporterController.js"
 import StandardReporterController from "./controllers/StandardReporterController.js"
 import TelepathyReporterController from "./controllers/TelepathyReporterController.js"
 import WormholeReporterController from "./controllers/WormholeReporterController.js"
@@ -79,7 +78,8 @@ const main = () => {
     },
   })
 
-  const sygmaReporterController = new SygmaReporterController({
+  const sygmaReporterController = new StandardReporterController({
+    name: "SygmaReporterController",
     type: "classic",
     sourceChain,
     destinationChains,
