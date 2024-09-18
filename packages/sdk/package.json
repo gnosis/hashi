@@ -1,6 +1,5 @@
 {
   "name": "sdk",
-  "packageManager": "yarn@3.2.1",
   "dependencies": {
     "ethers": "^6.2.3"
   }

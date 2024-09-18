@@ -72,7 +72,6 @@
     "typescript",
     "typechain"
   ],
-  "packageManager": "yarn@3.2.1",
   "publishConfig": {
     "access": "public"
   },
@@ -99,7 +98,8 @@
     "@layerzerolabs/lz-evm-oapp-v2": "^2.3.29",
     "@layerzerolabs/lz-evm-protocol-v2": "^2.3.29",
     "@openzeppelin/contracts-upgradeable": "4.8.1",
-    "@polytope-labs/solidity-merkle-trees": "0.2.1",
+    "@polytope-labs/ismp-solidity": "^0.7.1",
+    "@polytope-labs/solidity-merkle-trees": "0.3.2",
     "@routerprotocol/evm-gateway-contracts": "1.1.13",
     "solidity-bytes-utils": "^0.8.2",
     "solidity-rlp": "2.0.8"
