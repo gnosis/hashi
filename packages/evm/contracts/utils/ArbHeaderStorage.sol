@@ -9,14 +9,15 @@ import { IArbSys } from "../interfaces/IArbSys.sol";
 ///      Need to call precompiled arbBlockHash(uint256 blockNumber) to get actual block hash of Arbitrum
 ///      https://docs.arbitrum.io/build-decentralized-apps/precompiles/reference#arbsys
 contract ArbHeaderStorage is IHeaderStorage {
+    address public constant ARB_SYS = 0x0000000000000000000000000000000000000064;
+
     mapping(uint256 => bytes32) public headers;
 
     /// @inheritdoc IHeaderStorage
     function storeBlockHeader(uint256 blockNumber) public returns (bytes32) {
         bytes32 blockHeader = headers[blockNumber];
         if (blockHeader == 0) {
-            // ArbSys precompiled contract = 0x0000000000000000000000000000000000000064
-            blockHeader = IArbSys(0x0000000000000000000000000000000000000064).arbBlockHash(blockNumber);
+            blockHeader = IArbSys(ARB_SYS).arbBlockHash(blockNumber);
             if (blockHeader == 0) revert HeaderOutOfRange(blockNumber);
             headers[blockNumber] = blockHeader;
             emit HeaderStored(blockNumber, blockHeader);
