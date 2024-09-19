@@ -4,7 +4,7 @@ import { Chain } from "viem"
 
 import BaseController from "./BaseController.js"
 import sleep from "../utils/sleep.js"
-import ReporterABI from "../ABIs/WormhomeReporterABI.json" assert { type: "json" }
+import ReporterABI from "../ABIs/WormholeReporterABI.json" assert { type: "json" }
 import AdapterABI from "../ABIs/WormholeAdapterABI.json" assert { type: "json" }
 import WormholeABI from "../ABIs/WormholeABI.json" assert { type: "json" }
 
