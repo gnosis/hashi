@@ -18,10 +18,7 @@ import {
 import { Chain } from "viem"
 
 import Multiclient from "./MultiClient.js"
-import ElectronReporterController from "./controllers/ElectronReporterController.js"
-import OptimismReporterController from "./controllers/OptimismReporterController.js"
 import StandardReporterController from "./controllers/StandardReporterController.js"
-import TelepathyReporterController from "./controllers/TelepathyReporterController.js"
 import WormholeReporterController from "./controllers/WormholeReporterController.js"
 
 import Coordinator from "./Coordinator.js"
@@ -93,29 +90,6 @@ const main = () => {
     },
   })
 
-  const telepathyReporterController = new TelepathyReporterController({
-    type: "lightClient",
-    sourceChain,
-    destinationChains,
-    logger,
-    multiClient,
-    adapterAddresses: {
-      [gnosis.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.Gnosis?.TelepathyAdapter,
-      [arbitrum.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.["Arbitrum One"]?.TelepathyAdapter,
-      [optimism.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.["OP Mainnet"]?.TelepathyAdapter,
-      [bsc.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.["BNB Smart Chain"]?.TelepathyAdapter,
-      [polygon.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.Polygon?.TelepathyAdapter,
-    },
-    baseProofUrl: settings.reporterControllers.TelepathyReporterController.baseProofUrl,
-    lightClientAddresses: {
-      [gnosis.name]: lightClientAddresses.Gnosis?.[sourceChain.name]?.TelepathyLightClient,
-      [arbitrum.name]: lightClientAddresses["Arbitrum One"]?.[sourceChain.name]?.TelepathyLightClient,
-      [optimism.name]: lightClientAddresses["OP Mainnet"]?.[sourceChain.name]?.TelepathyLightClient,
-      [bsc.name]: lightClientAddresses["BNB Smart Chain"]?.[sourceChain.name]?.TelepathyLightClient,
-      [polygon.name]: lightClientAddresses.Polygon?.[sourceChain.name]?.TelepathyLightClient,
-    },
-  })
-
   const wormholeReporterController = new WormholeReporterController({
     type: "classic",
     sourceChain,
@@ -134,21 +108,6 @@ const main = () => {
     wormholeScanBaseUrl: settings.reporterControllers.WormholeReporterController.wormholeScanBaseUrl,
     wormholeAddress: (settings.contractAddresses as any)[sourceChain.name]?.Wormhole,
     wormholeChainIds: settings.reporterControllers.WormholeReporterController.wormholeChainIds,
-  })
-
-  // TODO: add check to prevent to always run OptimismReporterController even when destinationChains does not include optimism
-  const optimismReporterController = new OptimismReporterController({
-    type: "native",
-    sourceChain,
-    logger,
-    multiClient,
-    reporterAddress:
-      settings.contractAddresses.reporterAddresses.unidirectional.Ethereum["OP Mainnet"]
-        .L1CrossDomainMessengerHeaderReporter,
-    adapterAddresses: {
-      [optimism.name]:
-        settings.contractAddresses.adapterAddresses.unidirectional.Ethereum["OP Mainnet"].L2CrossDomainMessengerAdapter,
-    },
   })
 
   const axelarReporterController = new StandardReporterController({
@@ -278,40 +237,18 @@ const main = () => {
     reportHeadersValue: settings.reporterControllers.ZetaReporterController.reportHeadersValue,
   })
 
-  const electronReporterController = new ElectronReporterController({
-    type: "lightClient",
-    sourceChain,
-    destinationChains,
-    logger,
-    multiClient,
-    adapterAddresses: {
-      [gnosisChiado.name]: unidirectionalAdaptersAddresses[sourceChain.name]?.["Gnosis Chiado"]?.ElectronAdapter,
-    },
-    headerStorageAddress: (settings.contractAddresses as any)[sourceChain.name]?.HeaderStorage,
-    lightClientAddresses: {
-      [gnosisChiado.name]: lightClientAddresses["Gnosis Chiado"]?.[sourceChain.name]?.ElectronLightClient,
-    },
-    beaconchaBaseUrl: (settings.reporterControllers.ElectronReporterController.beaconchaBaseUrls as any)[
-      sourceChain.name
-    ],
-    beaconApiBaseUrl: (settings.beaconApiUrls as any)[sourceChain.name],
-  })
-
   const coordinator = new Coordinator({
     controllers: [
       ambReporterController,
       ccipReporterController,
       sygmaReporterController,
-      telepathyReporterController,
       wormholeReporterController,
-      optimismReporterController,
       axelarReporterController,
       connextReporterController,
       celerReporterController,
       layerZeroReporterController,
       hyperlaneReporterController,
       zetaReporterController,
-      electronReporterController,
     ].filter((_controller) => controllersEnabled?.includes(_controller.name)),
     intervalFetchBlocksMs: settings.Coordinator.intervalFetchBlocksMs,
     logger,
