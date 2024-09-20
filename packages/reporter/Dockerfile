@@ -2,7 +2,7 @@ FROM node:18-alpine
 
 WORKDIR /usr/src/app
 
-COPY package.json yarn.lock .env ./
+COPY package.json .env ./
 
 RUN corepack enable && \
   corepack prepare --activate yarn@3.2.2 && \
