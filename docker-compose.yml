@@ -11,21 +11,21 @@ services:
       volumes:
         - mongo-data:/data/db
 
-  relayer:
+  hashi_relayer:
     build:
       context: .
       dockerfile: packages/relayer/Dockerfile
-    container_name: relayer
+    container_name: hashi_relayer
     networks:
       - mongo-network
     depends_on:
       - mongodb
 
-  executor:
+  hashi_executor:
     build:
       context: .
       dockerfile: packages/executor/Dockerfile
-    container_name: executor
+    container_name: hashi_executor
     networks:
       - mongo-network
     depends_on:
