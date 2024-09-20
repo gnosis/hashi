@@ -1,5 +1,6 @@
 {
   "name": "reporter",
+  "version": "0.1.0",
   "author": {
     "name": "gnosis",
     "url": "https://github.com/gnosis"
@@ -12,7 +13,6 @@
     "prettier:write": "prettier --write \"**/*.{js,json,md,sol,ts,yml}\"",
     "start:dev": "nodemon"
   },
-  "packageManager": "yarn@3.2.2",
   "dependencies": {
     "@chainsafe/persistent-merkle-tree": "^0.6.1",
     "@chainsafe/ssz": "^0.14.0",
