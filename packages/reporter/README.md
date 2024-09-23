@@ -16,20 +16,12 @@ These instructions will cover the usage information and how to run the code usin
 
 Configure the mode you want to run by editing the variable in `.env` by checking `.env.example`
 
-### Building the Docker Image
+### Building and Running the Docker Image
 
-To build the Docker image, run the following command from the root of the project:
-
-```sh
-docker build -t reporter .
-```
-
-### Running the reporter
-
-After building the image, you can run it using the following command:
+On the root, run the following command:
 
 ```sh
-docker run -d -p reporter
+docker compose -f docker-compose-reporter.yml up -d --build
 ```
 
 ### Viewing Logs
