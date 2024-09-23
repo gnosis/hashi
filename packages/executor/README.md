@@ -1,6 +1,7 @@
 # executor
 
-The Executor is a service utilized to execute messages once they have achieved consensus, meaning when adapters have reached consensus on the message.
+The Executor is a service utilized to execute messages once they have achieved consensus, meaning when adapters have
+reached consensus on the message.
 
 &nbsp;
 
@@ -9,6 +10,7 @@ The Executor is a service utilized to execute messages once they have achieved c
 &nbsp;
 
 ## Installation
+
 To install the Executor, follow these steps:
 
 ```bash
@@ -46,3 +48,32 @@ cd packages/executor
 yarn start dotenv_config_path="your env file"
 ```
 
+### Building and Running the Docker Image
+
+Executor is usually run with Relayer and MongoDB, the `docker-compose.yml` demonstrates how to run these three images
+together.
+
+Run the following command:
+
+```sh
+cd ../..  # To the root level
+docker compose up --build mongodb hashi_executor
+```
+
+### Viewing Logs
+
+To view the logs from the running container, use:
+
+```sh
+docker logs -f [CONTAINER_ID or CONTAINER_NAME]
+```
+
+You can find the `CONTAINER_ID` or `CONTAINER_NAME` using `docker ps`.
+
+### Stopping the relayer
+
+To stop the running container:
+
+```sh
+docker stop [CONTAINER_ID or CONTAINER_NAME]
+```

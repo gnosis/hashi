@@ -18,6 +18,7 @@
     "@nomicfoundation/hardhat-chai-matchers": "^1.0.4",
     "@nomicfoundation/hardhat-network-helpers": "^1.0.8",
     "@nomicfoundation/hardhat-toolbox": "^2.0.0",
+    "@nomicfoundation/hardhat-verify": "^2.0.8",
     "@nomiclabs/hardhat-ethers": "^2.2.1",
     "@nomiclabs/hardhat-etherscan": "^3.1.2",
     "@trivago/prettier-plugin-sort-imports": "^4.0.0",
@@ -93,10 +94,14 @@
     "@chainlink/contracts-ccip": "0.7.6",
     "@connext/interfaces": "2.0.0",
     "@hyperlane-xyz/core": "3.1.10",
+    "@layerzerolabs/lz-evm-messagelib-v2": "^2.3.29",
+    "@layerzerolabs/lz-evm-oapp-v2": "^2.3.29",
+    "@layerzerolabs/lz-evm-protocol-v2": "^2.3.29",
     "@openzeppelin/contracts-upgradeable": "4.8.1",
     "@polytope-labs/ismp-solidity": "^0.7.1",
     "@polytope-labs/solidity-merkle-trees": "0.3.2",
     "@routerprotocol/evm-gateway-contracts": "1.1.13",
+    "solidity-bytes-utils": "^0.8.2",
     "solidity-rlp": "2.0.8"
   }
 }

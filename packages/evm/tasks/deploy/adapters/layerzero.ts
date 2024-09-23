@@ -9,7 +9,8 @@ import type { LayerZeroReporter__factory } from "../../../types/factories/contra
 import { verify } from "../index"
 
 task("deploy:LayerZeroAdapter")
-  .addParam("lzEndpoint", "address of the LayerZero endpoint contract")
+  .addParam("lzendpoint", "address of the LayerZero endpoint contract")
+  .addParam("delegate", "address of delegate")
   .addFlag("verify", "whether to verify the contract on Etherscan")
   .setAction(async function (taskArguments: TaskArguments, hre) {
     console.log("Deploying LayerZeroAdapter...")
@@ -17,7 +18,7 @@ task("deploy:LayerZeroAdapter")
     const layerZeroAdapterFactory: LayerZeroAdapter__factory = <LayerZeroAdapter__factory>(
       await hre.ethers.getContractFactory("LayerZeroAdapter")
     )
-    const constructorArguments = [taskArguments.lzEndpoint] as const
+    const constructorArguments = [taskArguments.lzendpoint, taskArguments.delegate] as const
     const layerZeroAdapter: LayerZeroAdapter = <LayerZeroAdapter>(
       await layerZeroAdapterFactory.connect(signers[0]).deploy(...constructorArguments)
     )
@@ -27,9 +28,12 @@ task("deploy:LayerZeroAdapter")
   })
 
 task("deploy:LayerZeroReporter")
-  .addParam("headerStorage", "address of the header storage contract")
+  .addParam("headerstorage", "address of the header storage contract")
   .addParam("yaho", "address of the Yaho contract")
-  .addParam("lzEndpoint", "address of the LayerZero endpoint contract")
+  .addParam("lzendpoint", "address of the LayerZero endpoint contract")
+  .addParam("delegate", "address of delegate")
+  .addParam("refundaddress", "refund address")
+  .addParam("defaultfee", "default fee")
   .addFlag("verify", "whether to verify the contract on Etherscan")
   .setAction(async function (taskArguments: TaskArguments, hre) {
     console.log("Deploying LayerZeroReporter...")
@@ -37,7 +41,14 @@ task("deploy:LayerZeroReporter")
     const layerZeroReporterFactory: LayerZeroReporter__factory = <LayerZeroReporter__factory>(
       await hre.ethers.getContractFactory("LayerZeroReporter")
     )
-    const constructorArguments = [taskArguments.headerStorage, taskArguments.yaho, taskArguments.lzEndpoint] as const
+    const constructorArguments = [
+      taskArguments.headerstorage,
+      taskArguments.yaho,
+      taskArguments.lzendpoint,
+      taskArguments.delegate,
+      taskArguments.refundaddress,
+      taskArguments.defaultfee,
+    ] as const
     const layerZeroReporter: LayerZeroReporter = <LayerZeroReporter>(
       await layerZeroReporterFactory.connect(signers[0]).deploy(...constructorArguments)
     )
