@@ -31,6 +31,12 @@ services:
     depends_on:
       - mongodb
 
+  hashi_reporter:
+    build:
+      context: .
+      dockerfile: packages/reporter/Dockerfile
+    container_name: hashi_reporter
+
 networks:
   mongo-network:
     driver: bridge

@@ -18,10 +18,10 @@ Configure the mode you want to run by editing the variable in `.env` by checking
 
 ### Building and Running the Docker Image
 
-On the root, run the following command:
+On the root's `docker-compose.yml`, remove all the logic unrelated to reporter, and run the following command:
 
 ```sh
-docker compose -f docker-compose-reporter.yml up -d --build
+docker compose -f docker-compose.yml up -d --build
 ```
 
 ### Viewing Logs

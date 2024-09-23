@@ -1,9 +1,0 @@
-version: "3.8"
-
-services:
-
-  hashi_reporter:
-    build:
-      context: .
-      dockerfile: packages/reporter/Dockerfile
-    container_name: hashi_reporter
