@@ -57,7 +57,7 @@ Run the following command:
 
 ```sh
 cd ../..  # To the root level
-docker compose up --build mongodb hashi_relayer hashi_executor
+docker compose up --build mongodb hashi_executor
 ```
 
 ### Viewing Logs
