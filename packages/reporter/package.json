@@ -11,6 +11,7 @@
     "lint": "eslint --ignore-path ./.eslintignore --ext .js,.ts .",
     "prettier:check": "prettier --check \"**/*.{js,json,md,sol,ts,yml}\"",
     "prettier:write": "prettier --write \"**/*.{js,json,md,sol,ts,yml}\"",
+    "start": "node --loader ts-node/esm ./src/index.ts",
     "start:dev": "nodemon"
   },
   "dependencies": {

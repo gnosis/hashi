@@ -1,20 +1,36 @@
-# reporter
+# Hashi Reporter
 
-Script to call Header Reporter contracts of different oracle from source chain to destination chain.
-
-&nbsp;
-
----
-
-&nbsp;
+Script to call Reporter contract's `dispatchBlocks` function of different oracle from source chain to destination chain.
 
 ## Getting Started
 
-These instructions will cover the usage information and how to run the code using Docker.
+These instructions will cover the usage information and how to run the code locally for development using Docker.
 
-### Create the .env file
+### Configuration
 
 Configure the mode you want to run by editing the variable in `.env` by checking `.env.example`
+
+```sh
+cp .env.example .env
+```
+
+### Install
+
+Please make sure you have run `yarn install` on the root level.
+
+```sh
+cd ../.. # To the root level
+nvm use
+yarn install
+cd packages/reporter
+```
+
+To start Reporter, run the following command:
+
+```sh
+cd packages/reporter
+yarn start:dev
+```
 
 ### Building and Running the Docker Image
 
@@ -43,16 +59,10 @@ To stop the running container:
 docker stop [CONTAINER_ID or CONTAINER_NAME]
 ```
 
-&nbsp;
-
----
-
-&nbsp;
-
 ## How to add a new controller
 
-1. Add a new file under `/controllers`, create the constructor and `onBlocks` function to call block header reporter
-   contract periodically.
+1. Add a new file under `src/controllers`, create the constructor and `onBlocks` function to call reporter contract
+   periodically.
 2. Configure the settings under `settings/index.ts`.
-3. Add the new controller instant in `index.ts`.
+3. Add the new controller instance in `index.ts`.
 4. Add the env variable in `.env.example`.
