@@ -1,9 +1,9 @@
-import { Chain, formatEther } from "viem"
-import ABI from "../ABIs/StandardReporterContractABI.json" assert { type: "json" }
+import { Chain } from "viem"
 
-import BaseController from "./BaseController.js"
+import standardReporterAbi from "../abi/standardReporter"
+import BaseController from "./BaseController"
 
-import { BaseControllerConfigs } from "./BaseController.js"
+import { BaseControllerConfigs } from "./BaseController"
 
 interface StandardReporterControllerConfigs extends BaseControllerConfigs {
   name: string
@@ -34,7 +34,7 @@ class StandardReporterController extends BaseController {
         this.logger.info(`reporting block header for block ${blockNumber} on ${chain.name} ...`)
         const { request } = await client.simulateContract({
           address: this.reporterAddresses[chain.name],
-          abi: ABI,
+          abi: standardReporterAbi,
           functionName: "dispatchBlocks",
           args: [chain.id, this.adapterAddresses[chain.name], [blockNumber]],
           value: this._reportHeadersValue,

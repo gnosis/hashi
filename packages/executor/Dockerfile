@@ -1,4 +1,4 @@
-FROM node:18-alpine 
+FROM node:22-alpine 
 
 WORKDIR /usr/src/app
 
@@ -8,7 +8,6 @@ COPY ../../package.json ../../yarn.lock ./
 # Copy both executor and common package folders
 COPY ./packages/common ./packages/common
 COPY ./packages/executor ./packages/executor
-
 
 # Install dependencies at root level
 RUN yarn install
@@ -20,4 +19,4 @@ RUN yarn compile
 WORKDIR /usr/src/app/packages/executor
 RUN yarn compile
 
-CMD ["yarn", "start"]
+CMD ["yarn", "start:prod"]

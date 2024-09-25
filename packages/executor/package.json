@@ -2,7 +2,6 @@
   "name": "@gnosis/hashi-executor",
   "private": true,
   "version": "0.1.0",
-  "type": "module",
   "author": {
     "name": "gnosis",
     "url": "https://github.com/gnosis"
@@ -13,6 +12,7 @@
     "prettier:check": "prettier --check \"**/*.{js,json,md,sol,ts,yml}\"",
     "prettier:write": "prettier --write \"**/*.{js,json,md,sol,ts,yml}\"",
     "start": "node --loader ts-node/esm ./src/index.ts",
+    "start:prod": "node ./dist/index.js",
     "start:dev": "nodemon"
   },
   "dependencies": {
@@ -23,6 +23,7 @@
     "winston": "^3.11.0"
   },
   "devDependencies": {
+    "@tsconfig/node22": "^22.0.0",
     "@types/node": "^20.8.9",
     "@typescript-eslint/eslint-plugin": "^6.7.5",
     "@typescript-eslint/parser": "^6.7.5",

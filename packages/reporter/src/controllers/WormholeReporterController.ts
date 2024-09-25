@@ -2,13 +2,13 @@ import axios, { AxiosInstance } from "axios"
 import { Mutex } from "async-mutex"
 import { Chain } from "viem"
 
-import BaseController from "./BaseController.js"
-import sleep from "../utils/sleep.js"
-import ReporterABI from "../ABIs/WormholeReporterABI.json" assert { type: "json" }
-import AdapterABI from "../ABIs/WormholeAdapterABI.json" assert { type: "json" }
-import WormholeABI from "../ABIs/WormholeABI.json" assert { type: "json" }
+import BaseController from "./BaseController"
+import sleep from "../utils/sleep"
+import wormholeReporterAbi from "../abi/wormholeReporter"
+import wormholeAdapterAbi from "../abi/wormholeAdapter"
+import wormholeAbi from "../abi/wormhole"
 
-import { BaseControllerConfigs } from "./BaseController.js"
+import { BaseControllerConfigs } from "./BaseController"
 
 interface WormholeReporterControllerConfigs extends BaseControllerConfigs {
   wormholeScanBaseUrl: string
@@ -40,7 +40,7 @@ class WormholeReporterController extends BaseController {
 
       const nextSequence = await client.readContract({
         address: this._wormholeAddress as `0x${string}`,
-        abi: WormholeABI,
+        abi: wormholeAbi,
         functionName: "nextSequence",
         args: [this.reporterAddress],
       })
@@ -48,7 +48,7 @@ class WormholeReporterController extends BaseController {
       this.logger.info(`reporting block header for block ${blockNumber} ...`)
       const { request } = await client.simulateContract({
         address: this.reporterAddress as `0x${string}`,
-        abi: ReporterABI,
+        abi: wormholeReporterAbi,
         functionName: "dispatchBlocks",
         // targetChainId & adapter are not used in _dispatch(), here set to 0
         args: [0, "0x0000000000000000000000000000000000000000", [blockNumber]],
@@ -85,7 +85,7 @@ class WormholeReporterController extends BaseController {
         this.logger.info(`Storing header on ${chain.name} ...`)
         const { request } = await destinationChainClient.simulateContract({
           address: this.adapterAddresses[chain.name],
-          abi: AdapterABI,
+          abi: wormholeAdapterAbi,
           functionName: "storeHashesByEncodedVM",
           args: [vaaBytes],
         })
