@@ -5,22 +5,16 @@
     "name": "gnosis",
     "url": "https://github.com/gnosis"
   },
-  "type": "module",
   "scripts": {
     "compile": "tsc",
     "lint": "eslint --ignore-path ./.eslintignore --ext .js,.ts .",
     "prettier:check": "prettier --check \"**/*.{js,json,md,sol,ts,yml}\"",
     "prettier:write": "prettier --write \"**/*.{js,json,md,sol,ts,yml}\"",
+    "start:prod": "node ./dist/index.js",
     "start:dev": "nodemon"
   },
   "dependencies": {
-    "@chainsafe/persistent-merkle-tree": "^0.6.1",
-    "@chainsafe/ssz": "^0.14.0",
-    "@ethereumjs/rlp": "^5.0.1",
-    "@ethereumjs/trie": "^6.0.1",
-    "@ethereumjs/util": "^9.0.1",
-    "@ethereumjs/vm": "^7.1.0",
-    "@lodestar/types": "^1.12.0",
+    "@gnosis/hashi-common": "0.1.0",
     "async-mutex": "^0.4.0",
     "axios": "^1.5.1",
     "dotenv": "^16.3.1",
@@ -28,6 +22,7 @@
     "winston": "^3.11.0"
   },
   "devDependencies": {
+    "@tsconfig/node22": "^22.0.0",
     "@types/node": "^20.8.9",
     "@types/node-cron": "^3.0.9",
     "@typescript-eslint/eslint-plugin": "^6.7.5",
