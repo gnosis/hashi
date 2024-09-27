@@ -68,8 +68,7 @@ contract HashiProver is IHashiProver {
             }
         }
 
-        // NOTE: this point is never reached
-        return abi.encodePacked(bytes32(0));
+        revert BlockHeaderNotFound();
     }
 
     function _verifyAccountProof(

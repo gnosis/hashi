@@ -19,6 +19,7 @@ interface IHashiProver {
     }
 
     error AncestralBlockHeadersLengthReached();
+    error BlockHeaderNotFound();
     error ConflictingBlockHeader(uint256 blockNumber, bytes32 ancestralBlockHeaderHash, bytes32 blockHeaderHash);
     error InvalidAccount();
     error InvalidBlockHeader();
