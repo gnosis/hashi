@@ -6,14 +6,12 @@
     "url": "https://github.com/gnosis"
   },
   "scripts": {
-    "prepare": "husky install",
-    "postinstall": "patch-package"
+    "prepare": "husky install"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.5.1",
     "@commitlint/config-conventional": "^17.4.4",
     "husky": "^8.0.3",
-    "patch-package": "8.0.0",
     "prettier": "^2.8.7",
     "prettier-plugin-solidity": "^1.0.0"
   },

@@ -2,10 +2,10 @@
 pragma solidity ^0.8.20;
 
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
-import { ILayerZeroReceiver } from "./interfaces/ILayerZeroReceiver.sol";
-import { Origin } from "./interfaces/ILayerZeroEndpointV2.sol";
 import { OAppCore } from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/OAppCore.sol";
 import { BlockHashAdapter } from "../BlockHashAdapter.sol";
+import { ILayerZeroReceiver } from "./interfaces/ILayerZeroReceiver.sol";
+import { Origin } from "./interfaces/ILayerZeroEndpointV2.sol";
 
 contract LayerZeroAdapter is BlockHashAdapter, Ownable, ILayerZeroReceiver, OAppCore {
     string public constant PROVIDER = "layer-zero";
@@ -24,10 +24,10 @@ contract LayerZeroAdapter is BlockHashAdapter, Ownable, ILayerZeroReceiver, OApp
 
     function lzReceive(
         Origin calldata _origin,
-        bytes32 _guid,
+        bytes32 /* _guid*/,
         bytes calldata _message,
-        address _executor,
-        bytes calldata _extraData
+        address /* _executor*/,
+        bytes calldata /* _extraData*/
     ) external payable {
         if (
             msg.sender != LAYER_ZERO_ENDPOINT ||
