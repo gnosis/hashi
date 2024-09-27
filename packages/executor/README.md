@@ -1,59 +1,53 @@
-# executor
+# Hashi Executor
 
 The Executor is a service utilized to execute messages once they have achieved consensus, meaning when adapters have
 reached consensus on the message.
 
-&nbsp;
+## Getting Started
 
----
-
-&nbsp;
-
-## Installation
-
-To install the Executor, follow these steps:
-
-```bash
-git clone https://github.com/gnosis/hashi
-cd hashi
-nvm use
-yarn install
-```
-
-&nbsp;
-
----
-
-&nbsp;
+These instructions will cover the usage information and how to run the code locally for development or using Docker.
 
 ## Configuration
 
-Before running the Executor, you need to create an `.env` file. All parameters can be found within `.env.example`.
+Before running the Relayer, you need to create an `.env` file. All parameters can be found within `.env.example`.
 
-&nbsp;
-
----
-
-&nbsp;
+```sh
+cp .env.example .env
+```
 
 ## Usage
 
-To start Executor, run the following command:
+### Install
 
-```bash
+Please make sure you have run `yarn install` on the root level.
+
+```sh
+cd ../.. # To the root level
+nvm use
+yarn install
 cd packages/executor
 ```
 
-```bash
-yarn start dotenv_config_path="your env file"
+Run mongoDB and export port 27017
+
+```sh
+docker run -d \
+  --name mongodb \
+  -p 27017:27017 \
+  mongo
+```
+
+To start Executor, run the following command:
+
+```sh
+cd packages/executor
+yarn start
 ```
 
 ### Building and Running the Docker Image
 
-Executor is usually run with Relayer and MongoDB, the `docker-compose.yml` demonstrates how to run these three images
-together.
-
-Run the following command:
+Executor needs to connect with MongoDB, the `docker-compose.yml` demonstrates how to run these images together. Run the
+following command:
 
 ```sh
 cd ../..  # To the root level
@@ -70,7 +64,7 @@ docker logs -f [CONTAINER_ID or CONTAINER_NAME]
 
 You can find the `CONTAINER_ID` or `CONTAINER_NAME` using `docker ps`.
 
-### Stopping the relayer
+### Stopping the executor
 
 To stop the running container:
 
