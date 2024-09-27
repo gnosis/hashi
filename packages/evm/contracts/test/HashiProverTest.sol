@@ -6,10 +6,7 @@ import { HashiProver } from "../prover/HashiProver.sol";
 contract HashiProverTest is HashiProver {
     constructor(address shoyuBashi) HashiProver(shoyuBashi) {}
 
-    function getValue(
-        HashiProver.AccountProof calldata accountProof,
-        HashiProver.StorageProof calldata storageProof
-    ) external view returns (bytes[] memory) {
-        return _verifyAccountAndStorageProof(accountProof, storageProof);
+    function getValue(HashiProver.AccountAndStorageProof calldata proof) external view returns (bytes[] memory) {
+        return _verifyAccountAndStorageProof(proof);
     }
 }

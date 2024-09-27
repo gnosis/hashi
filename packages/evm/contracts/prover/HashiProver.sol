@@ -17,33 +17,59 @@ contract HashiProver is IHashiProver {
     }
 
     function _verifyAccountAndStorageProof(
-        AccountProof calldata accountProof,
-        StorageProof calldata storageProof
+        AccountAndStorageProof calldata proof
     ) internal view returns (bytes[] memory) {
-        bytes32 blockHeaderHash = keccak256(accountProof.blockHeader);
-        if (blockHeaderHash != keccak256(storageProof.blockHeader)) revert InvalidBlockHeader();
-        if (accountProof.chainId != storageProof.chainId) revert InvalidChainId();
-        RLPReader.RLPItem[] memory blockHeaderFields = accountProof.blockHeader.toRlpItem().toList();
-        _checkBlockHeaderAgainstHashi(accountProof.chainId, blockHeaderFields[8].toUint(), blockHeaderHash);
-        bytes32 stateRoot = bytes32(blockHeaderFields[3].toUint());
-        (, , bytes32 expectedStorageHash, ) = _verifyAccountProof(accountProof.account, stateRoot, accountProof.proof);
-        if (storageProof.storageHash != expectedStorageHash) revert InvalidStorageHash();
-        return _verifyStorageProofs(storageProof.storageHash, storageProof.storageKeys, storageProof.proofs);
-    }
-
-    function _verifyStorageProofs(StorageProof calldata storageProof) external view returns (bytes[] memory) {
-        RLPReader.RLPItem[] memory blockHeaderFields = storageProof.blockHeader.toRlpItem().toList();
-        _checkBlockHeaderAgainstHashi(
-            storageProof.chainId,
-            blockHeaderFields[8].toUint(),
-            keccak256(storageProof.blockHeader)
+        bytes memory blockHeader = _checkBlockHeaderAgainstHashi(
+            proof.chainId,
+            proof.blockNumber,
+            proof.blockHeader,
+            proof.ancestralBlockNumber,
+            proof.ancestralBlockHeaders
         );
-        return _verifyStorageProofs(storageProof.storageHash, storageProof.storageKeys, storageProof.proofs);
+        RLPReader.RLPItem[] memory blockHeaderFields = blockHeader.toRlpItem().toList();
+        bytes32 stateRoot = bytes32(blockHeaderFields[3].toUint());
+        (, , bytes32 expectedStorageHash, ) = _verifyAccountProof(proof.account, stateRoot, proof.accountProof);
+        if (proof.storageHash != expectedStorageHash) revert InvalidStorageHash();
+        return _verifyStorageProof(proof.storageHash, proof.storageKeys, proof.storageProof);
     }
 
-    function _checkBlockHeaderAgainstHashi(uint256 chainId, uint256 blockNumber, bytes32 blockHeaderHash) private view {
-        bytes32 expectedBlockHeaderHash = IShoyuBashi(SHOYU_BASHI).getThresholdHash(chainId, blockNumber);
-        if (expectedBlockHeaderHash != blockHeaderHash) revert InvalidBlockHeader();
+    function _checkBlockHeaderAgainstHashi(
+        uint256 chainId,
+        uint256 blockNumber,
+        bytes memory blockHeader,
+        uint256 ancestralBlockNumber,
+        bytes[] memory ancestralBlockHeaders
+    ) private view returns (bytes memory) {
+        bytes32 blockHeaderHash = keccak256(blockHeader);
+        bytes32 currentBlockHeaderHash = IShoyuBashi(SHOYU_BASHI).getThresholdHash(chainId, blockNumber);
+        if (currentBlockHeaderHash == blockHeaderHash && ancestralBlockHeaders.length == 0) return blockHeader;
+
+        for (uint256 i = 0; i < ancestralBlockHeaders.length; i++) {
+            RLPReader.RLPItem memory ancestralBlockHeaderRLP = RLPReader.toRlpItem(ancestralBlockHeaders[i]);
+            RLPReader.RLPItem[] memory ancestralBlockHeaderContent = ancestralBlockHeaderRLP.toList();
+
+            bytes32 blockParentHash = bytes32(ancestralBlockHeaderContent[0].toUint());
+            uint256 currentAncestralBlockNumber = uint256(ancestralBlockHeaderContent[8].toUint());
+
+            bytes32 ancestralBlockHeaderHash = keccak256(ancestralBlockHeaders[i]);
+            if (ancestralBlockHeaderHash != currentBlockHeaderHash)
+                revert ConflictingBlockHeader(
+                    currentAncestralBlockNumber,
+                    ancestralBlockHeaderHash,
+                    currentBlockHeaderHash
+                );
+
+            if (ancestralBlockNumber == currentAncestralBlockNumber && i == ancestralBlockHeaders.length - 1) {
+                return ancestralBlockHeaders[i];
+            } else if (i == ancestralBlockHeaders.length - 1) {
+                revert AncestralBlockHeadersLengthReached();
+            } else {
+                currentBlockHeaderHash = blockParentHash;
+            }
+        }
+
+        // NOTE: this point is never reached
+        return abi.encodePacked(bytes32(0));
     }
 
     function _verifyAccountProof(
@@ -69,19 +95,19 @@ contract HashiProver is IHashiProver {
         );
     }
 
-    function _verifyStorageProofs(
+    function _verifyStorageProof(
         bytes32 storageHash,
         bytes32[] memory storageKeys,
-        bytes[] memory proofs
+        bytes[] memory proof
     ) private pure returns (bytes[] memory) {
-        bytes[] memory results = new bytes[](proofs.length);
-        if (storageKeys.length == 0 || proofs.length == 0 || storageKeys.length != proofs.length)
+        bytes[] memory results = new bytes[](proof.length);
+        if (storageKeys.length == 0 || proof.length == 0 || storageKeys.length != proof.length)
             revert InvalidStorageProofParams();
-        for (uint256 i = 0; i < proofs.length; ) {
+        for (uint256 i = 0; i < proof.length; ) {
             results[i] = MerklePatriciaProofVerifier.extractProofValue(
                 storageHash,
                 abi.encodePacked(keccak256(abi.encode(storageKeys[i]))),
-                proofs[i].toRlpItem().toList()
+                proof[i].toRlpItem().toList()
             );
             unchecked {
                 ++i;
