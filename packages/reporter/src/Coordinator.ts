@@ -2,8 +2,8 @@ import { Chain } from "viem"
 import winston from "winston"
 import { Mutex } from "async-mutex"
 
-import Multiclient from "./MultiClient.js"
-import BaseController from "./controllers/BaseController.js"
+import Multiclient from "./MultiClient"
+import BaseController from "./controllers/BaseController"
 
 interface BlockListenerConfigs {
   controllers: any[]

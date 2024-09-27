@@ -38,7 +38,7 @@ On the root's `docker-compose.yml`, run the following command:
 
 ```sh
 cd ../..  # To the root level
-docker-compose up -d --build --no-deps hashi_reporter
+docker compose up --build mongodb hashi_reporter
 ```
 
 ### Viewing Logs

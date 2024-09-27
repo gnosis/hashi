@@ -10,22 +10,20 @@ import {
   goerli,
   optimism,
   optimismGoerli,
-  optimismSepolia,
   polygon,
   mainnet,
   sepolia,
 } from "viem/chains"
 import { Chain } from "viem"
+import { logger } from "@gnosis/hashi-common"
 
-import Multiclient from "./MultiClient.js"
-import StandardReporterController from "./controllers/StandardReporterController.js"
-import WormholeReporterController from "./controllers/WormholeReporterController.js"
+import Multiclient from "./MultiClient"
+import StandardReporterController from "./controllers/StandardReporterController"
+import WormholeReporterController from "./controllers/WormholeReporterController"
 
-import Coordinator from "./Coordinator.js"
-import { settings } from "./settings/index.js"
-import logger from "./utils/logger.js"
-
-const main = () => {
+import Coordinator from "./Coordinator"
+import { settings } from "./settings/index"
+;(async () => {
   const controllersEnabled = process.env.REPORTERS_ENABLED?.split(",")
 
   const sourceChainId = Number(process.env.SOURCE_CHAIN_ID)
@@ -260,6 +258,4 @@ const main = () => {
   })
 
   coordinator.start()
-}
-
-main()
+})()
