@@ -7,6 +7,6 @@ contract HashiProverTest is HashiProver {
     constructor(address shoyuBashi) HashiProver(shoyuBashi) {}
 
     function getValue(HashiProver.AccountAndStorageProof calldata proof) external view returns (bytes[] memory) {
-        return _verifyAccountAndStorageProof(proof);
+        return verifyForeignStorage(proof);
     }
 }

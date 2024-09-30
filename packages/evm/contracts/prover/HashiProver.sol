@@ -16,9 +16,7 @@ contract HashiProver is IHashiProver {
         SHOYU_BASHI = shoyuBashi;
     }
 
-    function _verifyAccountAndStorageProof(
-        AccountAndStorageProof calldata proof
-    ) internal view returns (bytes[] memory) {
+    function verifyForeignStorage(AccountAndStorageProof calldata proof) internal view returns (bytes[] memory) {
         bytes memory blockHeader = _checkBlockHeaderAgainstHashi(
             proof.chainId,
             proof.blockNumber,
