@@ -1,5 +1,15 @@
-export type AccountAndStorageProof = [number, number, `0x${string}`, number, `0x${string}`[], `0x${string}`, `0x${string}`, `0x${string}`, `0x${string}`[], `0x${string}`]
-
+export type AccountAndStorageProof = [
+  number,
+  number,
+  `0x${string}`,
+  number,
+  `0x${string}`[],
+  `0x${string}`,
+  `0x${string}`,
+  `0x${string}`,
+  `0x${string}`[],
+  `0x${string}`,
+]
 
 export type GetAccountAndStorageProofParams = {
   address: `0x${string}`
@@ -12,4 +22,3 @@ export type GetAccountAndStorageProofParams = {
 export type GetAccountAndStorageProofResponse = {
   proof: AccountAndStorageProof
 }
-
