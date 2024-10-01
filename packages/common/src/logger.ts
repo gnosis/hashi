@@ -17,7 +17,7 @@ const logger = winston.createLogger({
     winston.format.timestamp(),
     winston.format.printf(({ timestamp, level, message, service }) => {
       const colorize = winston.format.colorize()
-      return `${timestamp} [${level}] ${colorize.colorize("service", `${service}`)}: ${message}`
+      return `${timestamp} [${level}] ${service ? colorize.colorize("service", `${service}`) : ''}: ${message}`
     }),
   ),
   transports: [new winston.transports.Console(), new winston.transports.File({ filename: "./logs/application.log" })],
