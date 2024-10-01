@@ -21,9 +21,7 @@ The primary insight being that the vast majority of bridge-related security inci
 the systems relying on them had built in some redundancy. In other words, it's much more secure to require messages be
 validated by multiple independent mechanisms, rather than by just one.
 
-We call this setup a **RAIHO** (Redundant Array of Independent Hash Oracles).
-
-For more details: https://crosschain-alliance.gitbook.io/hashi
+For detailed documentation, [read the full guide here](https://crosschain-alliance.gitbook.io/hashi). To explore the real-time cross-chain activity and block headers, visit the Hashi [Explorer](https://hashi-explorer.xyz).
 
 ## Features
 
@@ -109,23 +107,9 @@ docker compose up --build
 
 ## Audits
 
-### v0.1
+Hashi has been audited by G0, Omega and Least Authority.
 
-Hashi has been audited by the [G0 group](https://github.com/g0-group).
-
-All issues and notes of the audit have been addressed as of commit hash [9f373635](https://github.com/gnosis/hashi/tree/9f373635730b59478bf23215906fdb5ad525d3b7/packages/evm/contracts).
-
-The audit results are available as a [pdf in this repo](https://github.com/gnosis/hashi/blob/main/packages/evm/contracts/docs/audits/HashiMay2023.pdf).
-
-### v0.2
-
-Hashi has been audited by the [G0 group](https://github.com/g0-group).
-
-All issues and notes of the audit have been addressed as of commit hash [f1a9fdb](https://github.com/gnosis/hashi/tree/f1a9fdb2998c7024268e9c69777f4dc43d2f775e/packages/evm)
-
-The audit results are available as a [pdf in this repo](https://github.com/g0-group/Audits/blob/master/HashiMar2024.pdf).
-
-Additional audits can be found [here](https://crosschain-alliance.gitbook.io/hashi/v0.2/audit-report).
+The audit results can be found [here](https://crosschain-alliance.gitbook.io/hashi/meta/audits).
 
 ## Security and Liability
 
