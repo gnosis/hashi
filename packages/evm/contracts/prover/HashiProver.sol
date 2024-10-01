@@ -101,11 +101,14 @@ contract HashiProver is IHashiProver {
         if (storageKeys.length == 0 || proof.length == 0 || storageKeys.length != proof.length)
             revert InvalidStorageProofParams();
         for (uint256 i = 0; i < proof.length; ) {
-            results[i] = MerklePatriciaProofVerifier.extractProofValue(
-                storageHash,
-                abi.encodePacked(keccak256(abi.encode(storageKeys[i]))),
-                proof[i].toRlpItem().toList()
+            RLPReader.RLPItem memory item = RLPReader.toRlpItem(
+                MerklePatriciaProofVerifier.extractProofValue(
+                    storageHash,
+                    abi.encodePacked(keccak256(abi.encode(storageKeys[i]))),
+                    proof[i].toRlpItem().toList()
+                )
             );
+            results[i] = item.toBytes();
             unchecked {
                 ++i;
             }
