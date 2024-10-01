@@ -113,25 +113,5 @@ describe("Adapter", function () {
         "InvalidBlockHeaderRLP",
       )
     })
-
-    it("Reverts if block proof doesn't match valid block header lengths", async function () {
-      const { adapter, blocks } = await setup()
-      const blockHeaderContents = RLP.decode(blockRLP(blocks[0]))
-      const blockHeaderTooShortContents = blockHeaderContents.slice(0, 14)
-      const blockHeaderTooShort = RLP.encode(blockHeaderTooShortContents)
-
-      // Block header RLP contains too few elements
-      await expect(adapter.proveAncestralBlockHashes(CHAIN_ID, [blockHeaderTooShort]))
-        .to.revertedWithCustomError(adapter, "InvalidBlockHeaderLength")
-        .withArgs(blockHeaderTooShortContents.length)
-
-      const blockHeaderTooLongContents = blockHeaderContents.concat([adapter.address, adapter.address])
-      const blockHeaderTooLong = RLP.encode(blockHeaderTooLongContents)
-
-      // Block header RLP contains too many elements
-      await expect(adapter.proveAncestralBlockHashes(CHAIN_ID, [blockHeaderTooLong]))
-        .to.revertedWithCustomError(adapter, "InvalidBlockHeaderLength")
-        .withArgs(blockHeaderTooLongContents.length)
-    })
   })
 })

@@ -6,7 +6,6 @@ pragma solidity ^0.8.0;
  */
 interface IAdapter {
     error ConflictingBlockHeader(uint256 blockNumber, bytes32 blockHash, bytes32 storedBlockHash);
-    error InvalidBlockHeaderLength(uint256 length);
     error InvalidBlockHeaderRLP();
 
     /**
