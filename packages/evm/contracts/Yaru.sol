@@ -1,78 +1,71 @@
 // SPDX-License-Identifier: LGPL-3.0-only
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.20;
 
-import { IHashi, IOracleAdapter } from "./interfaces/IHashi.sol";
+import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import { IYaru } from "./interfaces/IYaru.sol";
+import { IHashi, IAdapter } from "./interfaces/IHashi.sol";
 import { Message } from "./interfaces/IMessage.sol";
-import { IMessageExecutor } from "./interfaces/IMessageExecutor.sol";
+import { MessageIdCalculator } from "./utils/MessageIdCalculator.sol";
 import { MessageHashCalculator } from "./utils/MessageHashCalculator.sol";
+import { IJushin } from "./interfaces/IJushin.sol";
 
-contract Yaru is IMessageExecutor, MessageHashCalculator {
-    IHashi public immutable hashi;
-    address public immutable yaho;
-    uint256 public immutable chainId;
+contract Yaru is IYaru, MessageIdCalculator, MessageHashCalculator, ReentrancyGuard {
+    address public immutable HASHI;
+    address public immutable YAHO;
+    uint256 public immutable SOURCE_CHAIN_ID;
+
     mapping(uint256 => bool) public executed;
-    address public sender;
-    IOracleAdapter[] private _adapters;
 
-    error ReentranceNotAllowed(address);
-    error UnequalArrayLengths(address emitter);
-    error AlreadyExecuted(address emitter, uint256 id);
-    error InvalidSender(address emitter, address sender);
-    error HashMismatch(address emitter, uint256 id, bytes32 reportedHash, bytes32 calculatedHash);
-    error CallFailed(address emitter, uint256 id);
-
-    /// @param _hashi Address of the Hashi contract.
-    /// @param _yaho Address of the Yaho contract
-    constructor(IHashi _hashi, address _yaho, uint256 _chainId) {
-        hashi = _hashi;
-        yaho = _yaho;
-        chainId = _chainId;
+    constructor(address hashi, address yaho_, uint256 sourceChainId) {
+        HASHI = hashi;
+        YAHO = yaho_;
+        SOURCE_CHAIN_ID = sourceChainId;
     }
 
-    /// @dev Executes messages validated by a given set of oracle adapters
-    /// @param messages Array of messages to execute.
-    /// @param messageIds Array of corresponding messageIds to query for hashes from the given oracle adapters.
-    /// @param senders Array of addresses that sent the corresponding messages.
-    /// @param oracleAdapters Array of oracle adapters to query.
-    /// @return returnDatas Array of data returned from each executed message.
-    function executeMessages(
-        Message[] memory messages,
-        uint256[] memory messageIds,
-        address[] memory senders,
-        IOracleAdapter[] memory oracleAdapters
-    ) public returns (bytes[] memory) {
-        if (sender != address(0)) revert ReentranceNotAllowed(address(0));
-        if (messages.length != senders.length || messages.length != messageIds.length)
-            revert UnequalArrayLengths(address(this));
-        for (uint256 i = 0; i < oracleAdapters.length; i++) _adapters.push(oracleAdapters[i]);
+    /// @inheritdoc IYaru
+    function executeMessages(Message[] calldata messages) external nonReentrant returns (bytes[] memory) {
         bytes[] memory returnDatas = new bytes[](messages.length);
-        for (uint256 i = 0; i < messages.length; i++) {
-            uint256 id = messageIds[i];
-
-            if (executed[id]) revert AlreadyExecuted(address(this), id);
-            if (senders[i] == address(0)) revert InvalidSender(address(this), senders[i]);
-
-            executed[id] = true;
-
+        for (uint256 i = 0; i < messages.length; ) {
             Message memory message = messages[i];
-            sender = senders[i];
-            bytes32 reportedHash = hashi.getHash(chainId, id, oracleAdapters);
-            bytes32 calculatedHash = calculateHash(chainId, id, yaho, sender, message);
-            if (reportedHash != calculatedHash) revert HashMismatch(address(this), id, reportedHash, calculatedHash);
 
-            (bool success, bytes memory returnData) = address(message.to).call(message.data);
-            if (!success) revert CallFailed(address(this), id);
+            bytes32 messageHash = calculateMessageHash(message);
+            uint256 messageId = calculateMessageId(SOURCE_CHAIN_ID, YAHO, messageHash);
 
-            delete sender;
-            returnDatas[i] = returnData;
-            emit MessageIdExecuted(message.toChainId, bytes32(id));
+            if (message.targetChainId != block.chainid) revert InvalidToChainId(message.targetChainId, block.chainid);
+
+            if (executed[messageId]) revert MessageIdAlreadyExecuted(messageId);
+            executed[messageId] = true;
+
+            if (
+                !IHashi(HASHI).checkHashWithThresholdFromAdapters(
+                    SOURCE_CHAIN_ID,
+                    messageId,
+                    message.threshold,
+                    message.adapters
+                )
+            ) revert ThresholdNotMet();
+
+            try
+                IJushin(message.receiver).onMessage(
+                    messageId,
+                    SOURCE_CHAIN_ID,
+                    message.sender,
+                    message.threshold,
+                    message.adapters,
+                    message.data
+                )
+            returns (bytes memory returnData) {
+                returnDatas[i] = returnData;
+            } catch {
+                revert CallFailed();
+            }
+
+            emit MessageExecuted(messageId, message);
+
+            unchecked {
+                ++i;
+            }
         }
-        delete _adapters;
         return returnDatas;
-    }
-
-    /// @dev Returns the current array of adapters.
-    function adapters() external view returns (IOracleAdapter[] memory) {
-        return _adapters;
     }
 }

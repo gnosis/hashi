@@ -1,28 +1,79 @@
 // SPDX-License-Identifier: LGPL-3.0-only
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.20;
 
-import { ILayerZeroEndpoint } from "./interfaces/ILayerZeroEndpoint.sol";
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { ILayerZeroEndpointV2, MessagingParams, MessagingFee, MessagingReceipt } from "./interfaces/ILayerZeroEndpointV2.sol";
+import { Reporter } from "../Reporter.sol";
+import { OptionsBuilder } from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/libs/OptionsBuilder.sol";
+import { OAppCore } from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/OAppCore.sol";
 
-abstract contract LayerZeroReporter {
+contract LayerZeroReporter is Reporter, Ownable, OAppCore {
+    using OptionsBuilder for bytes;
+
     string public constant PROVIDER = "layer-zero";
-    ILayerZeroEndpoint public immutable LAYER_ZERO_ENDPOINT;
-    uint16 public immutable LAYER_ZERO_ADAPTER_CHAIN;
+    ILayerZeroEndpointV2 public immutable LAYER_ZERO_ENDPOINT;
 
-    constructor(address lzEndpoint, uint16 lzAdapterChain) {
-        LAYER_ZERO_ENDPOINT = ILayerZeroEndpoint(lzEndpoint);
-        LAYER_ZERO_ADAPTER_CHAIN = lzAdapterChain;
+    mapping(uint256 => uint32) public endpointIds;
+    uint128 public fee;
+    address refundAddress;
+
+    error EndpointIdNotAvailable();
+
+    event EndpointIdSet(uint256 indexed chainId, uint32 indexed endpointId);
+    event FeeSet(uint256 fee);
+
+    constructor(
+        address headerStorage,
+        address yaho,
+        address lzEndpoint,
+        address delegate,
+        address refundAddress_,
+        uint128 defaultFee_
+    ) Reporter(headerStorage, yaho) OAppCore(lzEndpoint, delegate) {
+        refundAddress = refundAddress_;
+        fee = defaultFee_;
+        LAYER_ZERO_ENDPOINT = ILayerZeroEndpointV2(lzEndpoint);
     }
 
-    function _lzSend(bytes memory payload, address adapter) internal {
-        bytes memory path = abi.encodePacked(adapter, address(this));
-        // solhint-disable-next-line check-send-result
-        LAYER_ZERO_ENDPOINT.send{ value: msg.value }(
-            LAYER_ZERO_ADAPTER_CHAIN, // _dstChainId: destination LayerZero chainId
-            path, // _destination: send to this address on the destination
-            payload, // _payload: bytes payload
-            payable(msg.sender), // _refundAddress: refund address
-            address(0), // _zroPaymentAddress: future parameter
-            bytes("") // _adapterParams: adapterParams (see "Advanced Features")
+    function setEndpointIdByChainId(uint256 chainId, uint32 endpointId) external onlyOwner {
+        endpointIds[chainId] = endpointId;
+        emit EndpointIdSet(chainId, endpointId);
+    }
+
+    function setFee(uint128 fee_) external onlyOwner {
+        fee = fee_;
+        emit FeeSet(fee);
+    }
+
+    function setDefaultRefundAddress(address refundAddress_) external onlyOwner {
+        refundAddress = refundAddress_;
+    }
+
+    function oAppVersion() public pure virtual override returns (uint64 senderVersion, uint64 receiverVersion) {
+        return (1, 1);
+    }
+    function _dispatch(
+        uint256 targetChainId,
+        address adapter,
+        uint256[] memory ids,
+        bytes32[] memory hashes
+    ) internal override returns (bytes32) {
+        uint32 targetEndpointId = endpointIds[targetChainId];
+        if (targetEndpointId == 0) revert EndpointIdNotAvailable();
+        bytes memory options = OptionsBuilder.newOptions().addExecutorLzReceiveOption(fee, 0);
+        bytes memory message = abi.encode(ids, hashes);
+        MessagingParams memory params = MessagingParams(
+            targetEndpointId,
+            bytes32(abi.encode(adapter)),
+            message,
+            options,
+            false // receiver in lz Token
         );
+        // solhint-disable-next-line check-send-result
+        MessagingFee memory msgFee = LAYER_ZERO_ENDPOINT.quote(params, address(this));
+        MessagingReceipt memory receipt = LAYER_ZERO_ENDPOINT.send{ value: msgFee.nativeFee }(params, refundAddress);
+        return receipt.guid;
     }
+
+    receive() external payable {}
 }

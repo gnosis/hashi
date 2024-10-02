@@ -6,15 +6,36 @@ import type { DendrETHAdapter } from "../../../types/contracts/adapters/DendrETH
 import type { DendrETHAdapter__factory } from "../../../types/factories/contracts/adapters/DendrETH/DendrETHAdapter__factory"
 import { verify } from "../index"
 
+const MerklePatriciaAddresses = {
+  10200: "0x777662E6A65411e0A425E59C496A7D1C0635A935",
+}
+
 task("deploy:adapter:DendrETHAdapter")
   .addParam("dendreth", "address of the DendrETH contract")
+  .addParam("sourceChainId", "Source chain id")
+  .addParam("sourceYaho", "address of the source Yaho contract")
+  .addFlag("verify", "whether to verify the contract on Etherscan")
   .setAction(async function (taskArguments: TaskArguments, hre) {
-    console.log("Deploying DendrETHAdapter...")
     const signers: SignerWithAddress[] = await hre.ethers.getSigners()
+
+    console.log("Deploying DendrETHAdapter...")
+    const merklePatriciaAddress = MerklePatriciaAddresses[hre.network.config.chainId]
+    if (!merklePatriciaAddress) {
+      throw new Error("MerklePatricia Not Found")
+    }
     const dendrETHAdapterFactory: DendrETHAdapter__factory = <DendrETHAdapter__factory>(
-      await hre.ethers.getContractFactory("DendrETHAdapter")
+      await hre.ethers.getContractFactory("DendrETHAdapter", {
+        libraries: {
+          MerklePatricia: merklePatriciaAddress,
+        },
+      })
     )
-    const constructorArguments = [taskArguments.dendreth] as const
+    const constructorArguments = [
+      taskArguments.dendreth,
+      taskArguments.sourceChainId,
+      taskArguments.sourceYaho,
+    ] as const
+
     const dendrETHAdapter: DendrETHAdapter = <DendrETHAdapter>(
       await dendrETHAdapterFactory.connect(signers[0]).deploy(...constructorArguments)
     )

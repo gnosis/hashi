@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: LGPL-3.0-only
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.20;
 
 import "@polytope-labs/solidity-merkle-trees/src/MerklePatricia.sol";
 import { RLPReader } from "@polytope-labs/solidity-merkle-trees/src/trie/ethereum/RLPReader.sol";

@@ -1,0 +1,40 @@
+{
+  "name": "@gnosis/hashi-rpc",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "compile": "tsc",
+    "lint": "eslint --ignore-path ./.eslintignore --ext .js,.ts .",
+    "prettier:check": "prettier --check \"**/*.{js,json,md,sol,ts,yml}\"",
+    "prettier:write": "prettier --write \"**/*.{js,json,md,sol,ts,yml}\"",
+    "start": "node --loader ts-node/esm ./src/index.ts",
+    "start:prod": "node ./dist/index.js",
+    "start:dev": "nodemon"
+  },
+  "dependencies": {
+    "@ethereumjs/block": "^5.3.0",
+    "@ethereumjs/common": "^4.4.0",
+    "@ethereumjs/rlp": "^5.0.2",
+    "@ethereumjs/util": "^9.0.3",
+    "@gnosis/hashi-common": "0.1.0",
+    "body-parser": "^1.20.2",
+    "dotenv": "^16.4.5",
+    "ethers": "^6.13.2",
+    "express": "^4.19.2",
+    "json-rpc-2.0": "^1.7.0",
+    "kzg-wasm": "^0.4.0"
+  },
+  "devDependencies": {
+    "@tsconfig/node22": "^22.0.0",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.8.9",
+    "@typescript-eslint/eslint-plugin": "^6.7.5",
+    "@typescript-eslint/parser": "^6.7.5",
+    "eslint": "^8.51.0",
+    "eslint-config-prettier": "^9.0.0",
+    "nodemon": "^3.0.1",
+    "prettier": "^3.3.2",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.2.2"
+  }
+}

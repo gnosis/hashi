@@ -1,0 +1,39 @@
+{
+  "name": "reporter",
+  "version": "0.1.0",
+  "author": {
+    "name": "gnosis",
+    "url": "https://github.com/gnosis"
+  },
+  "scripts": {
+    "compile": "tsc",
+    "lint": "eslint --ignore-path ./.eslintignore --ext .js,.ts .",
+    "prettier:check": "prettier --check \"**/*.{js,json,md,sol,ts,yml}\"",
+    "prettier:write": "prettier --write \"**/*.{js,json,md,sol,ts,yml}\"",
+    "start": "node --loader ts-node/esm ./src/index.ts",
+    "start:prod": "node ./dist/index.js",
+    "start:dev": "nodemon"
+  },
+  "dependencies": {
+    "@gnosis/hashi-common": "0.1.0",
+    "async-mutex": "^0.4.0",
+    "axios": "^1.5.1",
+    "dotenv": "^16.3.1",
+    "viem": "^1.16.5",
+    "winston": "^3.11.0"
+  },
+  "devDependencies": {
+    "@tsconfig/node22": "^22.0.0",
+    "@types/node": "^20.8.9",
+    "@types/node-cron": "^3.0.9",
+    "@typescript-eslint/eslint-plugin": "^6.7.5",
+    "@typescript-eslint/parser": "^6.7.5",
+    "eslint": "^8.51.0",
+    "eslint-config-prettier": "^9.0.0",
+    "nodemon": "^3.0.1",
+    "patch-package": "^8.0.0",
+    "prettier": "^3.0.3",
+    "ts-node": "^10.9.2",
+    "typescript": "~5.2.2"
+  }
+}

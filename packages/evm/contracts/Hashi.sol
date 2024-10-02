@@ -28,67 +28,90 @@
                   ███▌         ▐███⌐      ▀▀_             ▀▀▀███████
                   ███^         ▐███_                          ▐██▀▀　
 
-                                           Made with ❤️ by Gnosis Guild
+              Made with ❤️ by Gnosis Guild & the Cross-chain Alliance
 */
 // SPDX-License-Identifier: LGPL-3.0-only
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.20;
 
-import { IOracleAdapter } from "./interfaces/IOracleAdapter.sol";
+import { IAdapter } from "./interfaces/IAdapter.sol";
+import { IHashi } from "./interfaces/IHashi.sol";
 
-contract Hashi {
-    error NoOracleAdaptersGiven(address emitter);
-    error OracleDidNotReport(address emitter, IOracleAdapter oracleAdapter);
-    error OraclesDisagree(address emitter, IOracleAdapter oracleOne, IOracleAdapter oracleTwo);
-
-    /// @dev Returns the hash reported by a given oracle for a given ID.
-    /// @param oracleAdapter Address of the oracle adapter to query.
-    /// @param domain Id of the domain to query.
-    /// @param id ID for which to return a hash.
-    /// @return hash Hash reported by the given oracle adapter for the given ID number.
-    function getHashFromOracle(
-        IOracleAdapter oracleAdapter,
+contract Hashi is IHashi {
+    /// @inheritdoc IHashi
+    function checkHashWithThresholdFromAdapters(
         uint256 domain,
-        uint256 id
-    ) public view returns (bytes32 hash) {
-        hash = oracleAdapter.getHashFromOracle(domain, id);
+        uint256 id,
+        uint256 threshold,
+        IAdapter[] calldata adapters
+    ) external view returns (bool) {
+        if (threshold > adapters.length || threshold == 0) revert InvalidThreshold(threshold, adapters.length);
+        bytes32[] memory hashes = getHashesFromAdapters(domain, id, adapters);
+
+        for (uint256 i = 0; i < hashes.length; ) {
+            if (i > hashes.length - threshold) break;
+
+            bytes32 baseHash = hashes[i];
+            if (baseHash == bytes32(0)) {
+                unchecked {
+                    ++i;
+                }
+                continue;
+            }
+
+            uint256 num = 0;
+            for (uint256 j = i; j < hashes.length; ) {
+                if (baseHash == hashes[j]) {
+                    unchecked {
+                        ++num;
+                    }
+                    if (num == threshold) return true;
+                }
+                unchecked {
+                    ++j;
+                }
+            }
+
+            unchecked {
+                ++i;
+            }
+        }
+        return false;
     }
 
-    /// @dev Returns the hash for a given ID reported by a given set of oracles.
-    /// @param oracleAdapters Array of address for the oracle adapters to query.
-    /// @param domain ID of the domain to query.
-    /// @param id ID for which to return hashs.
-    /// @return hashes Array of hash reported by the given oracle adapters for the given ID.
-    function getHashesFromOracles(
-        IOracleAdapter[] memory oracleAdapters,
+    /// @inheritdoc IHashi
+    function getHashFromAdapter(uint256 domain, uint256 id, IAdapter adapter) external view returns (bytes32) {
+        return adapter.getHash(domain, id);
+    }
+
+    /// @inheritdoc IHashi
+    function getHashesFromAdapters(
         uint256 domain,
-        uint256 id
+        uint256 id,
+        IAdapter[] calldata adapters
     ) public view returns (bytes32[] memory) {
-        if (oracleAdapters.length == 0) revert NoOracleAdaptersGiven(address(this));
-        bytes32[] memory hashes = new bytes32[](oracleAdapters.length);
-        for (uint256 i = 0; i < oracleAdapters.length; i++) {
-            hashes[i] = getHashFromOracle(oracleAdapters[i], domain, id);
+        if (adapters.length == 0) revert NoAdaptersGiven();
+        bytes32[] memory hashes = new bytes32[](adapters.length);
+        for (uint256 i = 0; i < adapters.length; ) {
+            hashes[i] = adapters[i].getHash(domain, id);
+            unchecked {
+                ++i;
+            }
         }
         return hashes;
     }
 
-    /// @dev Returns the hash unanimously agreed upon by a given set of oracles.
-    /// @param domain ID of the domain to query.
-    /// @param id ID for which to return hash.
-    /// @param oracleAdapters Array of address for the oracle adapters to query.
-    /// @return hash Hash agreed on by the given set of oracle adapters.
-    /// @notice MUST revert if oracles disagree on the hash or if an oracle does not report.
-    function getHash(
-        uint256 domain,
-        uint256 id,
-        IOracleAdapter[] memory oracleAdapters
-    ) public view returns (bytes32 hash) {
-        if (oracleAdapters.length == 0) revert NoOracleAdaptersGiven(address(this));
-        bytes32[] memory hashes = getHashesFromOracles(oracleAdapters, domain, id);
+    /// @inheritdoc IHashi
+    function getHash(uint256 domain, uint256 id, IAdapter[] calldata adapters) external view returns (bytes32 hash) {
+        if (adapters.length == 0) revert NoAdaptersGiven();
+        bytes32[] memory hashes = getHashesFromAdapters(domain, id, adapters);
         hash = hashes[0];
-        if (hash == bytes32(0)) revert OracleDidNotReport(address(this), oracleAdapters[0]);
-        for (uint256 i = 1; i < hashes.length; i++) {
-            if (hashes[i] == bytes32(0)) revert OracleDidNotReport(address(this), oracleAdapters[i]);
-            if (hash != hashes[i]) revert OraclesDisagree(address(this), oracleAdapters[i - 1], oracleAdapters[i]);
+        if (hash == bytes32(0)) revert HashNotAvailableInAdapter(adapters[0]);
+        for (uint256 i = 1; i < hashes.length; ) {
+            if (hashes[i] == bytes32(0)) revert HashNotAvailableInAdapter(adapters[i]);
+            if (hash != hashes[i]) revert AdaptersDisagree(adapters[i - 1], adapters[i]);
+            unchecked {
+                ++i;
+            }
         }
     }
 }

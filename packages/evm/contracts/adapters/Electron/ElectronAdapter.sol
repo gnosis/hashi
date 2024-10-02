@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: LGPL-3.0-only
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.20;
 
-import { BlockHashOracleAdapter } from "../BlockHashOracleAdapter.sol";
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { BlockHashAdapter } from "../BlockHashAdapter.sol";
 import { ILightClient } from "./interfaces/ILightClient.sol";
 import { Merkle } from "./lib/Merkle.sol";
 import { Receipt } from "./lib/Receipt.sol";
-import { Ownable } from "openzeppelin/access/Ownable.sol";
 
-contract ElectronAdapter is BlockHashOracleAdapter, Ownable {
+contract ElectronAdapter is BlockHashAdapter, Ownable {
     ILightClient public lightClient;
 
     bytes32 public constant EVENT_SIG_HASH = 0xf7df17dce0093aedfcbae24b4f04e823f9e863c97986ab1ba6c5267ace49ddea; // HeaderStored(uint256,bytes32)

@@ -1,0 +1,54 @@
+version: "3.8"
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    networks:
+      - mongo-network
+    volumes:
+      - mongo-data:/data/db
+
+  hashi_relayer:
+    build:
+      context: .
+      dockerfile: packages/relayer/Dockerfile
+    container_name: hashi_relayer
+    networks:
+      - mongo-network
+    depends_on:
+      - mongodb
+
+  hashi_executor:
+    build:
+      context: .
+      dockerfile: packages/executor/Dockerfile
+    container_name: hashi_executor
+    networks:
+      - mongo-network
+    depends_on:
+      - mongodb
+
+  hashi_reporter:
+    build:
+      context: .
+      dockerfile: packages/reporter/Dockerfile
+    container_name: hashi_reporter
+
+  hashi_rpc:
+    build:
+      context: .
+      dockerfile: packages/rpc/Dockerfile
+    ports:
+      - "3000:3000"
+    container_name: hashi_rpc
+
+networks:
+  mongo-network:
+    driver: bridge
+
+volumes:
+  mongo-data:
+    driver: local

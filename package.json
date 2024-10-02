@@ -1,23 +1,12 @@
 {
   "private": true,
-  "name": "hashi",
   "description": "",
   "author": {
     "name": "gnosis",
     "url": "https://github.com/gnosis"
   },
   "scripts": {
-    "prepare": "husky install",
-    "preinstall": "yarn contracts:install",
-    "build": "yarn contracts:build",
-    "test": "yarn contracts:test",
-    "lint": "yarn contracts:lint",
-    "coverage": "yarn contracts:coverage",
-    "contracts:install": "cd packages/evm && yarn install",
-    "contracts:build": "cd packages/evm && yarn build",
-    "contracts:test": "cd packages/evm && yarn test",
-    "contracts:lint": "cd packages/evm && yarn lint",
-    "contracts:coverage": "cd packages/evm && yarn coverage"
+    "prepare": "husky install"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.5.1",
@@ -26,5 +15,8 @@
     "prettier": "^2.8.7",
     "prettier-plugin-solidity": "^1.0.0"
   },
-  "packageManager": "yarn@3.2.1"
+  "workspaces": [
+    "packages/*"
+  ],
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }

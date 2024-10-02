@@ -1,14 +1,29 @@
 // SPDX-License-Identifier: LGPL-3.0-only
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.20;
 
-contract PingPong {
-    event Pong(string pong);
+import { IJushin } from "../interfaces/IJushin.sol";
+import { IAdapter } from "../interfaces/IAdapter.sol";
 
+contract PingPong is IJushin {
     uint256 public count;
 
-    function ping() public returns (string memory pong) {
+    event Pong(uint256 count);
+
+    function ping() external {
         count++;
-        pong = "pong";
-        emit Pong(pong);
+        emit Pong(count);
+    }
+
+    function onMessage(
+        uint256,
+        uint256,
+        address,
+        uint256,
+        IAdapter[] calldata,
+        bytes calldata
+    ) external returns (bytes memory) {
+        count++;
+        emit Pong(count);
+        return abi.encode(0);
     }
 }

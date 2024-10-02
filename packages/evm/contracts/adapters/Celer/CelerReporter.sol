@@ -1,19 +1,25 @@
 // SPDX-License-Identifier: LGPL-3.0-only
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.20;
 
+import { Reporter } from "../Reporter.sol";
 import { IMessageBus } from "./interfaces/IMessageBus.sol";
 
-abstract contract CelerReporter {
+contract CelerReporter is Reporter {
     string public constant PROVIDER = "celer";
     IMessageBus public immutable CELER_BUS;
-    uint64 public immutable CELER_ADAPTER_CHAIN;
 
-    constructor(address celerBus, uint32 celerAdapterChain) {
+    constructor(address headerStorage, address yaho, address celerBus) Reporter(headerStorage, yaho) {
         CELER_BUS = IMessageBus(celerBus);
-        CELER_ADAPTER_CHAIN = celerAdapterChain;
     }
 
-    function _celerSend(bytes memory payload, address adapter) internal {
-        CELER_BUS.sendMessage{ value: msg.value }(adapter, CELER_ADAPTER_CHAIN, payload);
+    function _dispatch(
+        uint256 targetChainId,
+        address adapter,
+        uint256[] memory ids,
+        bytes32[] memory hashes
+    ) internal override returns (bytes32) {
+        bytes memory payload = abi.encode(ids, hashes);
+        CELER_BUS.sendMessage{ value: msg.value }(adapter, targetChainId, payload);
+        return bytes32(0);
     }
 }
