@@ -38,7 +38,7 @@ On the root's `docker-compose.yml`, run the following command:
 
 ```sh
 cd ../..  # To the root level
-docker compose up --build mongodb hashi_rpc
+docker compose up --build hashi_rpc
 ```
 
 Make sure to set `PORT=3000` within `.env` file.
