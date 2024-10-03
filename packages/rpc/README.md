@@ -8,10 +8,16 @@ These instructions will cover the usage information and how to run the code loca
 
 ### Configuration
 
-Configure the mode you want to run by editing the variable in `.env` by checking `.env.example`
+Configure the mode you want to run by editing the variable in `.env` by checking `.env.example`.
 
 ```sh
 cp .env.example .env
+```
+
+To add a new chain, create a value in the .env file with the following name:
+
+```sh
+JSON_RPC_URL_<chain_id>="your rpc url"
 ```
 
 ### Install
@@ -38,7 +44,7 @@ On the root's `docker-compose.yml`, run the following command:
 
 ```sh
 cd ../..  # To the root level
-docker compose up --build mongodb hashi_rpc
+docker compose up --build hashi_rpc
 ```
 
 Make sure to set `PORT=3000` within `.env` file.
