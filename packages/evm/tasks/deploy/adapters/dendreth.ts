@@ -8,6 +8,8 @@ import { verify } from "../index"
 
 const MerklePatriciaAddresses = {
   10200: "0x777662E6A65411e0A425E59C496A7D1C0635A935",
+  11155111: "0x1b19Dfd5e1986A0d524644F081AcB14d51159818",
+  4201: "0xC82e50cc90C84DC492B4Beb6792DEeB496d52424",
 }
 
 task("deploy:adapter:DendrETHAdapter")

@@ -3,8 +3,11 @@ pragma solidity ^0.8.20;
 
 library SSZ {
     // G-indicies for the BeaconBlockHeader -> bodyRoot -> executionPayload -> {blockNumber, blockHash}
-    uint256 internal constant EXECUTION_PAYLOAD_BLOCK_NUMBER_INDEX = 3222;
-    uint256 internal constant EXECUTION_PAYLOAD_BLOCK_HASH_INDEX = 3228;
+    uint256 internal constant EXECUTION_PAYLOAD_BLOCK_NUMBER_INDEX = 6438;
+    uint256 internal constant EXECUTION_PAYLOAD_BLOCK_HASH_INDEX = 6444;
+
+    // G-index for the BeaconBlockHeader -> slot
+    uint256 internal constant SLOT_INDEX = 8;
 
     function toLittleEndian(uint256 _v) internal pure returns (bytes32) {
         _v =
@@ -73,5 +76,9 @@ library SSZ {
         bytes32 _headerRoot
     ) internal pure returns (bool) {
         return isValidMerkleBranch(_blockHash, EXECUTION_PAYLOAD_BLOCK_HASH_INDEX, _blockHashProof, _headerRoot);
+    }
+
+    function verifySlot(uint256 _slot, bytes32[] memory _slotProof, bytes32 _headerRoot) internal pure returns (bool) {
+        return isValidMerkleBranch(toLittleEndian(_slot), SLOT_INDEX, _slotProof, _headerRoot);
     }
 }

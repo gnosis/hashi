@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: LGPL-3.0-only
-pragma solidity 0.8.20;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
 
 struct LightClientUpdate {
     bytes32 attestedHeaderRoot;
@@ -14,13 +14,21 @@ struct LightClientUpdate {
 interface ILightClient {
     function currentIndex() external view returns (uint256);
 
-    function optimisticHeaders(uint256 index) external view returns (bytes32);
-
     function optimisticHeaderRoot() external view returns (bytes32);
-
-    function optimisticSlots(uint256 index) external view returns (uint256);
 
     function optimisticHeaderSlot() external view returns (uint256);
 
-    function light_client_update(LightClientUpdate calldata update) external;
+    function finalizedHeaderRoot() external view returns (bytes32);
+
+    function executionStateRoot() external view returns (bytes32);
+
+    function optimisticHeaders(uint256 index) external view returns (bytes32);
+
+    function optimisticSlots(uint256 index) external view returns (uint256);
+
+    function finalizedHeaders(uint256 index) external view returns (bytes32);
+
+    function executionStateRoots(uint256 index) external view returns (bytes32);
+
+    function lightClientUpdate(LightClientUpdate calldata update) external payable;
 }
