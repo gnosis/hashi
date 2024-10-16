@@ -15,14 +15,19 @@ contract DendrETHAdapter is BlockHashAdapter {
     address public immutable SOURCE_YAHO;
     uint256 public immutable SOURCE_CHAIN_ID;
 
-    error InvalidUpdate();
-    error BlockHeaderNotAvailable(uint256 slot);
+    error FinalizedBlockHeaderNotAvailable(bytes32 finalizedHeader);
+    error InvalidSlot();
     error InvalidBlockNumberProof();
     error InvalidBlockHashProof();
     error InvalidReceiptsRoot();
     error ErrorParseReceipt();
     error InvalidEventSignature();
     error InvalidEventSource();
+
+    modifier onlyFinalizedHeaderIsInLightClient(bytes32 finalizedBlockHeader) {
+        _checkFinalizedHeaderIsInLightClient(finalizedBlockHeader);
+        _;
+    }
 
     constructor(address dendrETHAddress, uint256 sourceChainId, address sourceYaho) {
         DENDRETH_ADDRESS = dendrETHAddress;
@@ -33,18 +38,17 @@ contract DendrETHAdapter is BlockHashAdapter {
     /// @notice Stores the block header for a given block only if it exists
     //          in the DendrETH Light Client for the SOURCE_CHAIN_ID.
     function storeBlockHeader(
-        uint64 slot,
+        bytes32 finalizedBlockHeader,
         uint256 blockNumber,
         bytes32[] calldata blockNumberProof,
         bytes32 blockHash,
         bytes32[] calldata blockHashProof
-    ) external {
-        ILightClient lightClient = ILightClient(DENDRETH_ADDRESS);
-        bytes32 blockHeaderRoot = lightClient.optimisticHeaders(_getIndex(slot, lightClient));
-        if (!SSZ.verifyBlockNumber(blockNumber, blockNumberProof, blockHeaderRoot)) {
+    ) external onlyFinalizedHeaderIsInLightClient(finalizedBlockHeader) {
+        if (!SSZ.verifyBlockNumber(blockNumber, blockNumberProof, finalizedBlockHeader)) {
             revert InvalidBlockNumberProof();
         }
-        if (!SSZ.verifyBlockHash(blockHash, blockHashProof, blockHeaderRoot)) {
+
+        if (!SSZ.verifyBlockHash(blockHash, blockHashProof, finalizedBlockHeader)) {
             revert InvalidBlockHashProof();
         }
 
@@ -54,7 +58,6 @@ contract DendrETHAdapter is BlockHashAdapter {
     /// @notice Updates DendrETH Light client and stores the given block
     //          for the update
     function storeBlockHeader(
-        uint64 slot,
         uint256 blockNumber,
         bytes32[] calldata blockNumberProof,
         bytes32 blockHash,
@@ -62,16 +65,16 @@ contract DendrETHAdapter is BlockHashAdapter {
         LightClientUpdate calldata update
     ) external {
         ILightClient lightClient = ILightClient(DENDRETH_ADDRESS);
-        lightClient.light_client_update(update);
-        if (lightClient.optimisticHeaderSlot() != slot) {
-            revert InvalidUpdate();
-        }
 
-        bytes32 blockHeaderRoot = lightClient.optimisticHeaderRoot();
-        if (!SSZ.verifyBlockNumber(blockNumber, blockNumberProof, blockHeaderRoot)) {
+        lightClient.lightClientUpdate(update);
+
+        bytes32 finalizedHeaderRoot = lightClient.finalizedHeaderRoot();
+
+        if (!SSZ.verifyBlockNumber(blockNumber, blockNumberProof, finalizedHeaderRoot)) {
             revert InvalidBlockNumberProof();
         }
-        if (!SSZ.verifyBlockHash(blockHash, blockHashProof, blockHeaderRoot)) {
+
+        if (!SSZ.verifyBlockHash(blockHash, blockHashProof, finalizedHeaderRoot)) {
             revert InvalidBlockHashProof();
         }
 
@@ -79,24 +82,28 @@ contract DendrETHAdapter is BlockHashAdapter {
     }
 
     function verifyAndStoreDispatchedMessage(
+        bytes32 srcFinalizedHeader,
         uint64 srcSlot,
+        bytes32[] calldata slotProof,
         uint64 txSlot,
         bytes32[] memory receiptsRootProof,
         bytes32 receiptsRoot,
         bytes[] memory receiptProof,
         bytes memory txIndexRLPEncoded,
         uint256 logIndex
-    ) external {
-        ILightClient lightClient = ILightClient(DENDRETH_ADDRESS);
-        bytes32 blockHeaderRoot = lightClient.optimisticHeaders(_getIndex(srcSlot, lightClient));
+    ) external onlyFinalizedHeaderIsInLightClient(srcFinalizedHeader) {
+        if (!SSZ.verifySlot(srcSlot, slotProof, srcFinalizedHeader)) {
+            revert InvalidSlot();
+        }
 
         bool isValidReceiptsRoot = Merkle.verifyReceiptsRoot(
             receiptsRootProof,
             receiptsRoot,
             srcSlot,
             txSlot,
-            blockHeaderRoot
+            srcFinalizedHeader
         );
+
         if (!isValidReceiptsRoot) revert InvalidReceiptsRoot();
 
         Receipt.ParsedReceipt memory parsedReceipt = Receipt.parseReceipt(
@@ -116,13 +123,15 @@ contract DendrETHAdapter is BlockHashAdapter {
         _storeHash(SOURCE_CHAIN_ID, messageId, messageHash);
     }
 
-    function _getIndex(uint64 slot, ILightClient lightClient) internal view returns (uint256) {
+    function _checkFinalizedHeaderIsInLightClient(bytes32 finalizedBlockHeader) internal view {
+        ILightClient lightClient = ILightClient(DENDRETH_ADDRESS);
+
         uint256 currentIndex = lightClient.currentIndex();
         uint256 i = currentIndex;
         bool found = false;
 
         do {
-            if (slot == lightClient.optimisticSlots(i)) {
+            if (finalizedBlockHeader == lightClient.finalizedHeaders(i)) {
                 found = true;
                 break;
             }
@@ -133,8 +142,7 @@ contract DendrETHAdapter is BlockHashAdapter {
         } while (i != currentIndex);
 
         if (!found) {
-            revert BlockHeaderNotAvailable(slot);
+            revert FinalizedBlockHeaderNotAvailable(finalizedBlockHeader);
         }
-        return i;
     }
 }
