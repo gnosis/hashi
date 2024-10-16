@@ -43,16 +43,19 @@ versions 5.1.x
 #a lil while somehow im enstien 
 #much love from a woman 
 #who went into business management
-#accounting, human resourcea 
+#accounting, human resources
 #finance and marketing 
 #leadership because i still am able 
 #to have a team that stands behind me
 #i learnt to code, i worked hard 
-#I deserve this and he being not 
-#the person who hacked it in 2012 or 13
-#it has been very difficult to stop it 
-#as it was trading at the time 
-#the second person meaning the person 
-#i miss and think about all the time 
-reported vulnerability, what to expect if the vulnerability is accepted or
-declined, etc.
+#I deserve this they do too 
+# Ive never recieved anything ever 
+#trading on bitcore in 2009
+#Say your Satoshi at the time
+#i couldnt find it because someone
+#jepordized the safety of everyone
+#what selfish is stupid
+#got big things to change 
+#thanks that little snitch proto
+ 
+#john the galician gaurd to the metaverse 
