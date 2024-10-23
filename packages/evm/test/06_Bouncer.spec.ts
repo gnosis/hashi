@@ -55,27 +55,27 @@ describe("Bouncer", () => {
     bouncer2 = await Bouncer.deploy(yaho.address, yaru.address)
   })
 
-  /*it(`should be able to execute a message after ONE hop`, async () => {
+  it(`should be able to execute a message after ONE hop`, async () => {
     const abiCoder = new ethers.utils.AbiCoder()
     const threshold = 1
     const expectedAdaptersHash = ethers.utils.sha256(abiCoder.encode(["address[]"], [[adapter1.address]]))
     const header =
-    "0x04510001" +
-    "00" + // hops nonce
-    "02" + // hops count
-    "000000D8" + // 184 bytes = 1th hop size
-    "0000000000000001" + // chain protocol
-    Chains.Hardhat.toString(16).padStart(32, "0") + // chain protocol identifier
-    pingPong.address.slice(2).padStart(64, "0") + // receiver
-    Chains.Hardhat.toString(16).padStart(32, "0") + // expected source chain id
-    owner.address.slice(2).padStart(64, "0") + // expected sender
-    "00000001" + // expected threshold
-    expectedAdaptersHash.slice(2) + // expected adapters hash
-    "00000001" + // threshold
-    "00000001" + // reporters length
-    reporter2.address.slice(2).padStart(64, "0") +
-    "00000001" + // adapters length
-    adapter2.address.slice(2).padStart(64, "0") +
+      "0x04510001" +
+      "00" + // hops nonce
+      "02" + // hops count
+      "000000D8" + // 184 bytes = 1th hop size
+      "0000000000000001" + // chain protocol
+      Chains.Hardhat.toString(16).padStart(32, "0") + // chain protocol identifier
+      pingPong.address.slice(2).padStart(64, "0") + // receiver
+      Chains.Hardhat.toString(16).padStart(32, "0") + // expected source chain id
+      owner.address.slice(2).padStart(64, "0") + // expected sender
+      "00000001" + // expected threshold
+      expectedAdaptersHash.slice(2) + // expected adapters hash
+      "00000001" + // threshold
+      "00000001" + // reporters length
+      reporter2.address.slice(2).padStart(64, "0") +
+      "00000001" + // adapters length
+      adapter2.address.slice(2).padStart(64, "0") +
       "000001" + // message length
       "01" // raw message
 
@@ -102,17 +102,13 @@ describe("Bouncer", () => {
       await adapters[i].setHashes(Chains.Hardhat, [message2.id], [hash2])
     }
     await expect(yaru.executeMessages([message2])).to.emit(pingPong, "Pong")
-  })*/
+  })
 
   it(`should be able to execute a message after TWO hops`, async () => {
     const abiCoder = new ethers.utils.AbiCoder()
     const threshold = 1
     const expectedAdaptersHash1 = ethers.utils.sha256(abiCoder.encode(["address[]"], [[adapter1.address]]))
     const expectedAdaptersHash2 = ethers.utils.sha256(abiCoder.encode(["address[]"], [[adapter2.address]]))
-
-    console.log("bouncer2.address", bouncer2.address)
-    console.log("bouncer1.address", bouncer1.address)
-    console.log("owner.address", owner.address)
 
     const header =
       "0x04510001" +
