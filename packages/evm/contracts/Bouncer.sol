@@ -40,7 +40,7 @@ contract Bouncer is IBouncer {
             uint256 nextThreshold,
             IReporter[] memory nextReporters,
             IAdapter[] memory nextAdapters,
-
+            bytes memory message
         ) = HopDecoder.decodeCurrentHop(data);
 
         if (sourceChainId != expectedSourceChainId) revert InvalidSourceChainId();
@@ -48,7 +48,11 @@ contract Bouncer is IBouncer {
         if (threshold < expectedThreshold) revert InvalidThreshold();
         if (sha256(abi.encode(adapters)) != expectedAdaptersHash) revert InvalidAdapters();
 
-        bytes memory dataWithUpdatedNonce = abi.encodePacked(data[:4], bytes1(hopsNonce + 1), data[5:]);
+        bytes memory dataWithUpdatedNonce = abi.encodePacked(
+            data[:7 + message.length],
+            bytes1(hopsNonce + 1),
+            data[7 + 1 + message.length:]
+        );
         IYaho(YAHO).dispatchMessage(
             nextChainId,
             nextThreshold,

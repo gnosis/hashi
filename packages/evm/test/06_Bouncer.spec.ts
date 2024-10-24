@@ -61,6 +61,8 @@ describe("Bouncer", () => {
     const expectedAdaptersHash = ethers.utils.sha256(abiCoder.encode(["address[]"], [[adapter1.address]]))
     const header =
       "0x04510001" +
+      "000001" + // message length
+      "01" + // raw message
       "00" + // hops nonce
       "02" + // hops count
       "000000D8" + // 184 bytes = 1th hop size
@@ -75,9 +77,7 @@ describe("Bouncer", () => {
       "00000001" + // reporters length
       reporter2.address.slice(2).padStart(64, "0") +
       "00000001" + // adapters length
-      adapter2.address.slice(2).padStart(64, "0") +
-      "000001" + // message length
-      "01" // raw message
+      adapter2.address.slice(2).padStart(64, "0")
 
     let tx = await yaho.dispatchMessagesToAdapters(
       Chains.Hardhat,
@@ -112,6 +112,8 @@ describe("Bouncer", () => {
 
     const header =
       "0x04510001" +
+      "000001" + // message length
+      "01" + // raw message
       "00" + // hops nonce
       "02" + // hops count
       "000000D8" + // 184 bytes = 1th hop size
@@ -141,9 +143,7 @@ describe("Bouncer", () => {
       reporter4.address.slice(2).padStart(64, "0") +
       "00000002" + // adapters length
       adapter3.address.slice(2).padStart(64, "0") +
-      adapter4.address.slice(2).padStart(64, "0") +
-      "000001" + // message length
-      "01" // raw message
+      adapter4.address.slice(2).padStart(64, "0")
 
     let tx = await yaho.dispatchMessagesToAdapters(
       Chains.Hardhat,
