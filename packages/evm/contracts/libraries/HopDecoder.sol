@@ -86,4 +86,12 @@ library HopDecoder {
             }
         }
     }
+
+    function decodeHeaderAndMessage(
+        bytes calldata data
+    ) internal pure returns (bytes memory header, bytes memory message) {
+        uint24 messageLength = uint24(bytes3(data[4:7]));
+        message = data[7:7 + messageLength];
+        header = data[7 + messageLength:];
+    }
 }

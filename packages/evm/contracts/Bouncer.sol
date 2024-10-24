@@ -46,7 +46,7 @@ contract Bouncer is IBouncer {
         if (sourceChainId != expectedSourceChainId) revert InvalidSourceChainId();
         if (sender != expectedSender) revert InvalidSender();
         if (threshold < expectedThreshold) revert InvalidThreshold();
-        if (sha256(abi.encode(adapters)) != expectedAdaptersHash) revert InvalidAdapters();
+        if (keccak256(abi.encodePacked(adapters)) != expectedAdaptersHash) revert InvalidAdapters();
 
         bytes memory dataWithUpdatedNonce = abi.encodePacked(
             data[:7 + message.length],

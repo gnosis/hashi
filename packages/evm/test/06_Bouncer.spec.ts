@@ -18,9 +18,9 @@ let reporter1: Contract,
   adapter2: Contract,
   adapter3: Contract,
   adapter4: Contract,
-  pingPong: Contract,
   bouncer1: Contract,
   bouncer2: Contract,
+  hopReceiver: Contract,
   owner: SignerWithAddress
 
 describe("Bouncer", () => {
@@ -33,7 +33,7 @@ describe("Bouncer", () => {
     const Hashi = await ethers.getContractFactory("Hashi")
     const Reporter = await ethers.getContractFactory("MockReporter")
     const Adapter = await ethers.getContractFactory("MockAdapter")
-    const PingPong = await ethers.getContractFactory("PingPong")
+    const HopReceiver = await ethers.getContractFactory("HopReceiver")
     const HeaderStorage = await ethers.getContractFactory("HeaderStorage")
     const Bouncer = await ethers.getContractFactory("Bouncer")
 
@@ -49,41 +49,54 @@ describe("Bouncer", () => {
     adapter2 = await Adapter.deploy()
     adapter3 = await Adapter.deploy()
     adapter4 = await Adapter.deploy()
-    pingPong = await PingPong.deploy()
+    hopReceiver = await HopReceiver.deploy()
 
     bouncer1 = await Bouncer.deploy(yaho.address, yaru.address)
     bouncer2 = await Bouncer.deploy(yaho.address, yaru.address)
   })
 
   it(`should be able to execute a message after ONE hop`, async () => {
-    const abiCoder = new ethers.utils.AbiCoder()
     const threshold = 1
-    const expectedAdaptersHash = ethers.utils.sha256(abiCoder.encode(["address[]"], [[adapter1.address]]))
+    const expectedAdaptersHash1 = ethers.utils.solidityKeccak256(["address[]"], [[adapter1.address]])
+    const expectedAdaptersHash2 = ethers.utils.solidityKeccak256(["address[]"], [[adapter2.address]])
+
     const header =
-      "0x04510001" +
-      "000001" + // message length
-      "01" + // raw message
       "00" + // hops nonce
-      "02" + // hops count
+      "01" + // hops count
       "000000D8" + // 184 bytes = 1th hop size
       "0000000000000001" + // chain protocol
       Chains.Hardhat.toString(16).padStart(32, "0") + // chain protocol identifier
-      pingPong.address.slice(2).padStart(64, "0") + // receiver
+      hopReceiver.address.slice(2).padStart(64, "0") + // receiver
       Chains.Hardhat.toString(16).padStart(32, "0") + // expected source chain id
       owner.address.slice(2).padStart(64, "0") + // expected sender
       "00000001" + // expected threshold
-      expectedAdaptersHash.slice(2) + // expected adapters hash
+      expectedAdaptersHash1.slice(2) + // expected adapters hash
       "00000001" + // threshold
       "00000001" + // reporters length
       reporter2.address.slice(2).padStart(64, "0") +
       "00000001" + // adapters length
       adapter2.address.slice(2).padStart(64, "0")
 
+    const messageWithHops =
+      "0x04510001" +
+      "000001" + // message length
+      "01" + // raw message
+      header
+
+    await hopReceiver.setConfigs(
+      yaru.address,
+      Chains.Hardhat,
+      bouncer1.address,
+      threshold,
+      expectedAdaptersHash2,
+      ethers.utils.keccak256("0x" + "01" + header.slice(2)), // NOTE: nonce must equal to count in the last step
+    )
+
     let tx = await yaho.dispatchMessagesToAdapters(
       Chains.Hardhat,
       [threshold],
       [bouncer1.address],
-      [header],
+      [messageWithHops],
       [reporter1.address],
       [adapter1.address],
     )
@@ -101,19 +114,19 @@ describe("Bouncer", () => {
     for (let i = 0; i < threshold; i++) {
       await adapters[i].setHashes(Chains.Hardhat, [message2.id], [hash2])
     }
-    await expect(yaru.executeMessages([message2])).to.emit(pingPong, "Pong")
+
+    await expect(yaru.executeMessages([message2]))
+      .to.emit(hopReceiver, "MessageReceived")
+      .withArgs("0x01")
   })
 
   it(`should be able to execute a message after TWO hops`, async () => {
-    const abiCoder = new ethers.utils.AbiCoder()
     const threshold = 1
-    const expectedAdaptersHash1 = ethers.utils.sha256(abiCoder.encode(["address[]"], [[adapter1.address]]))
-    const expectedAdaptersHash2 = ethers.utils.sha256(abiCoder.encode(["address[]"], [[adapter2.address]]))
+    const expectedAdaptersHash1 = ethers.utils.solidityKeccak256(["address[]"], [[adapter1.address]])
+    const expectedAdaptersHash2 = ethers.utils.solidityKeccak256(["address[]"], [[adapter2.address]])
+    const expectedAdaptersHash34 = ethers.utils.solidityKeccak256(["address[]"], [[adapter3.address, adapter4.address]])
 
     const header =
-      "0x04510001" +
-      "000001" + // message length
-      "01" + // raw message
       "00" + // hops nonce
       "02" + // hops count
       "000000D8" + // 184 bytes = 1th hop size
@@ -132,7 +145,7 @@ describe("Bouncer", () => {
       "000000D8" + // 184 bytes = 2th hop size
       "0000000000000001" + // chain protocol
       Chains.Hardhat.toString(16).padStart(32, "0") + // chain protocol identifier
-      pingPong.address.slice(2).padStart(64, "0") + // receiver
+      hopReceiver.address.slice(2).padStart(64, "0") + // receiver
       Chains.Hardhat.toString(16).padStart(32, "0") + // expected source chain id
       bouncer1.address.slice(2).padStart(64, "0") + // expected sender
       "00000001" + // expected threshold
@@ -145,11 +158,26 @@ describe("Bouncer", () => {
       adapter3.address.slice(2).padStart(64, "0") +
       adapter4.address.slice(2).padStart(64, "0")
 
+    const messageWithHops =
+      "0x04510001" +
+      "000001" + // message length
+      "01" + // raw message
+      header
+
+    await hopReceiver.setConfigs(
+      yaru.address,
+      Chains.Hardhat,
+      bouncer2.address,
+      threshold,
+      expectedAdaptersHash34,
+      ethers.utils.keccak256("0x" + "02" + header.slice(2)), // NOTE: nonce must equal to count in the last step
+    )
+
     let tx = await yaho.dispatchMessagesToAdapters(
       Chains.Hardhat,
       [threshold],
       [bouncer1.address],
-      [header],
+      [messageWithHops],
       [reporter1.address],
       [adapter1.address],
     )
@@ -176,6 +204,8 @@ describe("Bouncer", () => {
       await adapters[i].setHashes(Chains.Hardhat, [message3.id], [hash3])
     }
 
-    await expect(yaru.executeMessages([message3])).to.emit(pingPong, "Pong")
+    await expect(yaru.executeMessages([message3]))
+      .to.emit(hopReceiver, "MessageReceived")
+      .withArgs("0x01")
   })
 })
