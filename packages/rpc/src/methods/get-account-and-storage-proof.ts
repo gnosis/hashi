@@ -3,7 +3,6 @@ import { ethers } from "ethers"
 import { logger } from "@gnosis/hashi-common"
 import { BlockHeader, JsonRpcBlock } from "@ethereumjs/block"
 import { Common, Hardfork } from "@ethereumjs/common"
-import { RLP } from "@ethereumjs/rlp"
 import {
   bigIntToHex,
   bytesToHex,
@@ -115,12 +114,10 @@ const getAccountAndStorageProof = async ({
         ancestralBlockNumber,
         ancestralBlockHeaders,
         address,
-        bytesToHex(RLP.encode(proof.accountProof.map((_sibling: string) => RLP.decode(_sibling)))),
+        proof.accountProof,
         proof.storageHash,
         proof.storageProof.map(({ key }: any) => key),
-        proof.storageProof.map(({ proof: storageProof }: any) =>
-          bytesToHex(RLP.encode(storageProof.map((_sibling: string) => RLP.decode(_sibling)))),
-        ),
+        proof.storageProof.map(({ proof: storageProof }: any) => storageProof),
       ],
     } as GetAccountAndStorageProofResponse
   } catch (_err) {
