@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity ^0.8.20;
 
+import { SecureMerkleTrie } from "@eth-optimism/contracts-bedrock/src/libraries/trie/SecureMerkleTrie.sol";
 import { RLPReader } from "solidity-rlp/contracts/RLPReader.sol";
-import { MerklePatriciaProofVerifier } from "../libraries/MerklePatriciaProofVerifier.sol";
 import { IHashiProver } from "../interfaces/IHashiProver.sol";
 import { IShoyuBashi } from "../interfaces/IShoyuBashi.sol";
 
@@ -57,10 +57,8 @@ contract HashiProver is IHashiProver {
                     currentBlockHeaderHash
                 );
 
-            if (ancestralBlockNumber == currentAncestralBlockNumber && i == ancestralBlockHeaders.length - 1) {
+            if (ancestralBlockNumber == currentAncestralBlockNumber) {
                 return ancestralBlockHeaders[i];
-            } else if (i == ancestralBlockHeaders.length - 1) {
-                revert AncestralBlockHeadersLengthReached();
             } else {
                 currentBlockHeaderHash = blockParentHash;
             }
@@ -72,13 +70,10 @@ contract HashiProver is IHashiProver {
     function _verifyAccountProof(
         address account,
         bytes32 stateRoot,
-        bytes memory proof
+        bytes[] memory proof
     ) private pure returns (uint256, uint256, bytes32, bytes32) {
-        bytes memory accountRlp = MerklePatriciaProofVerifier.extractProofValue(
-            stateRoot,
-            abi.encodePacked(keccak256(abi.encodePacked(account))),
-            proof.toRlpItem().toList()
-        );
+        bytes memory accountRlp = SecureMerkleTrie.get(abi.encodePacked(account), proof, stateRoot);
+
         bytes32 accountStorageRoot = bytes32(accountRlp.toRlpItem().toList()[2].toUint());
         if (accountStorageRoot.length == 0) revert InvalidStorageHash();
         RLPReader.RLPItem[] memory accountFields = accountRlp.toRlpItem().toList();
@@ -95,18 +90,14 @@ contract HashiProver is IHashiProver {
     function _verifyStorageProof(
         bytes32 storageHash,
         bytes32[] memory storageKeys,
-        bytes[] memory proof
+        bytes[][] memory proof
     ) private pure returns (bytes[] memory) {
         bytes[] memory results = new bytes[](proof.length);
         if (storageKeys.length == 0 || proof.length == 0 || storageKeys.length != proof.length)
             revert InvalidStorageProofParams();
         for (uint256 i = 0; i < proof.length; ) {
             RLPReader.RLPItem memory item = RLPReader.toRlpItem(
-                MerklePatriciaProofVerifier.extractProofValue(
-                    storageHash,
-                    abi.encodePacked(keccak256(abi.encode(storageKeys[i]))),
-                    proof[i].toRlpItem().toList()
-                )
+                SecureMerkleTrie.get(abi.encode(storageKeys[i]), proof[i], storageHash)
             );
             results[i] = item.toBytes();
             unchecked {

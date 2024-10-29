@@ -12,10 +12,10 @@ interface IHashiProver {
         uint256 ancestralBlockNumber;
         bytes[] ancestralBlockHeaders;
         address account;
-        bytes accountProof;
+        bytes[] accountProof;
         bytes32 storageHash;
         bytes32[] storageKeys;
-        bytes[] storageProof;
+        bytes[][] storageProof;
     }
 
     error AncestralBlockHeadersLengthReached();
