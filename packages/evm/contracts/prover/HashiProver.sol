@@ -17,7 +17,7 @@ contract HashiProver is IHashiProver {
         SHOYU_BASHI = shoyuBashi;
     }
 
-    function verifyForeignLog(ReceiptProof calldata proof) internal view returns (bytes memory) {
+    function verifyForeignEvent(ReceiptProof calldata proof) internal view returns (bytes memory) {
         bytes memory blockHeader = _checkBlockHeaderAgainstHashi(
             proof.chainId,
             proof.blockNumber,

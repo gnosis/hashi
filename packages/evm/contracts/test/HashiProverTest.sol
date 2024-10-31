@@ -11,6 +11,6 @@ contract HashiProverTest is HashiProver {
     }
 
     function getEventValues(HashiProver.ReceiptProof calldata proof) external view returns (bytes memory) {
-        return verifyForeignLog(proof);
+        return verifyForeignEvent(proof);
     }
 }
