@@ -1,65 +1,13 @@
 import "dotenv/config"
 import { ethers } from "ethers"
 import { logger } from "@gnosis/hashi-common"
-import { BlockHeader, JsonRpcBlock } from "@ethereumjs/block"
-import { Common, Hardfork } from "@ethereumjs/common"
-import {
-  bigIntToHex,
-  bytesToHex,
-  intToHex,
-} from "@ethereumjs/util"
+import { BlockHeader } from "@ethereumjs/block"
+import { bigIntToHex, bytesToHex, intToHex } from "@ethereumjs/util"
+
+import { blockHeaderFromRpc } from "../utils/block"
+import getCommon from "../utils/common"
 
 import { GetAccountAndStorageProofParams, GetAccountAndStorageProofResponse } from "../types"
-
-export function blockHeaderFromRpc(_block: JsonRpcBlock) {
-  const {
-    parentHash,
-    sha3Uncles,
-    miner,
-    stateRoot,
-    transactionsRoot,
-    receiptsRoot,
-    logsBloom,
-    difficulty,
-    number,
-    gasLimit,
-    gasUsed,
-    timestamp,
-    extraData,
-    mixHash,
-    nonce,
-    baseFeePerGas,
-    withdrawalsRoot,
-    blobGasUsed,
-    excessBlobGas,
-    parentBeaconBlockRoot,
-    requestsRoot,
-  } = _block
-
-  return {
-    parentHash,
-    uncleHash: sha3Uncles,
-    coinbase: miner,
-    stateRoot,
-    transactionsTrie: transactionsRoot,
-    receiptTrie: receiptsRoot,
-    logsBloom,
-    difficulty,
-    number,
-    gasLimit,
-    gasUsed,
-    timestamp,
-    extraData,
-    mixHash,
-    nonce,
-    baseFeePerGas,
-    withdrawalsRoot,
-    blobGasUsed,
-    excessBlobGas,
-    parentBeaconBlockRoot,
-    requestsRoot,
-  }
-}
 
 const getAccountAndStorageProof = async ({
   address,
@@ -71,19 +19,10 @@ const getAccountAndStorageProof = async ({
   try {
     const rpcUrl = process.env[`JSON_RPC_URL_${chainId}`]
     if (!rpcUrl) throw new Error("Chain not supported")
-
-    const common = Common.custom(
-      {
-        chainId,
-      },
-      {
-        hardfork: Hardfork.Cancun,
-        eips: [1559, 4895, 4844, 4788],
-      },
-    )
-
     const provider = new ethers.JsonRpcProvider(rpcUrl)
-    
+
+    const common = getCommon(chainId)
+
     const [proof, block] = await Promise.all([
       provider.send("eth_getProof", [address, storageKeys, bigIntToHex(BigInt(ancestralBlockNumber || blockNumber))]),
       provider.send("eth_getBlockByNumber", [intToHex(blockNumber), false]),

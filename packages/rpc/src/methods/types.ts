@@ -2,4 +2,5 @@ import { GetAccountAndStorageProofParams, GetAccountAndStorageProofResponse } fr
 
 export type Methods = {
   hashi_getAccountAndStorageProof(params: GetAccountAndStorageProofParams): GetAccountAndStorageProofResponse
+  hashi_getReceiptProof(params: GetReceiptProofParams): GetReceiptProofResponse
 }

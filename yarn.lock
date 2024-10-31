@@ -395,7 +395,7 @@
   resolved "https://registry.yarnpkg.com/@ethereumjs/rlp/-/rlp-5.0.2.tgz#c89bd82f2f3bec248ab2d517ae25f5bbc4aac842"
   integrity sha512-DziebCdg4JpGlEqEdGgXmjqcFoJi+JGulUXwEjsZGAscAQ7MyD/7LE/GVCP29vEQxKc7AAwjT3A2ywHp2xfoCA==
 
-"@ethereumjs/trie@^6.2.1":
+"@ethereumjs/trie@^6.0.1", "@ethereumjs/trie@^6.2.1":
   version "6.2.1"
   resolved "https://registry.yarnpkg.com/@ethereumjs/trie/-/trie-6.2.1.tgz#11d3e91ffd7d565f468a62c0e3d7952063991fa9"
   integrity sha512-MguABMVi/dPtgagK+SuY57rpXFP+Ghr2x+pBDy+e3VmMqUY+WGzFu1QWjBb5/iJ7lINk4CI2Uwsih07Nu9sTSg==
