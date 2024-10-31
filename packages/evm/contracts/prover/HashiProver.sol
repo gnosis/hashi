@@ -2,6 +2,7 @@
 pragma solidity ^0.8.20;
 
 import { SecureMerkleTrie } from "@eth-optimism/contracts-bedrock/src/libraries/trie/SecureMerkleTrie.sol";
+import { MerkleTrie } from "@eth-optimism/contracts-bedrock/src/libraries/trie/MerkleTrie.sol";
 import { RLPReader } from "solidity-rlp/contracts/RLPReader.sol";
 import { IHashiProver } from "../interfaces/IHashiProver.sol";
 import { IShoyuBashi } from "../interfaces/IShoyuBashi.sol";
@@ -14,6 +15,26 @@ contract HashiProver is IHashiProver {
 
     constructor(address shoyuBashi) {
         SHOYU_BASHI = shoyuBashi;
+    }
+
+    function verifyForeignLog(ReceiptProof calldata proof) internal view returns (bytes memory) {
+        bytes memory blockHeader = _checkBlockHeaderAgainstHashi(
+            proof.chainId,
+            proof.blockNumber,
+            proof.blockHeader,
+            proof.ancestralBlockNumber,
+            proof.ancestralBlockHeaders
+        );
+        RLPReader.RLPItem[] memory blockHeaderFields = blockHeader.toRlpItem().toList();
+        bytes32 receiptsRoot = bytes32(blockHeaderFields[5].toUint());
+
+        bytes memory value = MerkleTrie.get(proof.transactionIndex, proof.receiptProof, receiptsRoot);
+        RLPReader.RLPItem[] memory receiptFields = _extractReceiptFields(value);
+        if (receiptFields.length != 4) revert InvalidReceipt();
+
+        RLPReader.RLPItem[] memory logs = receiptFields[3].toList();
+        if (proof.logIndex >= logs.length) revert InvalidLogIndex();
+        return logs[proof.logIndex].toRlpBytes();
     }
 
     function verifyForeignStorage(AccountAndStorageProof calldata proof) internal view returns (bytes[] memory) {
@@ -65,6 +86,24 @@ contract HashiProver is IHashiProver {
         }
 
         revert BlockHeaderNotFound();
+    }
+
+    function _extractReceiptFields(bytes memory value) private pure returns (RLPReader.RLPItem[] memory) {
+        uint256 offset;
+        if (value[0] == 0x01 || value[0] == 0x02 || value[0] == 0x03 || value[0] == 0x7e) {
+            offset = 1;
+        } else if (value[0] >= 0xc0) {
+            offset = 0;
+        } else {
+            revert UnsupportedTxType();
+        }
+
+        uint256 memPtr;
+        assembly {
+            memPtr := add(value, add(0x20, mul(0x01, offset)))
+        }
+
+        return RLPReader.RLPItem(value.length - offset, memPtr).toList();
     }
 
     function _verifyAccountProof(
