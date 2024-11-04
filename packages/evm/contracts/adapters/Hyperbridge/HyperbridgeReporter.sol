@@ -11,11 +11,18 @@ import { Reporter } from "../Reporter.sol";
 contract HyperbridgeReporter is Reporter, Ownable, BaseIsmpModule {
     string public constant PROVIDER = "hyperbridge";
 
-    constructor(address headerStorage, address yaho) Reporter(headerStorage, yaho) {
-        address host = host();
-        address feeToken = IDispatcher(host).feeToken();
+    // @dev The address of the IsmpHost on the current chain
+    address public _host;
+
+    constructor(address headerStorage, address yaho, address ismpHost) Reporter(headerStorage, yaho) {
+        _host = ismpHost;
+        address feeToken = IDispatcher(ismpHost).feeToken();
         // approve the host to spend infinitely
-        IERC20(feeToken).approve(host, type(uint256).max);
+        IERC20(feeToken).approve(ismpHost, type(uint256).max);
+    }
+
+    function host() public view override returns (address) {
+        return _host;
     }
 
     function _dispatch(

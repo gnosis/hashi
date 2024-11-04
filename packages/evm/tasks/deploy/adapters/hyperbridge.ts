@@ -10,13 +10,14 @@ import { verify } from "../index"
 
 task("deploy:HyperbridgeAdapter")
   .addFlag("verify", "whether to verify the contract on Etherscan")
+  .addParam("ismpHost", "The address of the IsmpHost on the current chain")
   .setAction(async function (taskArguments: TaskArguments, hre) {
     console.log("Deploying HyperbridgeAdapter...")
     const signers: SignerWithAddress[] = await hre.ethers.getSigners()
     const HyperbridgeAdapterFactory: HyperbridgeAdapter__factory = <HyperbridgeAdapter__factory>(
       await hre.ethers.getContractFactory("HyperbridgeAdapter")
     )
-    const constructorArguments = [] as const
+    const constructorArguments = [taskArguments.ismpHost] as const
     const HyperbridgeAdapter: HyperbridgeAdapter = <HyperbridgeAdapter>(
       await HyperbridgeAdapterFactory.connect(signers[0]).deploy(...constructorArguments)
     )
@@ -28,6 +29,7 @@ task("deploy:HyperbridgeAdapter")
 task("deploy:HyperbridgeReporter")
   .addParam("headerStorage", "address of the header storage contract")
   .addParam("yaho", "address of the Yaho contract")
+  .addParam("ismpHost", "The address of the IsmpHost on the current chain")
   .addFlag("verify", "whether to verify the contract on Etherscan")
   .setAction(async function (taskArguments: TaskArguments, hre) {
     console.log("Deploying HyperbridgeReporter...")
@@ -35,7 +37,7 @@ task("deploy:HyperbridgeReporter")
     const HyperbridgeReporterFactory: HyperbridgeReporter__factory = <HyperbridgeReporter__factory>(
       await hre.ethers.getContractFactory("HyperbridgeReporter")
     )
-    const constructorArguments = [taskArguments.headerStorage, taskArguments.yaho] as const
+    const constructorArguments = [taskArguments.headerStorage, taskArguments.yaho, taskArguments.ismpHost] as const
     const HyperbridgeReporter: HyperbridgeReporter = <HyperbridgeReporter>(
       await HyperbridgeReporterFactory.connect(signers[0]).deploy(...constructorArguments)
     )
