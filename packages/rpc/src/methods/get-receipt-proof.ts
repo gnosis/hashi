@@ -114,7 +114,7 @@ const getReceiptProof = async ({ logIndex, blockNumber, chainId, transactionHash
         ancestralBlockHeaders,
         proof.map(bytesToHex),
         bytesToHex(encodeIndex(targetTransactionReceipt.transactionIndex)),
-        effectiveLogIndex
+        effectiveLogIndex,
       ],
     } as GetReceiptProofResponse
   } catch (_err) {

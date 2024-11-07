@@ -19,7 +19,7 @@ export type ReceiptProof = [
   `0x${string}`[],
   `0x${string}`[],
   `0x${string}`,
-  number
+  number,
 ]
 
 export type GetAccountAndStorageProofParams = {
