@@ -14,6 +14,7 @@
     "@ethersproject/bytes": "^5.7.0",
     "@ethersproject/providers": "^5.7.2",
     "@nomicfoundation/hardhat-chai-matchers": "^1.0.4",
+    "@nomicfoundation/hardhat-foundry": "^1.1.2",
     "@nomicfoundation/hardhat-network-helpers": "^1.0.8",
     "@nomicfoundation/hardhat-toolbox": "^2.0.0",
     "@nomicfoundation/hardhat-verify": "^2.0.8",
