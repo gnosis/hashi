@@ -12,10 +12,21 @@ interface IHashiProver {
         uint256 ancestralBlockNumber;
         bytes[] ancestralBlockHeaders;
         address account;
-        bytes accountProof;
+        bytes[] accountProof;
         bytes32 storageHash;
         bytes32[] storageKeys;
-        bytes[] storageProof;
+        bytes[][] storageProof;
+    }
+
+    struct ReceiptProof {
+        uint256 chainId;
+        uint256 blockNumber;
+        bytes blockHeader;
+        uint256 ancestralBlockNumber;
+        bytes[] ancestralBlockHeaders;
+        bytes[] receiptProof;
+        bytes transactionIndex;
+        uint256 logIndex;
     }
 
     error AncestralBlockHeadersLengthReached();
@@ -24,6 +35,10 @@ interface IHashiProver {
     error InvalidAccount();
     error InvalidBlockHeader();
     error InvalidBlockHeaderLength();
+    error InvalidLogIndex();
+    error InvalidReceipt();
+    error InvalidReceiptProof();
     error InvalidStorageHash();
     error InvalidStorageProofParams();
+    error UnsupportedTxType();
 }

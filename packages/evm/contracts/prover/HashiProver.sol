@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: LGPL-3.0-only
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.0;
 
+import { SecureMerkleTrie } from "@eth-optimism/contracts-bedrock/src/libraries/trie/SecureMerkleTrie.sol";
+import { MerkleTrie } from "@eth-optimism/contracts-bedrock/src/libraries/trie/MerkleTrie.sol";
 import { RLPReader } from "solidity-rlp/contracts/RLPReader.sol";
-import { MerklePatriciaProofVerifier } from "../libraries/MerklePatriciaProofVerifier.sol";
 import { IHashiProver } from "../interfaces/IHashiProver.sol";
 import { IShoyuBashi } from "../interfaces/IShoyuBashi.sol";
 
@@ -16,6 +17,58 @@ contract HashiProver is IHashiProver {
         SHOYU_BASHI = shoyuBashi;
     }
 
+    /**
+     * @dev Verifies and retrieves a specific event from a transaction receipt in a foreign blockchain.
+     *
+     * @param proof A `ReceiptProof` struct containing proof details:
+     * - chainId: The chain ID of the foreign blockchain.
+     * - blockNumber: If ancestralBlockNumber is 0, then blockNumber represents the block where the transaction occurred and is available in Hashi.
+     * - blockHeader: The header of the specified block.
+     * - ancestralBlockNumber: If provided, this is the block number where the transaction took place. In this case, blockNumber is the block whose header is accessible in Hashi.
+     * - ancestralBlockHeaders: Array of block headers to prove the ancestry of the specified block.
+     * - receiptProof: Proof data for locating the receipt in the Merkle Trie.
+     * - transactionIndex: Index of the transaction within the block.
+     * - logIndex: The specific log index within the transaction receipt.
+     *
+     * @return bytes The RLP-encoded event corresponding to the specified `logIndex`.
+     */
+    function verifyForeignEvent(ReceiptProof calldata proof) internal view returns (bytes memory) {
+        bytes memory blockHeader = _checkBlockHeaderAgainstHashi(
+            proof.chainId,
+            proof.blockNumber,
+            proof.blockHeader,
+            proof.ancestralBlockNumber,
+            proof.ancestralBlockHeaders
+        );
+        RLPReader.RLPItem[] memory blockHeaderFields = blockHeader.toRlpItem().toList();
+        bytes32 receiptsRoot = bytes32(blockHeaderFields[5].toUint());
+
+        bytes memory value = MerkleTrie.get(proof.transactionIndex, proof.receiptProof, receiptsRoot);
+        RLPReader.RLPItem[] memory receiptFields = _extractReceiptFields(value);
+        if (receiptFields.length != 4) revert InvalidReceipt();
+
+        RLPReader.RLPItem[] memory logs = receiptFields[3].toList();
+        if (proof.logIndex >= logs.length) revert InvalidLogIndex();
+        return logs[proof.logIndex].toRlpBytes();
+    }
+
+    /**
+     * @dev Verifies foreign storage data for a specified account on a foreign blockchain.
+     *
+     * @param proof An `AccountAndStorageProof` struct containing proof details:
+     * - chainId: The chain ID of the foreign blockchain.
+     * - blockNumber: If ancestralBlockNumber is 0, then blockNumber represents the block where the transaction occurred and is available in Hashi.
+     * - blockHeader: The header of the specified block.
+     * - ancestralBlockNumber: If provided, this is the block number where the transaction took place. In this case, blockNumber is the block whose header is accessible in Hashi.
+     * - ancestralBlockHeaders: Array of block headers proving ancestry of the specified block.
+     * - account: The account address whose storage is being verified.
+     * - accountProof: Proof data for locating the account in the state trie.
+     * - storageHash: Expected hash of the storage root for the account.
+     * - storageKeys: Array of storage keys for which data is being verified.
+     * - storageProof: Proof data for locating the storage values in the storage trie.
+     *
+     * @return bytes[] An array of storage values corresponding to the specified `storageKeys`.
+     */
     function verifyForeignStorage(AccountAndStorageProof calldata proof) internal view returns (bytes[] memory) {
         bytes memory blockHeader = _checkBlockHeaderAgainstHashi(
             proof.chainId,
@@ -57,10 +110,8 @@ contract HashiProver is IHashiProver {
                     currentBlockHeaderHash
                 );
 
-            if (ancestralBlockNumber == currentAncestralBlockNumber && i == ancestralBlockHeaders.length - 1) {
+            if (ancestralBlockNumber == currentAncestralBlockNumber) {
                 return ancestralBlockHeaders[i];
-            } else if (i == ancestralBlockHeaders.length - 1) {
-                revert AncestralBlockHeadersLengthReached();
             } else {
                 currentBlockHeaderHash = blockParentHash;
             }
@@ -69,16 +120,31 @@ contract HashiProver is IHashiProver {
         revert BlockHeaderNotFound();
     }
 
+    function _extractReceiptFields(bytes memory value) private pure returns (RLPReader.RLPItem[] memory) {
+        uint256 offset;
+        if (value[0] == 0x01 || value[0] == 0x02 || value[0] == 0x03 || value[0] == 0x7e) {
+            offset = 1;
+        } else if (value[0] >= 0xc0) {
+            offset = 0;
+        } else {
+            revert UnsupportedTxType();
+        }
+
+        uint256 memPtr;
+        assembly {
+            memPtr := add(value, add(0x20, mul(0x01, offset)))
+        }
+
+        return RLPReader.RLPItem(value.length - offset, memPtr).toList();
+    }
+
     function _verifyAccountProof(
         address account,
         bytes32 stateRoot,
-        bytes memory proof
+        bytes[] memory proof
     ) private pure returns (uint256, uint256, bytes32, bytes32) {
-        bytes memory accountRlp = MerklePatriciaProofVerifier.extractProofValue(
-            stateRoot,
-            abi.encodePacked(keccak256(abi.encodePacked(account))),
-            proof.toRlpItem().toList()
-        );
+        bytes memory accountRlp = SecureMerkleTrie.get(abi.encodePacked(account), proof, stateRoot);
+
         bytes32 accountStorageRoot = bytes32(accountRlp.toRlpItem().toList()[2].toUint());
         if (accountStorageRoot.length == 0) revert InvalidStorageHash();
         RLPReader.RLPItem[] memory accountFields = accountRlp.toRlpItem().toList();
@@ -95,18 +161,14 @@ contract HashiProver is IHashiProver {
     function _verifyStorageProof(
         bytes32 storageHash,
         bytes32[] memory storageKeys,
-        bytes[] memory proof
+        bytes[][] memory proof
     ) private pure returns (bytes[] memory) {
         bytes[] memory results = new bytes[](proof.length);
         if (storageKeys.length == 0 || proof.length == 0 || storageKeys.length != proof.length)
             revert InvalidStorageProofParams();
         for (uint256 i = 0; i < proof.length; ) {
             RLPReader.RLPItem memory item = RLPReader.toRlpItem(
-                MerklePatriciaProofVerifier.extractProofValue(
-                    storageHash,
-                    abi.encodePacked(keccak256(abi.encode(storageKeys[i]))),
-                    proof[i].toRlpItem().toList()
-                )
+                SecureMerkleTrie.get(abi.encode(storageKeys[i]), proof[i], storageHash)
             );
             results[i] = item.toBytes();
             unchecked {

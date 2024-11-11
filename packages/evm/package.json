@@ -82,6 +82,7 @@
     "@chainlink/contracts-ccip": "0.7.6",
     "@connext/interfaces": "2.0.0",
     "@eth-optimism/contracts": "0.6.0",
+    "@eth-optimism/contracts-bedrock": "^0.17.3",
     "@hyperlane-xyz/core": "3.1.10",
     "@layerzerolabs/lz-evm-messagelib-v2": "^2.3.29",
     "@layerzerolabs/lz-evm-oapp-v2": "^2.3.29",
