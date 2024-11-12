@@ -3,9 +3,9 @@ pragma solidity ^0.8.0;
 
 import { SecureMerkleTrie } from "@eth-optimism/contracts-bedrock/src/libraries/trie/SecureMerkleTrie.sol";
 import { MerkleTrie } from "@eth-optimism/contracts-bedrock/src/libraries/trie/MerkleTrie.sol";
-import { RLPReader } from "solidity-rlp/contracts/RLPReader.sol";
-import { IShoyuBashi } from "../interfaces/IShoyuBashi.sol";
+import { RLPReader } from "@eth-optimism/contracts-bedrock/src/libraries/rlp/RLPReader.sol";
 import { AccountAndStorageProof, ReceiptProof } from "./HashiProverStructs.sol";
+import { IShoyuBashi } from "../interfaces/IShoyuBashi.sol";
 
 library HashiProverLib {
     using RLPReader for RLPReader.RLPItem;
@@ -45,16 +45,16 @@ library HashiProverLib {
             proof.ancestralBlockHeaders,
             shoyuBashi
         );
-        RLPReader.RLPItem[] memory blockHeaderFields = blockHeader.toRlpItem().toList();
-        bytes32 receiptsRoot = bytes32(blockHeaderFields[5].toUint());
+        RLPReader.RLPItem[] memory blockHeaderFields = blockHeader.toRLPItem().readList();
+        bytes32 receiptsRoot = bytes32(blockHeaderFields[5].readBytes());
 
         bytes memory value = MerkleTrie.get(proof.transactionIndex, proof.receiptProof, receiptsRoot);
         RLPReader.RLPItem[] memory receiptFields = extractReceiptFields(value);
         if (receiptFields.length != 4) revert InvalidReceipt();
 
-        RLPReader.RLPItem[] memory logs = receiptFields[3].toList();
+        RLPReader.RLPItem[] memory logs = receiptFields[3].readList();
         if (proof.logIndex >= logs.length) revert InvalidLogIndex();
-        return logs[proof.logIndex].toRlpBytes();
+        return logs[proof.logIndex].readRawBytes();
     }
 
     /**
@@ -86,8 +86,8 @@ library HashiProverLib {
             proof.ancestralBlockHeaders,
             shoyuBashi
         );
-        RLPReader.RLPItem[] memory blockHeaderFields = blockHeader.toRlpItem().toList();
-        bytes32 stateRoot = bytes32(blockHeaderFields[3].toUint());
+        RLPReader.RLPItem[] memory blockHeaderFields = blockHeader.toRLPItem().readList();
+        bytes32 stateRoot = bytes32(blockHeaderFields[3].readBytes());
         (, , bytes32 storageHash, ) = verifyAccountProof(proof.account, stateRoot, proof.accountProof);
         return verifyStorageProof(storageHash, proof.storageKeys, proof.storageProof);
     }
@@ -118,11 +118,10 @@ library HashiProverLib {
         if (currentBlockHeaderHash == blockHeaderHash && ancestralBlockHeaders.length == 0) return blockHeader;
 
         for (uint256 i = 0; i < ancestralBlockHeaders.length; i++) {
-            RLPReader.RLPItem memory ancestralBlockHeaderRLP = RLPReader.toRlpItem(ancestralBlockHeaders[i]);
-            RLPReader.RLPItem[] memory ancestralBlockHeaderContent = ancestralBlockHeaderRLP.toList();
+            RLPReader.RLPItem[] memory ancestralBlockHeaderFields = ancestralBlockHeaders[i].readList();
 
-            bytes32 blockParentHash = bytes32(ancestralBlockHeaderContent[0].toUint());
-            uint256 currentAncestralBlockNumber = uint256(ancestralBlockHeaderContent[8].toUint());
+            bytes32 blockParentHash = bytes32(ancestralBlockHeaderFields[0].readBytes());
+            uint256 currentAncestralBlockNumber = bytesToUint(ancestralBlockHeaderFields[8].readBytes());
 
             bytes32 ancestralBlockHeaderHash = keccak256(ancestralBlockHeaders[i]);
             if (ancestralBlockHeaderHash != currentBlockHeaderHash)
@@ -150,21 +149,31 @@ library HashiProverLib {
      * @return RLPReader.RLPItem[] An array of RLP items representing the fields of the receipt.
      */
     function extractReceiptFields(bytes memory value) internal pure returns (RLPReader.RLPItem[] memory) {
+        bytes1 txTypeOrFirstByte = value[0];
+
         uint256 offset;
-        if (value[0] == 0x01 || value[0] == 0x02 || value[0] == 0x03 || value[0] == 0x7e) {
+        if (
+            txTypeOrFirstByte == 0x01 ||
+            txTypeOrFirstByte == 0x02 ||
+            txTypeOrFirstByte == 0x03 ||
+            txTypeOrFirstByte == 0x7e // EIP-2718 (https://eips.ethereum.org/EIPS/eip-2718) transaction
+        ) {
             offset = 1;
-        } else if (value[0] >= 0xc0) {
+        } else if (txTypeOrFirstByte >= 0xc0) {
             offset = 0;
         } else {
             revert UnsupportedTxType();
         }
 
-        uint256 memPtr;
+        uint256 ptr;
         assembly {
-            memPtr := add(value, add(0x20, mul(0x01, offset)))
+            ptr := add(value, 32)
         }
 
-        return RLPReader.RLPItem(value.length - offset, memPtr).toList();
+        return
+            RLPReader
+                .RLPItem({ length: value.length - offset, ptr: RLPReader.MemoryPointer.wrap(ptr + offset) })
+                .readList();
     }
 
     /**
@@ -186,16 +195,16 @@ library HashiProverLib {
     ) internal pure returns (uint256, uint256, bytes32, bytes32) {
         bytes memory accountRlp = SecureMerkleTrie.get(abi.encodePacked(account), proof, stateRoot);
 
-        bytes32 accountStorageRoot = bytes32(accountRlp.toRlpItem().toList()[2].toUint());
+        bytes32 accountStorageRoot = bytes32(accountRlp.toRLPItem().readList()[2].readBytes());
         if (accountStorageRoot.length == 0) revert InvalidStorageHash();
-        RLPReader.RLPItem[] memory accountFields = accountRlp.toRlpItem().toList();
+        RLPReader.RLPItem[] memory accountFields = accountRlp.toRLPItem().readList();
         if (accountFields.length != 4) revert InvalidAccount();
         // [nonce, balance, storageHash, codeHash]
         return (
-            accountFields[0].toUint(),
-            accountFields[1].toUint(),
-            bytes32(accountFields[2].toUint()),
-            bytes32(accountFields[3].toUint())
+            bytesToUint(accountFields[0].readBytes()),
+            bytesToUint(accountFields[1].readBytes()),
+            bytes32(accountFields[2].readBytes()),
+            bytes32(accountFields[3].readBytes())
         );
     }
 
@@ -217,14 +226,27 @@ library HashiProverLib {
         if (storageKeys.length == 0 || proof.length == 0 || storageKeys.length != proof.length)
             revert InvalidStorageProofParams();
         for (uint256 i = 0; i < proof.length; ) {
-            RLPReader.RLPItem memory item = RLPReader.toRlpItem(
+            RLPReader.RLPItem memory item = RLPReader.toRLPItem(
                 SecureMerkleTrie.get(abi.encode(storageKeys[i]), proof[i], storageHash)
             );
-            results[i] = item.toBytes();
+            results[i] = item.readBytes();
             unchecked {
                 ++i;
             }
         }
         return results;
+    }
+
+    /**
+     * @notice Converts a byte array to an unsigned integer (uint256).
+     * @param b The byte array to convert to an unsigned integer.
+     * @return uint256 The resulting unsigned integer from the byte array.
+     */
+    function bytesToUint(bytes memory b) internal pure returns (uint256) {
+        uint256 number;
+        for (uint256 i = 0; i < b.length; i++) {
+            number = number + uint256(uint8(b[i])) * (2 ** (8 * (b.length - (i + 1))));
+        }
+        return number;
     }
 }
