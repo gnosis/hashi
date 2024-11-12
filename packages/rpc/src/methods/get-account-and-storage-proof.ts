@@ -54,7 +54,6 @@ const getAccountAndStorageProof = async ({
         ancestralBlockHeaders,
         address,
         proof.accountProof,
-        proof.storageHash,
         proof.storageProof.map(({ key }: any) => key),
         proof.storageProof.map(({ proof: storageProof }: any) => storageProof),
       ],

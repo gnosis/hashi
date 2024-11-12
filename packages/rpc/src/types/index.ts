@@ -6,7 +6,6 @@ export type AccountAndStorageProof = [
   `0x${string}`[],
   `0x${string}`,
   `0x${string}`,
-  `0x${string}`,
   `0x${string}`[],
   `0x${string}`,
 ]
