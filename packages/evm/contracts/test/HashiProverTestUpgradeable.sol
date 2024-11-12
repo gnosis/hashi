@@ -3,6 +3,7 @@ pragma solidity ^0.8.20;
 
 import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import { HashiProverUpgradeable } from "../prover/HashiProverUpgradeable.sol";
+import "../prover/HashiProverStructs.sol";
 
 contract HashiProverTestUpgradeable is UUPSUpgradeable, HashiProverUpgradeable {
     function initialize(address shoyuBashi) public initializer {
@@ -10,13 +11,11 @@ contract HashiProverTestUpgradeable is UUPSUpgradeable, HashiProverUpgradeable {
         __HashiProverUpgradeable_init(shoyuBashi);
     }
 
-    function getStorageValue(
-        HashiProverUpgradeable.AccountAndStorageProof calldata proof
-    ) external view returns (bytes[] memory) {
+    function getStorageValue(AccountAndStorageProof calldata proof) external view returns (bytes[] memory) {
         return verifyForeignStorage(proof);
     }
 
-    function getEventValues(HashiProverUpgradeable.ReceiptProof calldata proof) external view returns (bytes memory) {
+    function getEventValues(ReceiptProof calldata proof) external view returns (bytes memory) {
         return verifyForeignEvent(proof);
     }
 
