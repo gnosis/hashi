@@ -1,21 +1,42 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity ^0.8.0;
 
+import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import { SecureMerkleTrie } from "@eth-optimism/contracts-bedrock/src/libraries/trie/SecureMerkleTrie.sol";
 import { MerkleTrie } from "@eth-optimism/contracts-bedrock/src/libraries/trie/MerkleTrie.sol";
 import { RLPReader } from "solidity-rlp/contracts/RLPReader.sol";
 import { IHashiProver } from "../interfaces/IHashiProver.sol";
 import { IShoyuBashi } from "../interfaces/IShoyuBashi.sol";
 
-contract HashiProver is IHashiProver {
+contract HashiProverUpgradeable is IHashiProver, Initializable, OwnableUpgradeable {
     using RLPReader for RLPReader.RLPItem;
     using RLPReader for bytes;
 
     /// @notice Stores the address of the ShoyuBashi contract.
-    address public immutable SHOYU_BASHI;
+    /// @dev This address can be updated by the owner using the `setShoyuBashi` function.
+    address public shoyuBashi;
 
-    constructor(address shoyuBashi) {
-        SHOYU_BASHI = shoyuBashi;
+    /**
+     * @notice Emitted when the ShoyuBashi contract address is updated.
+     * @param shoyuBashi The new address of the ShoyuBashi contract.
+     */
+    event ShoyuBashiSet(address shoyuBashi);
+
+    function __HashiProverUpgradeable_init(address shoyuBashi_) public onlyInitializing {
+        __Ownable_init();
+        shoyuBashi = shoyuBashi_;
+    }
+
+    /**
+     * @notice Sets the address of the ShoyuBashi contract.
+     * @dev This function can only be called by the contract owner.
+     * It updates the `shoyuBashi` address and emits an event to record the change.
+     * @param shoyuBashi_ The new address for the ShoyuBashi contract.
+     */
+    function setShoyuBashi(address shoyuBashi_) external onlyOwner {
+        shoyuBashi = shoyuBashi_;
+        emit ShoyuBashiSet(shoyuBashi_);
     }
 
     /**
@@ -105,7 +126,7 @@ contract HashiProver is IHashiProver {
         bytes[] memory ancestralBlockHeaders
     ) private view returns (bytes memory) {
         bytes32 blockHeaderHash = keccak256(blockHeader);
-        bytes32 currentBlockHeaderHash = IShoyuBashi(SHOYU_BASHI).getThresholdHash(chainId, blockNumber);
+        bytes32 currentBlockHeaderHash = IShoyuBashi(shoyuBashi).getThresholdHash(chainId, blockNumber);
         if (currentBlockHeaderHash == blockHeaderHash && ancestralBlockHeaders.length == 0) return blockHeader;
 
         for (uint256 i = 0; i < ancestralBlockHeaders.length; i++) {
@@ -218,4 +239,7 @@ contract HashiProver is IHashiProver {
         }
         return results;
     }
+
+    /// @notice This empty reserved space is put in place to allow future versions to add new variables without shifting down storage in the inheritance chain (see [OpenZeppelin's guide about storage gaps](https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps)).
+    uint256[49] private __gap;
 }
