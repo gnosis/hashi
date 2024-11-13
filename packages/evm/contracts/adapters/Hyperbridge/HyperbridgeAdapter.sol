@@ -11,7 +11,7 @@ contract HyperbridgeAdapter is BlockHashAdapter, Ownable, BaseIsmpModule {
     mapping(bytes32 => uint256) public chainIds;
 
     // @dev The address of the IsmpHost on the current chain
-    address public _host;
+    address private _host;
 
     constructor(address ismpHost) {
         _host = ismpHost;

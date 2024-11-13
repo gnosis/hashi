@@ -12,7 +12,7 @@ contract HyperbridgeReporter is Reporter, Ownable, BaseIsmpModule {
     string public constant PROVIDER = "hyperbridge";
 
     // @dev The address of the IsmpHost on the current chain
-    address public _host;
+    address private _host;
 
     constructor(address headerStorage, address yaho, address ismpHost) Reporter(headerStorage, yaho) {
         _host = ismpHost;
