@@ -39,9 +39,6 @@ contract SP1HeliosAdapter is BlockHashAdapter {
         bytes32[] calldata blockHashProof
     ) external {
         bytes32 header = _getHeader(slot);
-        if (header == bytes32(0)) {
-            revert HeaderNotAvailable();
-        }
 
         if (!SSZ.verifyBlockNumber(blockNumber, blockNumberProof, header)) {
             revert InvalidBlockNumberProof();
@@ -66,6 +63,7 @@ contract SP1HeliosAdapter is BlockHashAdapter {
         uint256 logIndex
     ) external {
         bytes32 header = _getHeader(headerSlot);
+
         if (!SSZ.verifySlot(slot, slotProof, header)) {
             revert InvalidSlot();
         }
