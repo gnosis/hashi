@@ -17,13 +17,17 @@ struct AccountAndStorageProof {
     bytes[][] storageProof; // A 2D array of Merkle proofs for each storage key, verifying each key-value pair in the storage trie.
 }
 
+/**
+ * @notice Represents a proof structure for verifying a transaction receipt and its corresponding log entry within a specific block.
+ * @dev This struct includes all necessary components to verify the validity of a transaction receipt and the log it produced in a specified block.
+ */
 struct ReceiptProof {
-    uint256 chainId;
-    uint256 blockNumber;
-    bytes blockHeader;
-    uint256 ancestralBlockNumber;
-    bytes[] ancestralBlockHeaders;
-    bytes[] receiptProof;
-    bytes transactionIndex;
-    uint256 logIndex;
+    uint256 chainId; // The ID of the blockchain where the proof is applicable.
+    uint256 blockNumber; // The block number at which the transaction receipt is included.
+    bytes blockHeader; // The RLP-encoded header of the block containing the transaction receipt.
+    uint256 ancestralBlockNumber; // The block number of an ancestral block, if needed for receipt verification.
+    bytes[] ancestralBlockHeaders; // An array of RLP-encoded headers for ancestral blocks (used if the proof requires them).
+    bytes[] receiptProof; // Merkle proof for verifying the transaction receipt in the block's receipt trie.
+    bytes transactionIndex; // The index of the transaction within the block's transaction list (RLP-encoded).
+    uint256 logIndex; // The index of the log entry within the transaction receipt being proven.
 }
