@@ -10,6 +10,17 @@ contract HyperbridgeAdapter is BlockHashAdapter, Ownable, BaseIsmpModule {
     mapping(bytes32 => bytes32) public enabledReporters;
     mapping(bytes32 => uint256) public chainIds;
 
+    // @dev The address of the IsmpHost on the current chain
+    address private _host;
+
+    constructor(address ismpHost) {
+        _host = ismpHost;
+    }
+
+    function host() public view override returns (address) {
+        return _host;
+    }
+
     error UnauthorizedRequest();
 
     event ReporterSet(uint256 indexed chainId, address indexed reporter);
