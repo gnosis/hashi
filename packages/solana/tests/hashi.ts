@@ -55,7 +55,7 @@ describe("hashi", () => {
     }
 
     await hashi.methods
-      .checkHashWithThresholdFromAdapters(ADAPTER_IDS, DOMAIN, intToBytes32Buff(id), new anchor.BN(threshold))
+      .checkHashWithThreshold(ADAPTER_IDS, DOMAIN, intToBytes32Buff(id), new anchor.BN(threshold))
       .remainingAccounts(
         hashAccountsPDA.map((_hashAccountPDA) => ({
           isSigner: false,
@@ -101,7 +101,7 @@ describe("hashi", () => {
 
     try {
       await hashi.methods
-        .checkHashWithThresholdFromAdapters(ADAPTER_IDS, DOMAIN, intToBytes32Buff(id), new anchor.BN(threshold))
+        .checkHashWithThreshold(ADAPTER_IDS, DOMAIN, intToBytes32Buff(id), new anchor.BN(threshold))
         .remainingAccounts(
           hashAccountsPDA.map((_hashAccountPDA) => ({
             isSigner: false,
