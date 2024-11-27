@@ -2,6 +2,12 @@ use anchor_lang::prelude::*;
 
 declare_id!("E31NDsJknUaJ1VKGBCePkcZysajUqqFw5pDFAz1fFAGu");
 
+pub mod contexts;
+pub mod state;
+
+pub use contexts::*;
+pub use state::*;
+
 #[program]
 pub mod adapter {
     use super::*;
@@ -29,39 +35,6 @@ pub mod adapter {
 
         Ok(())
     }
-}
-
-#[account]
-pub struct HashAccount {
-    pub adapter_id: [u8; 32],
-    pub domain: [u8; 32],
-    pub id: [u8; 32],
-    pub hash: [u8; 32],
-}
-
-impl HashAccount {
-    pub const LEN: usize = 32 + 32 + 32 + 32;
-}
-
-#[derive(Accounts)]
-#[instruction(adapter_id: [u8; 32], domain: [u8; 32], id: [u8; 32])]
-pub struct StoreHash<'info> {
-    #[account(
-        init_if_needed,
-        payer = user,
-        space = 8 + HashAccount::LEN,
-        seeds = [
-            "hash_account".as_bytes(),
-            &adapter_id,
-            &domain,
-            &id
-        ],
-        bump,
-    )]
-    pub hash_account: Account<'info, HashAccount>,
-    #[account(mut)]
-    pub user: Signer<'info>,
-    pub system_program: Program<'info, System>,
 }
 
 #[event]

@@ -851,6 +851,7 @@ checksum = "bf151400ff0baff5465007dd2f3e717f3fe502074ca563069ce3a6629d07b289"
 name = "hashi"
 version = "0.1.0"
 dependencies = [
+ "adapter",
  "anchor-lang",
 ]
 

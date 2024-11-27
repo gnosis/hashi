@@ -1,14 +1,22 @@
 use anchor_lang::prelude::*;
 use std::collections::HashMap;
 
+use adapter::HashAccount;
+
 declare_id!("EyqiZf8Yt2CgVU5yPsj5e4EiGXeKrLhefWBn7CSqKPMC");
+
+pub mod contexts;
+pub mod error;
+
+pub use contexts::*;
+pub use error::ErrorCode;
 
 #[program]
 pub mod hashi {
     use super::*;
 
-    pub fn check_hash_with_threshold_from_adapters(
-        ctx: Context<ReadHashes>,
+    pub fn check_hash_with_threshold(
+        ctx: Context<CheckHashWithThreshold>,
         adapter_ids: Vec<[u8; 32]>,
         domain: [u8; 32],
         id: [u8; 32],
@@ -50,7 +58,7 @@ pub mod hashi {
         }
 
         let mut max_count = 0;
-        for (hash, count) in hash_counts.iter() {
+        for (_hash, count) in hash_counts.iter() {
             if *count > max_count {
                 max_count = *count;
             }
@@ -62,33 +70,4 @@ pub mod hashi {
             Err(error!(ErrorCode::ThresholdNotMet))
         }
     }
-}
-
-#[derive(Accounts)]
-pub struct ReadHashes {}
-
-#[account]
-pub struct HashAccount {
-    pub adapter_id: [u8; 32],
-    pub domain: [u8; 32],
-    pub id: [u8; 32],
-    pub hash: [u8; 32],
-}
-
-#[error_code]
-pub enum ErrorCode {
-    #[msg("The majority threshold was not met.")]
-    ThresholdNotMet,
-    #[msg("Invalid threshold: greater than the number of accounts provided.")]
-    InvalidThreshold,
-    #[msg("No accounts were provided.")]
-    NoAccountsProvided,
-    #[msg("Invalid adapter id.")]
-    InvalidAdapterId,
-    #[msg("Invalid adapter ids length.")]
-    InvalidAdapterIdsLength,
-    #[msg("Invalid domain.")]
-    InvalidId,
-    #[msg("Invalid id.")]
-    InvalidDomain,
 }
