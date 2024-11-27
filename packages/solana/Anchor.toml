@@ -5,6 +5,8 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
+hashi = "EyqiZf8Yt2CgVU5yPsj5e4EiGXeKrLhefWBn7CSqKPMC"
+help = "EJy8wh5fqP5LYqs1mNbH2S6jxKGkP64PkXRmZgQxk9CE"
 solana = "4VFxPo4BF53PkVFBFjCQBFUn8bCxZZm6Dc2VgrJ5HXS8"
 
 [registry]
