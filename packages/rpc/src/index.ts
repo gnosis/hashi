@@ -6,11 +6,13 @@ import { logger } from "@gnosis/hashi-common"
 
 import logMiddleware from "./middlewares/log"
 import getAccountAndStorageProof from "./methods/get-account-and-storage-proof"
+import getReceiptProof from "./methods/get-receipt-proof"
 import { Methods } from "./methods/types"
 
 const start = async () => {
   const server: TypedJSONRPCServer<Methods> = new JSONRPCServer()
   server.addMethod("hashi_getAccountAndStorageProof", getAccountAndStorageProof)
+  server.addMethod("hashi_getReceiptProof", getReceiptProof)
   server.applyMiddleware(logMiddleware)
 
   const app = express()
