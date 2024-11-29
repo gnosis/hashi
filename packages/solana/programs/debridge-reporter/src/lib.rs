@@ -1,15 +1,13 @@
 use anchor_lang::prelude::*;
 use borsh::{BorshDeserialize, BorshSerialize};
 use debridge_solana_sdk::sending;
+use slots::get_slot;
 
 declare_id!("2TvQ6gqQGAifdV2cQ1f8zHGYV2t6wPUNTKzpcALt8rX7");
 
 pub mod contexts;
-pub mod error;
-pub mod utils;
 
 pub use contexts::*;
-pub use utils::{get_slot, u64_to_u8_32};
 
 #[derive(BorshSerialize)]
 pub struct Message {
@@ -45,4 +43,11 @@ pub mod debridge_reporter {
 
         Ok(())
     }
+}
+
+pub fn u64_to_u8_32(number: u64) -> [u8; 32] {
+    let mut bytes = [0u8; 32];
+    let number_bytes = number.to_be_bytes();
+    bytes[24..].copy_from_slice(&number_bytes);
+    bytes
 }

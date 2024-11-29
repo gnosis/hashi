@@ -1,8 +1,6 @@
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::sysvar;
 
-use crate::error::ErrorCode;
-
 pub fn get_slot(slot_hashes: &AccountInfo, slot_number: u64) -> Result<(u64, [u8; 32])> {
     if *slot_hashes.key != sysvar::slot_hashes::ID {
         return Err(error!(ErrorCode::InvalidSlotHashesSysVar));
@@ -35,12 +33,14 @@ pub fn get_slot(slot_hashes: &AccountInfo, slot_number: u64) -> Result<(u64, [u8
     Err(error!(ErrorCode::SlotNotFound))
 }
 
-pub fn u64_to_u8_32(number: u64) -> [u8; 32] {
-    let mut bytes = [0u8; 32];
-    let number_bytes = number.to_be_bytes(); // Convert u64 to a big-endian 8-byte array
-
-    // Copy the 8 bytes of the u64 into the last 8 bytes of the 32-byte array
-    bytes[24..].copy_from_slice(&number_bytes);
-
-    bytes
+#[error_code]
+pub enum ErrorCode {
+    #[msg("Invalid latest hash hash.")]
+    InvalidLatestHashLength,
+    #[msg("Invalid slot hashes sysvar.")]
+    InvalidSlotHashesSysVar,
+    #[msg("Slot hashes not available.")]
+    SlotHashesNotAvailable,
+    #[msg("Slot not found")]
+    SlotNotFound,
 }
