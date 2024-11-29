@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::sysvar;
 
-pub fn get_slot(slot_hashes: &AccountInfo, slot_number: u64) -> Result<(u64, [u8; 32])> {
+pub fn get_slot(slot_hashes: &AccountInfo, slot_number: u64) -> Result<[u8; 32]> {
     if *slot_hashes.key != sysvar::slot_hashes::ID {
         return Err(error!(ErrorCode::InvalidSlotHashesSysVar));
     }
@@ -24,7 +24,7 @@ pub fn get_slot(slot_hashes: &AccountInfo, slot_number: u64) -> Result<(u64, [u8
         };
 
         if current_slot_number == slot_number {
-            return Ok((current_slot_number, current_slot_hash));
+            return Ok(current_slot_hash);
         }
 
         pos += 32;
