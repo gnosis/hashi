@@ -5,12 +5,10 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-debridge-reporter = "2TvQ6gqQGAifdV2cQ1f8zHGYV2t6wPUNTKzpcALt8rX7"
-hashi = "EyqiZf8Yt2CgVU5yPsj5e4EiGXeKrLhefWBn7CSqKPMC"
-help = "EJy8wh5fqP5LYqs1mNbH2S6jxKGkP64PkXRmZgQxk9CE"
-reporter = "4wFzP8uwPvvW2kZGxxkL45SP2Wn3oRbfe1LdHheUFZ9k"
-solana = "4VFxPo4BF53PkVFBFjCQBFUn8bCxZZm6Dc2VgrJ5HXS8"
-wormhole-reporter = "4y9MQDaWZrfghUAJPmm9uJwCEyZzNZSzPVxs1WKbMXbn"
+adapter = "EUDyxkHVf9NBRTREn69rcFDAEefmHj3UrLJV14vnqACp"
+debridge-reporter = "7GPwvvhq33fTYuDyfA1JVz4fp3XkdcmjerJWpUkxjrC2"
+hashi = "76cEKq1qRhBLn56kZdG1Hj7UHXggcNfinbnKejXDnMpU"
+wormhole-reporter = "3ESz1nYWmkdp9A3SByK7mbf9toDSRPvJADDF6pz45qZG"
 
 [registry]
 url = "https://api.apr.dev"
@@ -21,3 +19,21 @@ wallet = "~/.config/solana/id.json"
 
 [scripts]
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
+
+[test]
+startup_wait = 10000
+
+[test.validator]
+url = "https://api.mainnet-beta.solana.com"
+
+### Wormhole Core Bridge
+[[test.validator.clone]]
+address = "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth"
+
+### Wormhole Bridge
+[[test.validator.clone]]
+address = "2yVjuQwpsvdsrywzsJJVs9Ueh4zayyo5DYJbBNc3DDpn"
+
+### Wormhole Fee Collector
+[[test.validator.clone]]
+address = "9bFNrXNb2WTx8fMHXCheaZqkLZ3YCCaiqTftHxeintHy"

@@ -13,4 +13,6 @@ no-log-ix-name = []
 idl-build = ["anchor-lang/idl-build"]
 
 [dependencies]
+alloy-sol-types = "0.7.0"
+alloy-primitives = "0.7.0"
 anchor-lang = "0.30.1"
