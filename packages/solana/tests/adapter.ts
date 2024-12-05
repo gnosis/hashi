@@ -16,27 +16,29 @@ describe("adapter", () => {
 
   const adapter = anchor.workspace.Adapter as Program<Adapter>
 
-  it("should store an hash", async () => {
-    const id = 1
-    const hash = Array.from(
-      Uint8Array.from(Buffer.from("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "hex")),
-    )
+  describe("store_hash", () => {
+    it("should store an hash", async () => {
+      const id = 1
+      const hash = Array.from(
+        Uint8Array.from(Buffer.from("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "hex")),
+      )
 
-    const [hashAccountPDA] = await PublicKey.findProgramAddressSync(
-      [Buffer.from("hash_account", "utf-8"), ADAPTER_ID, DOMAIN, intToBytes32Buff(id)],
-      adapter.programId,
-    )
+      const [hashAccountPDA] = await PublicKey.findProgramAddressSync(
+        [Buffer.from("hash_account", "utf-8"), ADAPTER_ID, DOMAIN, intToBytes32Buff(id)],
+        adapter.programId,
+      )
 
-    await adapter.methods
-      .storeHash(ADAPTER_ID, DOMAIN, intToBytes32Buff(id), hash)
-      .accounts({
-        hashAccount: hashAccountPDA,
-        user: provider.wallet.publicKey,
-        systemProgram: SystemProgram.programId,
-      })
-      .rpc()
+      await adapter.methods
+        .storeHash(ADAPTER_ID, DOMAIN, intToBytes32Buff(id), hash)
+        .accounts({
+          hashAccount: hashAccountPDA,
+          user: provider.wallet.publicKey,
+          systemProgram: SystemProgram.programId,
+        })
+        .rpc()
 
-    const hashAccount = await adapter.account.hashAccount.fetch(hashAccountPDA)
-    expect(hashAccount.hash).to.be.deep.eq(hash)
+      const hashAccount = await adapter.account.hashAccount.fetch(hashAccountPDA)
+      expect(hashAccount.hash).to.be.deep.eq(hash)
+    })
   })
 })

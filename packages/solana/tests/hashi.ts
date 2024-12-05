@@ -21,85 +21,40 @@ describe("hashi", () => {
   const hashi = anchor.workspace.Hashi as Program<Hashi>
   const adapter = anchor.workspace.Adapter as Program<Adapter>
 
-  it("should not fail if the majority of adapters agree on an hash", async () => {
-    const threshold = 2
-    const id = 1
-    const hashes = [
-      Array.from(
-        Uint8Array.from(Buffer.from("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "hex")),
-      ),
-      Array.from(
-        Uint8Array.from(Buffer.from("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "hex")),
-      ),
-      Array.from(
-        Uint8Array.from(Buffer.from("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "hex")),
-      ),
-    ]
+  describe("check_hash_with_threshold", () => {
+    it("should not fail if the majority of adapters agree on an hash", async () => {
+      const threshold = 2
+      const id = 1
+      const hashes = [
+        Array.from(
+          Uint8Array.from(Buffer.from("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "hex")),
+        ),
+        Array.from(
+          Uint8Array.from(Buffer.from("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "hex")),
+        ),
+        Array.from(
+          Uint8Array.from(Buffer.from("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "hex")),
+        ),
+      ]
 
-    const hashAccountsPDA = []
-    for (const [index, adapterId] of ADAPTER_IDS.entries()) {
-      const [hashAccountPDA] = await PublicKey.findProgramAddressSync(
-        [Buffer.from("hash_account", "utf-8"), adapterId, DOMAIN, intToBytes32Buff(id)],
-        adapter.programId,
-      )
+      const hashAccountsPDA = []
+      for (const [index, adapterId] of ADAPTER_IDS.entries()) {
+        const [hashAccountPDA] = await PublicKey.findProgramAddressSync(
+          [Buffer.from("hash_account", "utf-8"), adapterId, DOMAIN, intToBytes32Buff(id)],
+          adapter.programId,
+        )
 
-      await adapter.methods
-        .storeHash(adapterId, DOMAIN, intToBytes32Buff(id), hashes[index])
-        .accounts({
-          hashAccount: hashAccountPDA,
-          user: provider.wallet.publicKey,
-          systemProgram: SystemProgram.programId,
-        })
-        .rpc()
-      hashAccountsPDA.push(hashAccountPDA)
-    }
+        await adapter.methods
+          .storeHash(adapterId, DOMAIN, intToBytes32Buff(id), hashes[index])
+          .accounts({
+            hashAccount: hashAccountPDA,
+            user: provider.wallet.publicKey,
+            systemProgram: SystemProgram.programId,
+          })
+          .rpc()
+        hashAccountsPDA.push(hashAccountPDA)
+      }
 
-    await hashi.methods
-      .checkHashWithThreshold(ADAPTER_IDS, DOMAIN, intToBytes32Buff(id), new anchor.BN(threshold))
-      .remainingAccounts(
-        hashAccountsPDA.map((_hashAccountPDA) => ({
-          isSigner: false,
-          isWritable: false,
-          pubkey: _hashAccountPDA,
-        })),
-      )
-      .rpc()
-  })
-
-  it("should fail if the majority of adapters doesn't agree on an hash", async () => {
-    const threshold = 2
-    const id = 1
-    const hashes = [
-      Array.from(
-        Uint8Array.from(Buffer.from("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "hex")),
-      ),
-      Array.from(
-        Uint8Array.from(Buffer.from("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "hex")),
-      ),
-      Array.from(
-        Uint8Array.from(Buffer.from("cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "hex")),
-      ),
-    ]
-
-    const hashAccountsPDA = []
-    for (const [index, adapterId] of ADAPTER_IDS.entries()) {
-      const [hashAccountPDA] = await PublicKey.findProgramAddressSync(
-        [Buffer.from("hash_account", "utf-8"), adapterId, DOMAIN, intToBytes32Buff(id)],
-        adapter.programId,
-      )
-
-      await adapter.methods
-        .storeHash(adapterId, DOMAIN, intToBytes32Buff(id), hashes[index])
-        .accounts({
-          hashAccount: hashAccountPDA,
-          user: provider.wallet.publicKey,
-          systemProgram: SystemProgram.programId,
-        })
-        .rpc()
-      hashAccountsPDA.push(hashAccountPDA)
-    }
-
-    try {
       await hashi.methods
         .checkHashWithThreshold(ADAPTER_IDS, DOMAIN, intToBytes32Buff(id), new anchor.BN(threshold))
         .remainingAccounts(
@@ -110,8 +65,55 @@ describe("hashi", () => {
           })),
         )
         .rpc()
-    } catch (_err) {
-      expect(_err.error.errorCode.code).to.be.eq("ThresholdNotMet")
-    }
+    })
+
+    it("should fail if the majority of adapters doesn't agree on an hash", async () => {
+      const threshold = 2
+      const id = 1
+      const hashes = [
+        Array.from(
+          Uint8Array.from(Buffer.from("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "hex")),
+        ),
+        Array.from(
+          Uint8Array.from(Buffer.from("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "hex")),
+        ),
+        Array.from(
+          Uint8Array.from(Buffer.from("cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "hex")),
+        ),
+      ]
+
+      const hashAccountsPDA = []
+      for (const [index, adapterId] of ADAPTER_IDS.entries()) {
+        const [hashAccountPDA] = await PublicKey.findProgramAddressSync(
+          [Buffer.from("hash_account", "utf-8"), adapterId, DOMAIN, intToBytes32Buff(id)],
+          adapter.programId,
+        )
+
+        await adapter.methods
+          .storeHash(adapterId, DOMAIN, intToBytes32Buff(id), hashes[index])
+          .accounts({
+            hashAccount: hashAccountPDA,
+            user: provider.wallet.publicKey,
+            systemProgram: SystemProgram.programId,
+          })
+          .rpc()
+        hashAccountsPDA.push(hashAccountPDA)
+      }
+
+      try {
+        await hashi.methods
+          .checkHashWithThreshold(ADAPTER_IDS, DOMAIN, intToBytes32Buff(id), new anchor.BN(threshold))
+          .remainingAccounts(
+            hashAccountsPDA.map((_hashAccountPDA) => ({
+              isSigner: false,
+              isWritable: false,
+              pubkey: _hashAccountPDA,
+            })),
+          )
+          .rpc()
+      } catch (_err) {
+        expect(_err.error.errorCode.code).to.be.eq("ThresholdNotMet")
+      }
+    })
   })
 })

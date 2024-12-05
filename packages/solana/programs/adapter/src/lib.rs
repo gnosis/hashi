@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-declare_id!("E31NDsJknUaJ1VKGBCePkcZysajUqqFw5pDFAz1fFAGu");
+declare_id!("EUDyxkHVf9NBRTREn69rcFDAEefmHj3UrLJV14vnqACp");
 
 pub mod contexts;
 pub mod state;
@@ -12,6 +12,29 @@ pub use state::*;
 pub mod adapter {
     use super::*;
 
+    /// Stores a hash in a `HashAccount` for later validation or retrieval.
+    ///
+    /// This function updates the provided `HashAccount` with the specified adapter ID, domain, ID, and hash.
+    /// It is primarily used to persist hash data in a consistent and structured way for subsequent operations,
+    /// such as validation or consensus checks.
+    ///
+    /// # Arguments
+    ///
+    /// - `ctx`: A `Context` object containing the `HashAccount` to be updated.
+    /// - `adapter_id`: A 32-byte identifier representing the adapter associated with this hash.
+    /// - `domain`: A 32-byte domain identifier that contextualizes the hash within a specific scope.
+    /// - `id`: A 32-byte identifier uniquely identifying the subject or entity associated with this hash.
+    /// - `hash`: A 32-byte hash value to be stored in the `HashAccount`.
+    ///
+    /// # Returns
+    ///
+    /// - `Ok(())`: If the hash is successfully stored in the `HashAccount`.
+    ///
+    /// # Notes
+    ///
+    /// - This function assumes that the provided `HashAccount` is correctly initialized and writable.
+    /// - The emitted event allows external systems or users to monitor the stored hash details without
+    ///   directly querying the on-chain state.
     pub fn store_hash(
         ctx: Context<StoreHash>,
         adapter_id: [u8; 32],

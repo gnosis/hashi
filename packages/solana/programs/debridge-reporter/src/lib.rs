@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-declare_id!("2TvQ6gqQGAifdV2cQ1f8zHGYV2t6wPUNTKzpcALt8rX7");
+declare_id!("7GPwvvhq33fTYuDyfA1JVz4fp3XkdcmjerJWpUkxjrC2");
 
 pub mod contexts;
 
@@ -21,8 +21,10 @@ pub mod debridge_reporter {
     ) -> Result<()> {
         let slot_hash = get_slot(&ctx.accounts.slot_hashes, slot_number)?;
         let message = Message::from((slot_number, slot_hash));
+        let mut payload: Vec<u8> = Vec::new();
+        message.serialize(&mut payload)?;
         sending::invoke_send_message(
-            message.try_to_vec()?,
+            payload,
             target_chain_id,
             receiver,
             0,             // execution_fee = 0 means auto claim
