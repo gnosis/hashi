@@ -8,7 +8,7 @@ pub use contexts::*;
 pub use error::ErrorCode;
 pub use state::*;
 
-declare_id!("3ESz1nYWmkdp9A3SByK7mbf9toDSRPvJADDF6pz45qZG");
+declare_id!("AeUyN4y9cvEzCDTVUy3ZPhrYw7i44kNBsqMeGysZfWid");
 
 #[program]
 pub mod wormhole_reporter {
@@ -20,14 +20,12 @@ pub mod wormhole_reporter {
 
     /// This instruction initializes the program config, which is meant
     /// to store data useful for other instructions. The config specifies
-    /// an owner (e.g. multisig) and should be read-only for every instruction
-    /// in this example. This owner will be checked for designated owner-only
-    /// instructions like [`register_emitter`](register_emitter).
+    /// an owner (e.g. multisig) and should be read-only for every instruction.
     ///
     /// # Arguments
     ///
     /// * `ctx` - `Initialize` contexts
-    pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
+    pub fn initialize(ctx: Context<Initialize>, slot_number: u64) -> Result<()> {
         let config = &mut ctx.accounts.config;
 
         // Set the owner of the config (effectively the owner of the program).
@@ -62,8 +60,6 @@ pub mod wormhole_reporter {
         // Wormhole program that there is an actual account associated with the
         // emitter PDA. The emitter PDA is just a mechanism to have the program
         // sign for the `wormhole::post_message` instruction.
-        //
-        // But for fun, we will store our emitter's bump for convenience.
         ctx.accounts.wormhole_emitter.bump = ctx.bumps.wormhole_emitter;
 
         {
@@ -105,14 +101,14 @@ pub mod wormhole_reporter {
             //      account with an address derived by this program so we can
             //      use the PDA to access and deserialize the message data.
             //
-            // In our example, we use method #2.
+            // we use method #2.
             let wormhole_emitter = &ctx.accounts.wormhole_emitter;
             let config = &ctx.accounts.config;
 
-            // If anyone were to care about the first message this program
-            // emits, he can deserialize it to find the program with which
-            // the emitter PDA was derived.
-            let payload = ctx.program_id.try_to_vec()?;
+            let slot_hash = get_slot(&ctx.accounts.slot_hashes, slot_number)?;
+            let message = Message::from((slot_number, slot_hash));
+            let mut payload: Vec<u8> = Vec::new();
+            message.serialize(&mut payload)?;
 
             wormhole::post_message(
                 CpiContext::new_with_signer(
@@ -169,12 +165,7 @@ pub mod wormhole_reporter {
     /// # Returns
     ///
     /// This function returns `Ok(())` on success or a relevant error if the process fails.
-    pub fn dispatch_slot(
-        ctx: Context<DispatchSlot>,
-        /*target_chain_id: [u8; 32],
-        receiver: Vec<u8>,*/
-        slot_number: u64,
-    ) -> Result<()> {
+    pub fn dispatch_slot(ctx: Context<DispatchSlot>, slot_number: u64) -> Result<()> {
         // If Wormhole requires a fee before posting a message, we need to
         // transfer lamports to the fee collector. Otherwise
         // `wormhole::post_message` will fail.
