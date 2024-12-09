@@ -13,10 +13,10 @@ import { AbiCoder } from "ethers"
 
 import { WormholeReporter } from "../target/types/wormhole_reporter"
 
-const WORMHOLE_CONTRACTS = CONTRACTS.MAINNET
+const WORMHOLE_CONTRACTS = CONTRACTS.TESTNET
 const CORE_BRIDGE_PID = new PublicKey(WORMHOLE_CONTRACTS.solana.core)
 
-const deriveWormholeMessageKey = (_programId: PublicKeyInitData, _sequence: bigint) => {
+export const deriveWormholeMessageKey = (_programId: PublicKeyInitData, _sequence: bigint) => {
   return deriveAddress(
     [
       Buffer.from("sent"),
@@ -44,18 +44,21 @@ describe("wormhole_reporter", () => {
 
   describe("initialize", () => {
     it("should set up the program", async () => {
+      const slot = await provider.connection.getSlot()
+      const slotNumberToDispatch = new anchor.BN(slot - 1)
+
       const message = deriveWormholeMessageKey(reporter.programId, 1n)
       const wormholeAccounts = getPostMessageCpiAccounts(reporter.programId, CORE_BRIDGE_PID, payer.publicKey, message)
       const [configKey] = PublicKey.findProgramAddressSync([Buffer.from("config", "utf-8")], reporter.programId)
-
       await reporter.methods
-        .initialize()
+        .initialize(slotNumberToDispatch)
         .accounts({
           owner: new PublicKey(payer.publicKey),
           config: configKey,
           wormholeProgram: new PublicKey(CORE_BRIDGE_PID),
+          slotHashes: SYSVAR_SLOT_HASHES_PUBKEY,
           ...wormholeAccounts,
-        })
+        } as any)
         .signers([payer])
         .rpc()
 
@@ -83,7 +86,7 @@ describe("wormhole_reporter", () => {
           wormholeProgram: new PublicKey(CORE_BRIDGE_PID),
           slotHashes: SYSVAR_SLOT_HASHES_PUBKEY,
           ...wormholeAccounts,
-        })
+        } as any)
         .signers([payer])
         .rpc()
 
