@@ -1182,9 +1182,8 @@ dependencies = [
 
 [[package]]
 name = "debridge-solana-sdk"
-version = "1.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eac97e77dab5301c48a882cb08277733006aadbf52a7409e8ca69e8da9446d88"
+version = "1.0.2"
+source = "git+ssh://git@github.com/debridge-finance/debridge-solana-sdk.git#e442dd77f2cab1082a7140be3602314567e4b4b6"
 dependencies = [
  "borsh 0.9.3",
  "cfg-match",
@@ -1194,6 +1193,7 @@ dependencies = [
  "lazy_static",
  "sha3 0.10.8",
  "solana-program",
+ "some-to-err",
  "thiserror",
 ]
 
@@ -2918,6 +2918,12 @@ dependencies = [
  "thiserror",
  "zeroize",
 ]
+
+[[package]]
+name = "some-to-err"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8d95fd601e937c6e1fe0f25ef8754008e7bf87e97a8a60a8a60b0a289f7e39ad"
 
 [[package]]
 name = "spki"
