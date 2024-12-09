@@ -11,7 +11,7 @@ name = "wormhole_reporter"
 [features]
 default = ["mainnet"]
 mainnet = ["wormhole-anchor-sdk/mainnet"]
-testnet = ["wormhole-anchor-sdk/solana-devnet"]
+devnet = ["wormhole-anchor-sdk/solana-devnet"]
 localnet = ["wormhole-anchor-sdk/tilt-devnet"]
 cpi = ["no-entrypoint"]
 no-entrypoint = []
