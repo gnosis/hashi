@@ -43,6 +43,7 @@ pub mod snapshotter {
         config.root = Hash::default().to_bytes();
         config.root_finalized = false;
         config.expected_batch = 0;
+        config.nonce = 0;
 
         Ok(())
     }
@@ -92,6 +93,7 @@ pub mod snapshotter {
         if is_last_batch {
             config.root_finalized = true;
             config.expected_batch = 0;
+            config.nonce += 1;
         } else {
             config.root_finalized = false;
             config.expected_batch += 1;

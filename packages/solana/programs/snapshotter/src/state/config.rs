@@ -19,6 +19,9 @@ pub struct Config {
     // An unsigned 64-bit integer that might represent an expected batch number or
     // counter for a process that runs periodically or sequentially.
     pub expected_batch: u64,
+
+    // An unsigned 64-bit integer that represent the number of calculated roots
+    pub nonce: u64,
 }
 
 // `impl Config` block provides associated functions for `Config`.
@@ -44,7 +47,8 @@ impl Config {
         + (32 * 256)                    // max subscribed_accounts data
         + 32                            // root
         + 1                             // root_finalized
-        + 8; // expected_batch
+        + 8                             // expected_batch
+        + 8; // nonce
 
     // The seed prefix is a static byte array used as part of the seeds to derive
     // the program's `Config` account's PDA (Program-Derived Address).

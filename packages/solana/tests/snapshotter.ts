@@ -4,7 +4,7 @@ import { PublicKey } from "@solana/web3.js"
 import { SYSTEM_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/native/system"
 import { expect } from "chai"
 
-import { AccountsStorage } from "../target/types/snapshotter"
+import { Snapshotter } from "../target/types/snapshotter"
 import { Adapter } from "../target/types/adapter"
 
 const getFakeAccounts = (_length: number, _programId: PublicKey, _salt: string) =>
@@ -14,12 +14,11 @@ const getFakeAccounts = (_length: number, _programId: PublicKey, _salt: string) 
     )
     .map(([publicKey]) => publicKey)
 
-
 describe("snapshotter", () => {
   const provider = anchor.AnchorProvider.env()
   anchor.setProvider(provider)
 
-  const snapshotter = anchor.workspace.AccountsStorage as Program<AccountsStorage>
+  const snapshotter = anchor.workspace.Snapshotter as Program<Snapshotter>
   const mockProgram = anchor.workspace.Adapter as Program<Adapter>
 
   describe("initialize", () => {
@@ -107,6 +106,7 @@ describe("snapshotter", () => {
       let configData = await snapshotter.account.config.fetch(configKey)
       expect(configData.rootFinalized).to.be.eq(true)
       expect(configData.expectedBatch.toNumber()).to.be.eq(0)
+      expect(configData.nonce.toNumber()).to.be.eq(1)
     })
 
     it("should calculate the root with 3 batches (10 + 10 + 1)", async () => {
@@ -173,6 +173,7 @@ describe("snapshotter", () => {
       configData = await snapshotter.account.config.fetch(configKey)
       expect(configData.rootFinalized).to.be.eq(true)
       expect(configData.expectedBatch.toNumber()).to.be.eq(0)
+      expect(configData.nonce.toNumber()).to.be.eq(2)
     })
   })
 })
