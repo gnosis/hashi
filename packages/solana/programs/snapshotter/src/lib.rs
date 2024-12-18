@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_lang::solana_program::keccak::{hashv, Hash};
+use anchor_lang::solana_program::hash::{hashv, Hash};
 
 declare_id!("37298hWBczA1od9ytwgSYyhP42WLNiXieAVCxBxAeX9S");
 
@@ -162,7 +162,7 @@ pub mod snapshotter {
 
         // Step 5: Update the Batch Merkle Tree (BMT) with the new account hashes
         let mut tree = BatchMerkleTree::from(Hash::new_from_array(config.root));
-        tree.push_batch_of_leaves(account_hashes)?;
+        tree.push_batch(account_hashes)?;
         // Store the updated root back into the `Config`
         config.root = tree.root.to_bytes();
 
@@ -187,7 +187,7 @@ impl BatchMerkleTree {
         }
     }
 
-    pub fn push_batch_of_leaves(&mut self, leaves: Vec<Hash>) -> Result<()> {
+    pub fn push_batch(&mut self, leaves: Vec<Hash>) -> Result<()> {
         let mut current_layer = leaves;
 
         while current_layer.len() > 1 {
