@@ -104,7 +104,7 @@ pub mod snapshotter {
     //    but the last batch. For the last batch, it can be fewer accounts.
     // 3. If it's the last batch, finalize the root and reset `expected_batch` to 0;
     //    otherwise, increment `expected_batch` and mark the root as not finalized.
-    // 4. Hash each account's state and update the Merkle Mountain Range (MMR) root.
+    // 4. Hash each account's state and update the Batch Merkle Tree (BMT) root.
     // 5. Store the updated root in the `config`.
     pub fn calculate_root(ctx: Context<CalculateRoot>, batch: u64) -> Result<()> {
         let config = &mut ctx.accounts.config;
@@ -160,35 +160,35 @@ pub mod snapshotter {
             ));
         }
 
-        // Step 5: Update the Merkle Mountain Range (MMR) with the new account hashes
-        let mut mmr = MerkleMountainRange::from(Hash::new_from_array(config.root));
-        mmr.update_root(account_hashes)?;
+        // Step 5: Update the Batch Merkle Tree (BMT) with the new account hashes
+        let mut tree = BatchMerkleTree::from(Hash::new_from_array(config.root));
+        tree.push_batch_of_leaves(account_hashes)?;
         // Store the updated root back into the `Config`
-        config.root = mmr.root.to_bytes();
+        config.root = tree.root.to_bytes();
 
         Ok(())
     }
 }
 
-pub struct MerkleMountainRange {
+pub struct BatchMerkleTree {
     pub root: Hash,
 }
 
-impl From<Hash> for MerkleMountainRange {
+impl From<Hash> for BatchMerkleTree {
     fn from(root: Hash) -> Self {
-        MerkleMountainRange { root: root }
+        BatchMerkleTree { root: root }
     }
 }
 
-impl MerkleMountainRange {
+impl BatchMerkleTree {
     pub fn new() -> Self {
-        MerkleMountainRange {
+        BatchMerkleTree {
             root: Hash::default(),
         }
     }
 
-    pub fn update_root(&mut self, new_leaves: Vec<Hash>) -> Result<()> {
-        let mut current_layer = new_leaves;
+    pub fn push_batch_of_leaves(&mut self, leaves: Vec<Hash>) -> Result<()> {
+        let mut current_layer = leaves;
 
         while current_layer.len() > 1 {
             let mut next_layer = Vec::new();
@@ -201,7 +201,6 @@ impl MerkleMountainRange {
                     ]));
                     i += 2;
                 } else {
-                    // If there's an odd one out, it becomes a peak as-is
                     next_layer.push(current_layer[i]);
                     i += 1;
                 }
