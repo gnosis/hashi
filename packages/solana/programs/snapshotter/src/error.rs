@@ -1,7 +1,6 @@
 use anchor_lang::prelude::*;
 
 #[error_code]
-/// Errors relevant to this program's malfunction.
 pub enum ErrorCode {
     #[msg("AccountAlreadySubscribed")]
     /// An account is already subscribed

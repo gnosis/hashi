@@ -7,7 +7,6 @@ use crate::state::{Config, WormholeEmitter};
 pub const SEED_PREFIX_SENT: &[u8; 4] = b"sent";
 
 #[derive(Accounts)]
-/// Context used to initialize program data (i.e. config).
 pub struct Initialize<'info> {
     #[account(mut)]
     /// Whoever initializes the config will be the owner of the program. Signer

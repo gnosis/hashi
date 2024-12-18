@@ -1177,7 +1177,7 @@ dependencies = [
  "anchor-lang",
  "debridge-solana-sdk",
  "message",
- "slots",
+ "snapshotter",
 ]
 
 [[package]]
@@ -2698,13 +2698,6 @@ checksum = "16d69225bde7a69b235da73377861095455d298f2b970996eec25ddbb42b3d1e"
 dependencies = [
  "bitmaps",
  "typenum",
-]
-
-[[package]]
-name = "slots"
-version = "0.1.0"
-dependencies = [
- "anchor-lang",
 ]
 
 [[package]]
