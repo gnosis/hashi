@@ -8,30 +8,38 @@ pub use contexts::*;
 pub use error::ErrorCode;
 pub use state::*;
 
-declare_id!("AeUyN4y9cvEzCDTVUy3ZPhrYw7i44kNBsqMeGysZfWid");
+declare_id!("48Vq4rpj7tiZKvpVkzmR5kHUTLy6KdL1c4zkFw17cNZw");
 
 #[program]
 pub mod wormhole_reporter {
     use super::*;
     use anchor_lang::solana_program;
     use message::Message;
-    use slots::get_slot;
+    use snapshotter::state::Config as SnapshotterConfig;
     use wormhole_anchor_sdk::wormhole;
 
-    /// This instruction initializes the program config, which is meant
-    /// to store data useful for other instructions. The config specifies
-    /// an owner (e.g. multisig) and should be read-only for every instruction.
+    /// Initializes the Wormhole Reporter program.
+    ///
+    /// This function sets up the initial configuration, initializes the Wormhole emitter,
+    /// handles any necessary fee transfers, and posts an initial message to Wormhole to
+    /// establish a SequenceTracker account.
     ///
     /// # Arguments
     ///
-    /// * `ctx` - `Initialize` contexts
-    pub fn initialize(ctx: Context<Initialize>, slot_number: u64) -> Result<()> {
+    /// * `ctx` - The context containing all the accounts required for initialization.
+    ///
+    /// # Returns
+    ///
+    /// * `Result<()>` - Returns `Ok(())` if successful, or an error otherwise.
+    pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
         let config = &mut ctx.accounts.config;
 
-        // Set the owner of the config (effectively the owner of the program).
+        // Set the owner of the configuration to the provided owner account
         config.owner = ctx.accounts.owner.key();
 
-        // Set Wormhole related addresses.
+        // Set the snapshotter configuration account
+        config.snapshotter_config = ctx.accounts.snapshotter_config.key();
+
         {
             let wormhole = &mut config.wormhole;
 
@@ -48,7 +56,6 @@ pub mod wormhole_reporter {
         }
 
         // Set default values for posting Wormhole messages.
-        //
         // Zero means no batching.
         config.batch_id = 0;
 
@@ -102,11 +109,27 @@ pub mod wormhole_reporter {
             //      use the PDA to access and deserialize the message data.
             //
             // we use method #2.
+
+            // Prepare to post an initial message to Wormhole during initialization
+            // This allows Wormhole to create a SequenceTracker account for the emitter
+            // which will be used to track message sequences in subsequent operations
+
+            // References to the Wormhole emitter and the main config
             let wormhole_emitter = &ctx.accounts.wormhole_emitter;
             let config = &ctx.accounts.config;
 
-            let slot_hash = get_slot(&ctx.accounts.slot_hashes, slot_number)?;
-            let message = Message::from((slot_number, slot_hash));
+            // Deserialize the snapshotter configuration data
+            let mut data_slice: &[u8] = &ctx.accounts.snapshotter_config.data.borrow();
+            let snapshotter_config: SnapshotterConfig =
+                AccountDeserialize::try_deserialize(&mut data_slice)?;
+
+            // Ensure that the root is finalized before proceeding
+            if !snapshotter_config.root_finalized {
+                return Err(error!(ErrorCode::RootNotFinalized));
+            }
+
+            // Create a Wormhole message from the snapshotter's nonce and root
+            let message = Message::from((snapshotter_config.nonce, snapshotter_config.root));
             let mut payload: Vec<u8> = Vec::new();
             message.serialize(&mut payload)?;
 
@@ -142,30 +165,19 @@ pub mod wormhole_reporter {
         Ok(())
     }
 
-    /// Dispatches a Wormhole message for a specific slot.
+    /// Dispatches a root by posting a message to Wormhole.
     ///
-    /// This function handles the necessary steps to post a message to the Wormhole bridge,
-    /// including paying the required fee (if any), preparing the message payload, and invoking
-    /// the `wormhole::post_message` CPI. It uses Program Derived Addresses (PDAs) to manage
-    /// the Wormhole emitter and message accounts securely and reliably.
+    /// This function handles fee transfers if required and posts a new message to Wormhole
+    /// containing the latest snapshotter root and nonce.
     ///
     /// # Arguments
     ///
-    /// - `ctx`: A `Context` object containing all necessary accounts and data required for the dispatch process.
-    /// - `slot_number`: The slot number for which the message is being dispatched. This is used to
-    ///    retrieve the slot hash and include it in the payload.
-    ///
-    /// # Notes
-    ///
-    /// - The function uses a PDA to manage the Wormhole message account, allowing the program
-    ///   to retain access to and deserialize the message data as needed.
-    /// - The Wormhole emitter and sequence accounts are derived and managed by this program.
-    /// - The finality of the message is determined by the configuration stored in the `config` account.
+    /// * `ctx` - The context containing all the accounts required for dispatching the root.
     ///
     /// # Returns
     ///
-    /// This function returns `Ok(())` on success or a relevant error if the process fails.
-    pub fn dispatch_slot(ctx: Context<DispatchSlot>, slot_number: u64) -> Result<()> {
+    /// * `Result<()>` - Returns `Ok(())` if successful, or an error otherwise.
+    pub fn dispatch_root(ctx: Context<DispatchRoot>) -> Result<()> {
         // If Wormhole requires a fee before posting a message, we need to
         // transfer lamports to the fee collector. Otherwise
         // `wormhole::post_message` will fail.
@@ -203,8 +215,13 @@ pub mod wormhole_reporter {
         let wormhole_emitter = &ctx.accounts.wormhole_emitter;
         let config = &ctx.accounts.config;
 
-        let slot_hash = get_slot(&ctx.accounts.slot_hashes, slot_number)?;
-        let message = Message::from((slot_number, slot_hash));
+        let mut data_slice: &[u8] = &ctx.accounts.snapshotter_config.data.borrow();
+        let snapshotter_config: SnapshotterConfig =
+            AccountDeserialize::try_deserialize(&mut data_slice)?;
+        if !snapshotter_config.root_finalized {
+            return Err(error!(ErrorCode::RootNotFinalized));
+        }
+        let message = Message::from((snapshotter_config.nonce, snapshotter_config.root));
         let mut payload: Vec<u8> = Vec::new();
         message.serialize(&mut payload)?;
 

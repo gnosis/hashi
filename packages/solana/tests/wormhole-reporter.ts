@@ -1,6 +1,6 @@
 import * as anchor from "@coral-xyz/anchor"
 import { expect } from "chai"
-import { Keypair, LAMPORTS_PER_SOL, PublicKey, PublicKeyInitData, SYSVAR_SLOT_HASHES_PUBKEY } from "@solana/web3.js"
+import { PublicKey, PublicKeyInitData } from "@solana/web3.js"
 import {
   deriveAddress,
   getPostMessageCpiAccounts,
@@ -10,10 +10,13 @@ import { getPostedMessage, getProgramSequenceTracker } from "@certusone/wormhole
 import { CONTRACTS } from "@certusone/wormhole-sdk"
 import { Program } from "@coral-xyz/anchor"
 import { AbiCoder } from "ethers"
+import { SYSTEM_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/native/system"
 
 import { WormholeReporter } from "../target/types/wormhole_reporter"
+import { Snapshotter } from "../target/types/snapshotter"
+import { getFakeAccounts } from "./utils"
 
-const WORMHOLE_CONTRACTS = CONTRACTS.TESTNET
+const WORMHOLE_CONTRACTS = CONTRACTS.MAINNET
 const CORE_BRIDGE_PID = new PublicKey(WORMHOLE_CONTRACTS.solana.core)
 
 export const deriveWormholeMessageKey = (_programId: PublicKeyInitData, _sequence: bigint) => {
@@ -33,61 +36,103 @@ export const deriveWormholeMessageKey = (_programId: PublicKeyInitData, _sequenc
 describe("wormhole_reporter", () => {
   const provider = anchor.AnchorProvider.local()
   anchor.setProvider(provider)
-  const payer = new Keypair()
   const reporter = anchor.workspace.WormholeReporter as Program<WormholeReporter>
+  const snapshotter = anchor.workspace.Snapshotter as Program<Snapshotter>
 
   before(async () => {
-    await provider.connection.confirmTransaction(
-      await provider.connection.requestAirdrop(payer.publicKey, 1000 * LAMPORTS_PER_SOL),
-    )
+    const [configKey] = PublicKey.findProgramAddressSync([Buffer.from("config", "utf-8")], snapshotter.programId)
+    await snapshotter.methods
+      .initialize()
+      .accounts({
+        owner: provider.publicKey,
+        config: configKey,
+        systemProgram: SYSTEM_PROGRAM_ID,
+      } as any)
+      .rpc()
+
+    const fakeAccounts = getFakeAccounts(4, snapshotter.programId, "fake11")
+    for (const fakeAccount of fakeAccounts) {
+      await snapshotter.methods
+        .subscribe(fakeAccount)
+        .accounts({
+          config: configKey,
+        } as any)
+        .rpc()
+    }
+
+    await snapshotter.methods
+      .calculateRoot(new anchor.BN(0))
+      .accounts({
+        config: configKey,
+      } as any)
+      .remainingAccounts(
+        fakeAccounts.map((_fakeAccount) => ({
+          isSigner: false,
+          isWritable: false,
+          pubkey: _fakeAccount,
+        })),
+      )
+      .rpc()
   })
 
   describe("initialize", () => {
     it("should set up the program", async () => {
-      const slot = await provider.connection.getSlot()
-      const slotNumberToDispatch = new anchor.BN(slot - 1)
-
       const message = deriveWormholeMessageKey(reporter.programId, 1n)
-      const wormholeAccounts = getPostMessageCpiAccounts(reporter.programId, CORE_BRIDGE_PID, payer.publicKey, message)
+      const wormholeAccounts = getPostMessageCpiAccounts(
+        reporter.programId,
+        CORE_BRIDGE_PID,
+        provider.publicKey,
+        message,
+      )
       const [configKey] = PublicKey.findProgramAddressSync([Buffer.from("config", "utf-8")], reporter.programId)
+      const [snapshotterConfigkey] = PublicKey.findProgramAddressSync(
+        [Buffer.from("config", "utf-8")],
+        snapshotter.programId,
+      )
       await reporter.methods
-        .initialize(slotNumberToDispatch)
+        .initialize()
         .accounts({
-          owner: new PublicKey(payer.publicKey),
+          owner: new PublicKey(provider.publicKey),
           config: configKey,
           wormholeProgram: new PublicKey(CORE_BRIDGE_PID),
-          slotHashes: SYSVAR_SLOT_HASHES_PUBKEY,
+          snapshotterConfig: snapshotterConfigkey,
           ...wormholeAccounts,
         } as any)
-        .signers([payer])
         .rpc()
 
       const configData = await reporter.account.config.fetch(configKey)
-      expect(configData.owner).deep.equals(payer.publicKey)
+      expect(configData.owner).deep.equals(provider.publicKey)
       const { wormholeBridge, wormholeFeeCollector } = getWormholeDerivedAccounts(reporter.programId, CORE_BRIDGE_PID)
       expect(configData.wormhole.bridge).deep.equals(wormholeBridge)
       expect(configData.wormhole.feeCollector).deep.equals(wormholeFeeCollector)
+      expect(configData.snapshotterConfig).deep.equals(snapshotterConfigkey)
     })
   })
 
-  describe("dispatch_slot", () => {
-    it("should dispatch slot", async () => {
-      const slot = await provider.connection.getSlot()
-      const slotNumberToDispatch = new anchor.BN(slot - 1)
-
+  describe("dispatch_root", () => {
+    it("should dispatch a root", async () => {
       const tracker = await getProgramSequenceTracker(provider.connection, reporter.programId, CORE_BRIDGE_PID)
       const message = deriveWormholeMessageKey(reporter.programId, tracker.sequence + 1n)
-      const wormholeAccounts = getPostMessageCpiAccounts(reporter.programId, CORE_BRIDGE_PID, payer.publicKey, message)
+      const wormholeAccounts = getPostMessageCpiAccounts(
+        reporter.programId,
+        CORE_BRIDGE_PID,
+        provider.publicKey,
+        message,
+      )
+      const [configKey] = PublicKey.findProgramAddressSync([Buffer.from("config", "utf-8")], reporter.programId)
+      const [snapshotterConfigkey] = PublicKey.findProgramAddressSync(
+        [Buffer.from("config", "utf-8")],
+        snapshotter.programId,
+      )
 
       await reporter.methods
-        .dispatchSlot(slotNumberToDispatch)
+        .dispatchRoot()
         .accounts({
-          config: PublicKey.findProgramAddressSync([Buffer.from("config", "utf-8")], reporter.programId),
+          config: configKey,
           wormholeProgram: new PublicKey(CORE_BRIDGE_PID),
-          slotHashes: SYSVAR_SLOT_HASHES_PUBKEY,
+          snapshotterConfig: snapshotterConfigkey,
           ...wormholeAccounts,
         } as any)
-        .signers([payer])
         .rpc()
 
       const { payload } = (
@@ -95,12 +140,9 @@ describe("wormhole_reporter", () => {
       ).message
 
       const abiCoder = new AbiCoder()
-      const [[dispatchedSlotNumber], [dispatchedSlotHash]] = abiCoder.decode(
-        ["uint256[]", "bytes32[]"],
-        "0x" + payload.toString("hex"),
-      )
-      expect(parseInt(dispatchedSlotNumber)).equals(slotNumberToDispatch.toNumber())
-      expect(dispatchedSlotHash).to.be.not.null
+      const [[nonce], [root]] = abiCoder.decode(["uint256[]", "bytes32[]"], "0x" + payload.toString("hex"))
+      expect(parseInt(nonce)).equals(1)
+      expect(root).to.be.not.null
     })
   })
 })

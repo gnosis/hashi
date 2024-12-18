@@ -1,5 +1,4 @@
 use anchor_lang::prelude::*;
-use anchor_lang::solana_program::sysvar;
 use wormhole_anchor_sdk::wormhole::{self, program::Wormhole};
 
 use crate::state::{Config, WormholeEmitter};
@@ -93,6 +92,9 @@ pub struct Initialize<'info> {
     /// [`wormhole::post_message`] requires this account be mutable.
     pub wormhole_message: UncheckedAccount<'info>,
 
+    /// CHECK: Snapshotter program
+    pub snapshotter_config: UncheckedAccount<'info>,
+
     /// Clock sysvar.
     pub clock: Sysvar<'info, Clock>,
 
@@ -101,8 +103,4 @@ pub struct Initialize<'info> {
 
     /// System program.
     pub system_program: Program<'info, System>,
-
-    /// CHECK: We are reading from SlotHashes sysvar the latest slot hash
-    #[account(address = sysvar::slot_hashes::ID)]
-    pub slot_hashes: AccountInfo<'info>,
 }

@@ -18,4 +18,12 @@ pub enum ErrorCode {
     #[msg("InvalidSysvar")]
     /// Specified sysvar is wrong.
     InvalidSysvar,
+
+    #[msg("RootNotFinalized")]
+    /// Snapshotter root not finalized
+    RootNotFinalized,
+
+    #[msg("InvalidSnapshotterConfig")]
+    /// Invalid Snapshotter config
+    InvalidSnapshotterConfig,
 }

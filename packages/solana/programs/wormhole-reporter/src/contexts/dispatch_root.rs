@@ -1,5 +1,4 @@
 use anchor_lang::prelude::*;
-use anchor_lang::solana_program::sysvar;
 use wormhole_anchor_sdk::wormhole::{self, program::Wormhole};
 
 use crate::{
@@ -11,7 +10,7 @@ use crate::{
 const SEED_PREFIX_SENT: &[u8; 4] = b"sent";
 
 #[derive(Accounts)]
-pub struct DispatchSlot<'info> {
+pub struct DispatchRoot<'info> {
     #[account(mut)]
     /// Payer will pay Wormhole fee to post a message.
     pub payer: Signer<'info>,
@@ -70,6 +69,13 @@ pub struct DispatchSlot<'info> {
     /// account be mutable.
     pub wormhole_message: UncheckedAccount<'info>,
 
+    /// CHECK: Snapshotter program
+    #[account(
+        mut,
+        address = config.snapshotter_config @ ErrorCode::InvalidSnapshotterConfig
+    )]
+    pub snapshotter_config: UncheckedAccount<'info>,
+
     /// System program.
     pub system_program: Program<'info, System>,
 
@@ -78,8 +84,4 @@ pub struct DispatchSlot<'info> {
 
     /// Rent sysvar.
     pub rent: Sysvar<'info, Rent>,
-
-    /// CHECK: We are reading from SlotHashes sysvar the latest slot hash
-    #[account(address = sysvar::slot_hashes::ID)]
-    pub slot_hashes: AccountInfo<'info>,
 }

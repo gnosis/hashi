@@ -3656,7 +3656,7 @@ version = "0.1.0"
 dependencies = [
  "anchor-lang",
  "message",
- "slots",
+ "snapshotter",
  "wormhole-anchor-sdk",
  "wormhole-io",
 ]

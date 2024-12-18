@@ -33,6 +33,8 @@ pub struct Config {
     /// AKA consistency level. u8 representation of Solana's
     /// [Finality](wormhole_anchor_sdk::wormhole::Finality).
     pub finality: u8,
+    /// Snapshotter config address.
+    pub snapshotter_config: Pubkey
 }
 
 impl Config {
@@ -41,6 +43,7 @@ impl Config {
         + WormholeAddresses::LEN
         + 4 // batch_id
         + 1 // finality
+        + 32 // snapshotter_config
         
     ;
     /// AKA `b"config"`.
