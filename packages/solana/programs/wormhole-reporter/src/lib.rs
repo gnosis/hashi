@@ -215,12 +215,17 @@ pub mod wormhole_reporter {
         let wormhole_emitter = &ctx.accounts.wormhole_emitter;
         let config = &ctx.accounts.config;
 
+        // Deserialize the snapshotter configuration data
         let mut data_slice: &[u8] = &ctx.accounts.snapshotter_config.data.borrow();
         let snapshotter_config: SnapshotterConfig =
             AccountDeserialize::try_deserialize(&mut data_slice)?;
+
+        // Ensure that the root is finalized before proceeding
         if !snapshotter_config.root_finalized {
             return Err(error!(ErrorCode::RootNotFinalized));
         }
+
+        // Create a Wormhole message from the snapshotter's nonce and root
         let message = Message::from((snapshotter_config.nonce, snapshotter_config.root));
         let mut payload: Vec<u8> = Vec::new();
         message.serialize(&mut payload)?;
