@@ -5,21 +5,13 @@ import { SYSTEM_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/native/system"
 import { expect } from "chai"
 
 import { Snapshotter } from "../target/types/snapshotter"
-import { Adapter } from "../target/types/adapter"
-
-const getFakeAccounts = (_length: number, _programId: PublicKey, _salt: string) =>
-  [...Array(_length).keys()]
-    .map((_, _index) =>
-      PublicKey.findProgramAddressSync([Buffer.from(_salt, "utf-8"), Buffer.from(_index.toString())], _programId),
-    )
-    .map(([publicKey]) => publicKey)
+import { getFakeAccounts } from "./utils"
 
 describe("snapshotter", () => {
   const provider = anchor.AnchorProvider.env()
   anchor.setProvider(provider)
 
   const snapshotter = anchor.workspace.Snapshotter as Program<Snapshotter>
-  const mockProgram = anchor.workspace.Adapter as Program<Adapter>
 
   describe("initialize", () => {
     it("should setup the program", async () => {
@@ -41,8 +33,9 @@ describe("snapshotter", () => {
     it("should subscribe an account", async () => {
       const [configKey] = PublicKey.findProgramAddressSync([Buffer.from("config", "utf-8")], snapshotter.programId)
 
+      const [fakeAccount] = getFakeAccounts(1, snapshotter.programId, "fake0")
       await snapshotter.methods
-        .subscribe(mockProgram.programId)
+        .subscribe(fakeAccount)
         .accounts({
           config: configKey,
         } as any)
@@ -50,14 +43,15 @@ describe("snapshotter", () => {
 
       const configData = await snapshotter.account.config.fetch(configKey)
       expect(configData.subscribedAccounts.length).to.be.eq(1)
-      expect(configData.subscribedAccounts[0].toString()).to.be.eq(mockProgram.programId.toString())
+      expect(configData.subscribedAccounts[0].toString()).to.be.eq(fakeAccount.toString())
     })
 
     it("should not subscribe the same account twice", async () => {
       const [configKey] = PublicKey.findProgramAddressSync([Buffer.from("config", "utf-8")], snapshotter.programId)
       try {
+        const [fakeAccount] = getFakeAccounts(1, snapshotter.programId, "fake0")
         await snapshotter.methods
-          .subscribe(mockProgram.programId)
+          .subscribe(fakeAccount)
           .accounts({
             config: configKey,
           } as any)
@@ -97,7 +91,7 @@ describe("snapshotter", () => {
           {
             isSigner: false,
             isWritable: false,
-            pubkey: mockProgram.programId,
+            pubkey: getFakeAccounts(1, snapshotter.programId, "fake0")[0],
           },
           ...fakeAccountsRemainingAccounts,
         ])
@@ -140,7 +134,7 @@ describe("snapshotter", () => {
           {
             isSigner: false,
             isWritable: false,
-            pubkey: mockProgram.programId,
+            pubkey: getFakeAccounts(1, snapshotter.programId, "fake0")[0],
           },
           ...fakeAccountsRemainingAccounts.slice(0, 9),
         ])
