@@ -2,14 +2,27 @@ use crate::*;
 
 #[derive(Accounts)]
 pub struct CalculateRoot<'info> {
-    // The `config` account will be accessed and potentially modified by this instruction.
-    // The `#[account(...)]` attribute macro applies constraints to this account:
-    //   - `seeds = [Config::SEED_PREFIX]`: The account is derived from a program-derived address (PDA)
-    //     using `Config::SEED_PREFIX` as the seed. This ensures that the correct PDA is referenced.
-    //   - `bump`: Used in combination with the seeds to find the PDA. The `bump` ensures a valid PDA
-    //     that is not already taken by another account.
-    //   - `mut`: The `mut` keyword indicates that this account will be mutated (written to)
-    //     during the instruction execution.
+    /// The `config` account holds the snapshotter's configuration and state.
+    ///
+    /// - **PDA Derivation**: The account is a PDA derived using the `Config::SEED_PREFIX` as the seed. This ensures
+    ///   that the account is uniquely identified and securely accessed by the program.
+    ///
+    /// - **Bump Seed**: The `bump` attribute is used to derive the PDA alongside the seeds. It guarantees that the PDA
+    ///   is valid and helps prevent collisions with other accounts.
+    ///
+    /// - **Mutability**: The `mut` keyword indicates that this account will be modified during the instruction execution.
+    ///   Specifically, the `calculate_root` function updates fields within the `Config` account, such as the Merkle root,
+    ///   finalization status, expected batch number, and nonce.
+    ///
+    /// ## Example Usage in `calculate_root` Function:
+    ///
+    /// ```rust
+    /// pub fn calculate_root(ctx: Context<CalculateRoot>, batch: u64) -> Result<()> {
+    ///     let config = &mut ctx.accounts.config;
+    ///     // ... perform operations that modify `config` ...
+    /// }
+    /// ```
+    ///
     #[account(
         seeds = [Config::SEED_PREFIX],
         bump,
@@ -17,8 +30,19 @@ pub struct CalculateRoot<'info> {
     )]
     pub config: Account<'info, Config>,
 
-    // The `clock` field references the Sysvar `Clock` account, which provides the current
-    // cluster time, slot, epoch, etc. It is read-only and used for time-based logic within
-    // the instruction if necessary.
+    /// The `clock` Sysvar account provides access to the current cluster time, slot, epoch, etc.
+    ///
+    /// - **Purpose**: Useful for implementing time-based logic within the instruction, such as enforcing timeouts,
+    ///   scheduling, or validating the timing of certain operations.
+    ///
+    /// - **Read-Only**: The `clock` account is read-only and cannot be modified by the program. It simply provides
+    ///   information about the current state of the Solana cluster's timing parameters.
+    ///
+    /// ## Example Usage in `calculate_root` Function:
+    ///
+    /// ```rust
+    /// let current_epoch = ctx.accounts.clock.epoch;
+    /// ```
+    ///
     pub clock: Sysvar<'info, Clock>,
 }
