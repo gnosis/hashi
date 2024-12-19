@@ -1,0 +1,21 @@
+[package]
+name = "snapshotter"
+version = "0.1.0"
+description = "Snapshotter program which is in charge of creating account snapshots"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "snapshotter"
+
+[features]
+default = []
+cpi = ["no-entrypoint"]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+idl-build = ["anchor-lang/idl-build"]
+
+[dependencies]
+anchor-lang = "0.30.1"
+batch-merkle-tree = { path = "../../shared/batch-merkle-tree" }
