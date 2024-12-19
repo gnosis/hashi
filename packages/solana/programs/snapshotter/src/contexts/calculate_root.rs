@@ -14,15 +14,6 @@ pub struct CalculateRoot<'info> {
     ///   Specifically, the `calculate_root` function updates fields within the `Config` account, such as the Merkle root,
     ///   finalization status, expected batch number, and nonce.
     ///
-    /// ## Example Usage in `calculate_root` Function:
-    ///
-    /// ```rust
-    /// pub fn calculate_root(ctx: Context<CalculateRoot>, batch: u64) -> Result<()> {
-    ///     let config = &mut ctx.accounts.config;
-    ///     // ... perform operations that modify `config` ...
-    /// }
-    /// ```
-    ///
     #[account(
         seeds = [Config::SEED_PREFIX],
         bump,
@@ -37,12 +28,6 @@ pub struct CalculateRoot<'info> {
     ///
     /// - **Read-Only**: The `clock` account is read-only and cannot be modified by the program. It simply provides
     ///   information about the current state of the Solana cluster's timing parameters.
-    ///
-    /// ## Example Usage in `calculate_root` Function:
-    ///
-    /// ```rust
-    /// let current_epoch = ctx.accounts.clock.epoch;
-    /// ```
     ///
     pub clock: Sysvar<'info, Clock>,
 }
