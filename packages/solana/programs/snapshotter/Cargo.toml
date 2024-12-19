@@ -1,7 +1,7 @@
 [package]
 name = "snapshotter"
 version = "0.1.0"
-description = "Created with Anchor"
+description = "Snapshotter program which is in charge of creating account snapshots"
 edition = "2021"
 
 [lib]
