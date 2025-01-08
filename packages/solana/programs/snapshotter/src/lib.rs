@@ -61,7 +61,7 @@ pub mod snapshotter {
         config.root_finalized = false;
         // Set the expected batch to zero, indicating that the first batch to process is batch 0
         config.expected_batch = 0;
-        // Initialize the nonce to zero, which can be used for versioning or replay protection
+        // Initialize the nonce to zero, which can be used for versioning
         config.nonce = 0;
 
         Ok(())

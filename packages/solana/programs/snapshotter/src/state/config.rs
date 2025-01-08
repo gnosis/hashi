@@ -30,7 +30,7 @@ pub struct Config {
 
     /// An unsigned 64-bit integer serving as a nonce, representing the number of calculated roots.
     ///
-    /// - **Purpose**: To provide a unique identifier for each root calculation cycle, aiding in versioning and replay protection.
+    /// - **Purpose**: To provide a unique identifier for each root calculation cycle.
     /// - **Usage**: Incremented each time a new root is calculated, ensuring that each root is distinct and traceable.
     pub nonce: u64,
 }
