@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::hash::{hashv, Hash};
 
-declare_id!("37298hWBczA1od9ytwgSYyhP42WLNiXieAVCxBxAeX9S");
+declare_id!("2ne3SGxug1mVKoPzfurreh8ZEfEx96fHnz4uvQyP2Nr4");
 
 pub mod contexts;
 pub mod error;

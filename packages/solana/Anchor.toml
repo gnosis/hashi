@@ -5,7 +5,7 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-snapshotter = "37298hWBczA1od9ytwgSYyhP42WLNiXieAVCxBxAeX9S"
+snapshotter = "2ne3SGxug1mVKoPzfurreh8ZEfEx96fHnz4uvQyP2Nr4"
 adapter = "4v78nFouRCT7q29cGUoUxeTrwLufsYETH6TFqdiFBonT"
 debridge-reporter = "DkJFdedMeprFUzymuZpvXCTqcUt1zc8uz45UgajsKbWH"
 hashi = "E5d22pcTFz6YbiNDBxyxQ6kHYdT3qHh4gkxDFTm48FQ"
