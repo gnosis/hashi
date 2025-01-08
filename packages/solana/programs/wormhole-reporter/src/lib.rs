@@ -8,7 +8,7 @@ pub use contexts::*;
 pub use error::ErrorCode;
 pub use state::*;
 
-declare_id!("48Vq4rpj7tiZKvpVkzmR5kHUTLy6KdL1c4zkFw17cNZw");
+declare_id!("76SCe1KQo2317svSnu8sRwLdEFugxT399syVU8zJrCre");
 
 #[program]
 pub mod wormhole_reporter {

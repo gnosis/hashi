@@ -5,11 +5,11 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-snapshotter = "2ne3SGxug1mVKoPzfurreh8ZEfEx96fHnz4uvQyP2Nr4"
-adapter = "4v78nFouRCT7q29cGUoUxeTrwLufsYETH6TFqdiFBonT"
-debridge-reporter = "DkJFdedMeprFUzymuZpvXCTqcUt1zc8uz45UgajsKbWH"
-hashi = "E5d22pcTFz6YbiNDBxyxQ6kHYdT3qHh4gkxDFTm48FQ"
-wormhole-reporter = "48Vq4rpj7tiZKvpVkzmR5kHUTLy6KdL1c4zkFw17cNZw"
+snapshotter = "DbSgaTonU4UeQnZNKmKFM5odd5SUk9EVb1QRhyt2L42M"
+adapter = "Bwf5buDZR4YNskrNsohJ3PenxU8SpN7Sn7T6Ko4RWorb"
+debridge-reporter = "JD61fx69iJgRNpomwGKD7YVDwDrmFZAUQmGyRoeBSTw3"
+hashi = "Bi6Py3p5L3tVh9digUw8jZQHukxoJmWR8KPEvVUCQEXN"
+wormhole-reporter = "76SCe1KQo2317svSnu8sRwLdEFugxT399syVU8zJrCre"
 
 [registry]
 url = "https://api.apr.dev"

@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 use adapter::HashAccount;
 
-declare_id!("E5d22pcTFz6YbiNDBxyxQ6kHYdT3qHh4gkxDFTm48FQ");
+declare_id!("Bi6Py3p5L3tVh9digUw8jZQHukxoJmWR8KPEvVUCQEXN");
 
 pub mod contexts;
 pub mod error;
