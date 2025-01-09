@@ -3,7 +3,7 @@ import { ethers, network } from "hardhat"
 
 const YAHO_ADDRESS = "0xbAE4Ebbf42815BB9Bc3720267Ea4496277d60DB8"
 const SOURCE_CHAIN_ID = 1
-const VALID_BLOCK_ROOT = "0x582a3ae01f50fbd2c1951593d5f171eea0ae2ff9006bfb74aa8564f9265f02e6"
+const VALID_BLOCK_HEADER_ROOT = "0x582a3ae01f50fbd2c1951593d5f171eea0ae2ff9006bfb74aa8564f9265f02e6"
 const SOURCE_SLOT = 10793312
 const SLOT = 10793291
 const RECEIPT_ROOT_PROOF = [
@@ -126,8 +126,8 @@ describe("SP1HeliosAdapter", function () {
   describe("verifyAndStoreDispatchedMessage()", function () {
     it("Successfully verifies a valid `MessageDispatched` event and stores hash", async function () {
       const { sp1Helios, sp1HeliosAdapter } = await setup()
-      const setHeaderTx = await sp1Helios.setHeader(SOURCE_SLOT, VALID_BLOCK_ROOT)
-      expect(setHeaderTx).to.emit(sp1Helios.address, "HeadUpdate").withArgs(SOURCE_SLOT, VALID_BLOCK_ROOT)
+      const setHeaderTx = await sp1Helios.setHeader(SOURCE_SLOT, VALID_BLOCK_HEADER_ROOT)
+      expect(setHeaderTx).to.emit(sp1Helios.address, "HeadUpdate").withArgs(SOURCE_SLOT, VALID_BLOCK_HEADER_ROOT)
       const tx = await sp1HeliosAdapter.verifyAndStoreDispatchedMessage(
         SOURCE_SLOT,
         SLOT,
@@ -143,17 +143,35 @@ describe("SP1HeliosAdapter", function () {
       expect(await sp1HeliosAdapter.getHash(SOURCE_CHAIN_ID, expectedId)).to.equal(expectedHash)
     })
 
-    it("Revert with invalid block root", async function () {
+    it("Revert with invalid block header root", async function () {
       const { sp1Helios, sp1HeliosAdapter } = await setup()
-      const INVALID_BLOCK_ROOT = "0x882a3ae01f50fbd2c1951593d5f171eea0ae2ff9006bfb74aa8564f9265f02e6"
-      const setHeaderTx = await sp1Helios.setHeader(SOURCE_SLOT, INVALID_BLOCK_ROOT)
-      expect(setHeaderTx).to.emit(sp1Helios.address, "HeadUpdate").withArgs(SOURCE_SLOT, INVALID_BLOCK_ROOT)
+      const INVALID_BLOCK_HEADER_ROOT = "0x882a3ae01f50fbd2c1951593d5f171eea0ae2ff9006bfb74aa8564f9265f02e6"
+      const setHeaderTx = await sp1Helios.setHeader(SOURCE_SLOT, INVALID_BLOCK_HEADER_ROOT)
+      expect(setHeaderTx).to.emit(sp1Helios.address, "HeadUpdate").withArgs(SOURCE_SLOT, INVALID_BLOCK_HEADER_ROOT)
       await expect(
         sp1HeliosAdapter.verifyAndStoreDispatchedMessage(
           SOURCE_SLOT,
           SLOT,
           RECEIPT_ROOT_PROOF,
           RECEIPT_ROOT,
+          RECEIPT_PROOF,
+          TX_INDEX,
+          LOG_INDEX,
+        ),
+      ).to.be.revertedWithCustomError(sp1HeliosAdapter, "InvalidReceiptsRoot")
+    })
+
+    it("Revert with invalid receipts root", async function () {
+      const { sp1Helios, sp1HeliosAdapter } = await setup()
+      const INVALID_RECEIPTS_ROOT = "0x082b59d750c71bb8258c020d231f7d3e489a8a8f76e13361405084fe2922fe0c"
+      const setHeaderTx = await sp1Helios.setHeader(SOURCE_SLOT, VALID_BLOCK_HEADER_ROOT)
+      expect(setHeaderTx).to.emit(sp1Helios.address, "HeadUpdate").withArgs(SOURCE_SLOT, VALID_BLOCK_HEADER_ROOT)
+      await expect(
+        sp1HeliosAdapter.verifyAndStoreDispatchedMessage(
+          SOURCE_SLOT,
+          SLOT,
+          RECEIPT_ROOT_PROOF,
+          INVALID_RECEIPTS_ROOT,
           RECEIPT_PROOF,
           TX_INDEX,
           LOG_INDEX,
@@ -178,7 +196,7 @@ describe("SP1HeliosAdapter", function () {
 
     it("Revert with invalid receipt", async function () {
       const { sp1Helios, sp1HeliosAdapter } = await setup()
-      await sp1Helios.setHeader(SOURCE_SLOT, VALID_BLOCK_ROOT)
+      await sp1Helios.setHeader(SOURCE_SLOT, VALID_BLOCK_HEADER_ROOT)
       const INVALID_LOG_INDEX = 5
       await expect(
         sp1HeliosAdapter.verifyAndStoreDispatchedMessage(
@@ -197,8 +215,8 @@ describe("SP1HeliosAdapter", function () {
   describe("storeBlockHeader()", function () {
     it("Successfully store block header", async function () {
       const { sp1Helios, sp1HeliosAdapter } = await setup()
-      const setHeaderTx = await sp1Helios.setHeader(SOURCE_SLOT, VALID_BLOCK_ROOT)
-      expect(setHeaderTx).to.emit(sp1Helios.address, "HeadUpdate").withArgs(SOURCE_SLOT, VALID_BLOCK_ROOT)
+      const setHeaderTx = await sp1Helios.setHeader(SOURCE_SLOT, VALID_BLOCK_HEADER_ROOT)
+      expect(setHeaderTx).to.emit(sp1Helios.address, "HeadUpdate").withArgs(SOURCE_SLOT, VALID_BLOCK_HEADER_ROOT)
       const tx = await sp1HeliosAdapter.storeBlockHeader(
         SOURCE_SLOT,
         BLOCK_NUMBER,
@@ -212,7 +230,7 @@ describe("SP1HeliosAdapter", function () {
 
     it("Revert with invalid block number proof", async function () {
       const { sp1Helios, sp1HeliosAdapter } = await setup()
-      await sp1Helios.setHeader(SOURCE_SLOT, VALID_BLOCK_ROOT)
+      await sp1Helios.setHeader(SOURCE_SLOT, VALID_BLOCK_HEADER_ROOT)
       const INVALID_BLOCK_NUMBER = 123456
       await expect(
         sp1HeliosAdapter.storeBlockHeader(
@@ -227,7 +245,7 @@ describe("SP1HeliosAdapter", function () {
 
     it("Revert with invalid block hash proof", async function () {
       const { sp1Helios, sp1HeliosAdapter } = await setup()
-      await sp1Helios.setHeader(SOURCE_SLOT, VALID_BLOCK_ROOT)
+      await sp1Helios.setHeader(SOURCE_SLOT, VALID_BLOCK_HEADER_ROOT)
       const INVALID_BLOCK_HASH = "0x009afc17401bd6c83116e74db07fe0e6b5c98a2e2baa03b341dcacae39a6a7ba"
       await expect(
         sp1HeliosAdapter.storeBlockHeader(
