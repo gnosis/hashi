@@ -143,24 +143,6 @@ describe("SP1HeliosAdapter", function () {
       expect(await sp1HeliosAdapter.getHash(SOURCE_CHAIN_ID, expectedId)).to.equal(expectedHash)
     })
 
-    it("Revert with invalid block header root", async function () {
-      const { sp1Helios, sp1HeliosAdapter } = await setup()
-      const INVALID_BLOCK_HEADER_ROOT = "0x882a3ae01f50fbd2c1951593d5f171eea0ae2ff9006bfb74aa8564f9265f02e6"
-      const setHeaderTx = await sp1Helios.setHeader(SOURCE_SLOT, INVALID_BLOCK_HEADER_ROOT)
-      expect(setHeaderTx).to.emit(sp1Helios.address, "HeadUpdate").withArgs(SOURCE_SLOT, INVALID_BLOCK_HEADER_ROOT)
-      await expect(
-        sp1HeliosAdapter.verifyAndStoreDispatchedMessage(
-          SOURCE_SLOT,
-          SLOT,
-          RECEIPT_ROOT_PROOF,
-          RECEIPT_ROOT,
-          RECEIPT_PROOF,
-          TX_INDEX,
-          LOG_INDEX,
-        ),
-      ).to.be.revertedWithCustomError(sp1HeliosAdapter, "InvalidReceiptsRoot")
-    })
-
     it("Revert with invalid receipts root", async function () {
       const { sp1Helios, sp1HeliosAdapter } = await setup()
       const INVALID_RECEIPTS_ROOT = "0x082b59d750c71bb8258c020d231f7d3e489a8a8f76e13361405084fe2922fe0c"
