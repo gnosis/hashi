@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 import { ISP1LightClient } from "./interfaces/ISP1LightClient.sol";
 import { SSZ } from "../Telepathy/libraries/SimpleSerialize.sol";
-import { Merkle } from "../Electron/lib/Merkle.sol";
+import { Merkle } from "../Spectre/lib/Merkle.sol";
 import { Receipt } from "../Electron/lib/Receipt.sol";
 import { BlockHashAdapter } from "../BlockHashAdapter.sol";
 
@@ -17,7 +17,6 @@ contract SP1HeliosAdapter is BlockHashAdapter {
     uint256 public immutable SOURCE_CHAIN_ID;
 
     error HeaderNotAvailable();
-    error InvalidSlot();
     error InvalidBlockNumberProof();
     error InvalidBlockHashProof();
     error InvalidReceiptsRoot();
@@ -52,10 +51,8 @@ contract SP1HeliosAdapter is BlockHashAdapter {
     }
 
     function verifyAndStoreDispatchedMessage(
-        uint256 headerSlot,
-        uint256 slot,
-        bytes32[] calldata slotProof,
-        uint256 txSlot,
+        uint64 headerSlot,
+        uint64 txSlot,
         bytes32[] memory receiptsRootProof,
         bytes32 receiptsRoot,
         bytes[] memory receiptProof,
@@ -64,15 +61,11 @@ contract SP1HeliosAdapter is BlockHashAdapter {
     ) external {
         bytes32 header = _getHeader(headerSlot);
 
-        if (!SSZ.verifySlot(slot, slotProof, header)) {
-            revert InvalidSlot();
-        }
-
         bool isValidReceiptsRoot = Merkle.verifyReceiptsRoot(
             receiptsRootProof,
             receiptsRoot,
-            uint64(slot),
-            uint64(txSlot),
+            headerSlot,
+            txSlot,
             header
         );
         if (!isValidReceiptsRoot) revert InvalidReceiptsRoot();
