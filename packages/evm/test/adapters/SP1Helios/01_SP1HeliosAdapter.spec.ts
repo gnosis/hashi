@@ -1,10 +1,11 @@
 import { expect } from "chai"
 import { ethers, network } from "hardhat"
 
+const YAHO_ADDRESS = "0xbAE4Ebbf42815BB9Bc3720267Ea4496277d60DB8"
+const SOURCE_CHAIN_ID = 1
 const VALID_BLOCK_ROOT = "0x582a3ae01f50fbd2c1951593d5f171eea0ae2ff9006bfb74aa8564f9265f02e6"
 const SOURCE_SLOT = 10793312
 const SLOT = 10793291
-
 const RECEIPT_ROOT_PROOF = [
   "0x025719a7cf0994dfee5814b8df2668aef635fcb68d6113ac34aab245954c7e27",
   "0xae5aff3669f116f0172e45bb98acaeb928feed6f7a1980fe75b10ae713d9dee7",
@@ -41,20 +42,13 @@ const RECEIPT_ROOT_PROOF = [
   "0x35455b7e495b26fbf1a13a3c9cea05698526e570c0afacf9aa7646f9f6b6eb43",
 ]
 const RECEIPT_ROOT = "0xa82b59d750c71bb8258c020d231f7d3e489a8a8f76e13361405084fe2922fe0c"
-
 const RECEIPT_PROOF = [
   "0xf90131a04506f1f147d67f824b2577e63e0f2b87622a0e8061417cf25bd9b916fbc547f7a018970ac6ca17dc7b28485189420c394aee41cfc8359c26ce5aa95bea3614fdc9a053d7665fa3041425aab804bd97634ace978cf93265dea8dc0c3cc3f7e1a66f69a0fa51f7ab92982b2b2d66bbe220c8e4d98905c4cf65672b557c2d6921969e0d83a031d25f6a233e48ed01d99adc1f62efc23cfb39a78cf5c8ce7ab8065b20b5add4a08936e6d7915b8518ebd56baa94d689ff5388cf3d3e1e5d40ce9755c17df8afe9a025ae97bb264e338142d40b2bc59dde11cfb9ef0ad21b034c368de4666a37056ba0e00c10b02373e8cc391dfdbc25c9dfa955f80d1fd19a165002fec20af708db0da01b484392f5c3a1641a25b380ec41ca2feaca9b7d5ab2623231b82b744f13cbf68080808080808080",
   "0xf90211a0005f1fd974c52f9b0d8e951cc3adf6ed7a2e55e4ce6463427551de2b325aff70a011c44cdcbe902a2b5ea23b55771727ad9083e6f039feead970b8f31dd0d96654a07d9e54e191ae316704573a5171218b0072c917384f0727f44e2a58c49f19eda3a0481432a65758c53aad04066ae15545738ad58912d02e4fd9260ed77f2889e047a00b304a3e6f098cc325fe45a532b87c952be15db57a03a243511940ea73e8ca70a02687115eb26aff8e5916582f19ca6258b3e38e8faaa4f9308af7de038212cae4a0c34a0bbf7eca4bf956cda77ac4e8324aefcad3a6a32e5af521c60ccac5cca82ba04a6df60828fead82d648aa31ab485b45e09e12b32cb829f00b5ca6078c6ec1f5a0514ddfe76b7ce8673cee4a4dc57483498e5e8f6fb88a076b6c04346fdddb27caa014bfa86cdb03f45458833f43b22b03767dd35be7be5368f4ef1674af8b09f15fa0ffb68469eac5ca20e1f0c02e791196b33612ff6369d9263777ad8c5d1f941f2fa0a82e4d829416ae733d473c725dfa49e7503bc1df06176a41a8796bee4377420ba0e7eb04e84f6ae07021090c8a3179ff27dac3d599893dd66f54c622e388c63ecaa02401136b0ab6a48b1f7336818595146aef0556f6e7ed9628d2f5464c73fd70d6a0dc06eca393e539b6d24fcca3ab942853f9af303d3345a9cc5812722ea737cbf1a0b789057be47cd9d4f537519c37340c1df9ce3e12cd31e8b07c3d27f2d547808f80",
   "0xf9072820b9072402f90720018377492cb9010000004000000000000000000000000001000000000000000080000000000000000000000100000000000000000000000002000000080010000000000200000000000820000000004008000008000000800000000000020000000000008000000000000010000000000080000000000000100000000000000000000010000000000000000000000000008000400000000000000001000000000000000000000000000001000000000000000000000000000000000000000000000000800000808000000002000000200000000000480000000000000000000000000000000000000000200020100000900000000000000000002040200004480000000000000000f90615f87a94c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2f842a0e1fffcc4923d04b559f4d29a8bfc6cda04eb5b0d3c460751c2402c5c5cc9109ca0000000000000000000000000a6439ca0fcba1d0f80df0be6a17220fed9c9038aa00000000000000000000000000000000000000000000000000214e8348c4f0000f89b94c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2f863a0ddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3efa0000000000000000000000000a6439ca0fcba1d0f80df0be6a17220fed9c9038aa000000000000000000000000088ad09518695c6c3712ac10a214be5109a655671a00000000000000000000000000000000000000000000000000214e8348c4f0000f9015c944c36d2919e407f0cc2ee3c993ccf8ac26d9ce64ef842a0482515ce3d9494a37ce83f18b72b363449458435fafdd7a53ddea7460fe01b58a0000500004ac82b41bd819dd871590b510316f2385cb196fb00000000000286bcb90100000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000b5000500004ac82b41bd819dd871590b510316f2385cb196fb00000000000286bc88ad09518695c6c3712ac10a214be5109a655671f6a78083ca3e2a662d6dd1703c939c8ace2e268d001e84800101000164125e4cfb000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2000000000000000000000000e39bd9e3af2054dd193b0d0217cfbd460f1049020000000000000000000000000000000000000000000000000214e8348c4f00000000000000000000000000f902dc94bae4ebbf42815bb9bc3720267ea4496277d60db8f842a0218247aabc759e65b5bb92ccc074f9d62cd187259f2a0984c3c9cf91f67ff7cfa0e22bf265e1b60d9ee57651054d617b61d3efef63f7bea6a0ab54d5391ed8c735b9028000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000001f9d000000000000000000000000000000000000000000000000000000000000006400000000000000000000000000000000000000000000000000000000000000010000000000000000000000004c36d2919e407f0cc2ee3c993ccf8ac26d9ce64e00000000000000000000000075df5af045d91108662d8080fd1fefad6aa0bb59000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001e0000000000000000000000000000000000000000000000000000000000000022000000000000000000000000000000000000000000000000000000000000000b5000500004ac82b41bd819dd871590b510316f2385cb196fb00000000000286bc88ad09518695c6c3712ac10a214be5109a655671f6a78083ca3e2a662d6dd1703c939c8ace2e268d001e84800101000164125e4cfb000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2000000000000000000000000e39bd9e3af2054dd193b0d0217cfbd460f1049020000000000000000000000000000000000000000000000000214e8348c4f000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000003a259a51d200d902ac25be2005d95eada6a1bfc5f8bc9488ad09518695c6c3712ac10a214be5109a655671f884a059a9a8027b9c87b961e254899821c9a276b5efc35d1f7409ea4f291470f1629aa0000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2a0000000000000000000000000a6439ca0fcba1d0f80df0be6a17220fed9c9038aa0000500004ac82b41bd819dd871590b510316f2385cb196fb00000000000286bca00000000000000000000000000000000000000000000000000214e8348c4f0000",
 ]
-
 const TX_INDEX = "0x4b"
-
 const LOG_INDEX = 3
-
-// Example tx from: https://etherscan.io/tx/0x9c1ad9a8df978cb7050fd3bd5c884e202a6697ca70ee4a978cd0149562fc01b1/advanced
-const MESSAGE_DISPATCHED_EVENT_TX_HASH = "0x9c1ad9a8df978cb7050fd3bd5c884e202a6697ca70ee4a978cd0149562fc01b1"
-
 const BLOCK_NUMBER = 21580126
 const BLOCK_NUMBER_PROOF = [
   "0x80c3c90100000000000000000000000000000000000000000000000000000000",
@@ -73,9 +67,7 @@ const BLOCK_NUMBER_PROOF = [
   "0xf5a5fd42d16a20302798ef6ed309979b43003d2320d9f0e8ea9831a92759fb4b",
   "0x03eb5d3665811443a3aa6250af430e14e18714095c6ed5f01b32cbb224e99f11",
 ]
-
 const BLOCK_HASH = "0x0c9afc17401bd6c83116e74db07fe0e6b5c98a2e2baa03b341dcacae39a6a7ba"
-
 const BLOCK_HASH_PROOF = [
   "0xd044ee476f568d6d48980051406d362424c11c890f3d23c48264f167a3f8f98d",
   "0x19c7c280460442871d35b1938599152c5edf27aeaae66923e1f9dcbbb783a093",
@@ -95,11 +87,8 @@ const BLOCK_HASH_PROOF = [
 ]
 
 const setup = async () => {
-  await network.provider.request({ method: "hardhat_reset", params: [] })
   const signers = await ethers.getSigners()
   const admin = signers[0]
-  const yahoAddress = "0xbAE4Ebbf42815BB9Bc3720267Ea4496277d60DB8"
-  const sourceChainId = 1
   const EthereumTrieDB = await ethers.getContractFactory("EthereumTrieDB")
   const ethereumTrieDB = await EthereumTrieDB.deploy()
   const MerklePatricia = await ethers.getContractFactory("MerklePatricia", {
@@ -108,45 +97,38 @@ const setup = async () => {
     },
   })
   const merklePatricia = await MerklePatricia.deploy()
-  const SP1HeliosAdapterFactory = await ethers.getContractFactory("SP1HeliosAdapter", {
+  const SP1HeliosAdapter = await ethers.getContractFactory("SP1HeliosAdapter", {
     libraries: {
       MerklePatricia: merklePatricia.address,
     },
   })
-
   const MockSP1Helios = await ethers.getContractFactory("MockSP1Helios")
-  const SP1Helios = await MockSP1Helios.deploy()
+  const sp1Helios = await MockSP1Helios.deploy()
+  const sp1HeliosAdapter = await SP1HeliosAdapter.deploy(sp1Helios.address, SOURCE_CHAIN_ID, YAHO_ADDRESS)
 
-  const SP1HeliosAdapter = await SP1HeliosAdapterFactory.deploy(SP1Helios.address, sourceChainId, yahoAddress)
-  await SP1HeliosAdapter.deployed()
   return {
     admin,
-    yahoAddress,
-    sourceChainId,
-    SP1Helios,
-    SP1HeliosAdapter,
+    sp1Helios,
+    sp1HeliosAdapter,
   }
 }
 
 describe("SP1HeliosAdapter", function () {
   describe("constructor", function () {
     it("Successfully deploys contract with correct state", async function () {
-      const { yahoAddress, sourceChainId, SP1Helios, SP1HeliosAdapter } = await setup()
-
-      expect(await SP1HeliosAdapter.SP1_HELIOS_ADDRESS()).to.equal(SP1Helios.address)
-      expect(await SP1HeliosAdapter.SOURCE_CHAIN_ID()).to.equal(sourceChainId)
-      expect(await SP1HeliosAdapter.SOURCE_YAHO()).to.equal(yahoAddress)
+      const { sp1Helios, sp1HeliosAdapter } = await setup()
+      expect(await sp1HeliosAdapter.SP1_HELIOS_ADDRESS()).to.equal(sp1Helios.address)
+      expect(await sp1HeliosAdapter.SOURCE_CHAIN_ID()).to.equal(SOURCE_CHAIN_ID)
+      expect(await sp1HeliosAdapter.SOURCE_YAHO()).to.equal(YAHO_ADDRESS)
     })
   })
 
   describe("verifyAndStoreDispatchedMessage()", function () {
     it("Successfully verifies a valid `MessageDispatched` event and stores hash", async function () {
-      const { sourceChainId, SP1Helios, SP1HeliosAdapter } = await setup()
-      const setHeaderTx = await SP1Helios.setHeader(SOURCE_SLOT, VALID_BLOCK_ROOT)
-
-      expect(setHeaderTx).to.emit(SP1Helios.address, "HeadUpdate").withArgs(SOURCE_SLOT, VALID_BLOCK_ROOT)
-
-      const tx = await SP1HeliosAdapter.verifyAndStoreDispatchedMessage(
+      const { sp1Helios, sp1HeliosAdapter } = await setup()
+      const setHeaderTx = await sp1Helios.setHeader(SOURCE_SLOT, VALID_BLOCK_ROOT)
+      expect(setHeaderTx).to.emit(sp1Helios.address, "HeadUpdate").withArgs(SOURCE_SLOT, VALID_BLOCK_ROOT)
+      const tx = await sp1HeliosAdapter.verifyAndStoreDispatchedMessage(
         SOURCE_SLOT,
         SLOT,
         RECEIPT_ROOT_PROOF,
@@ -155,22 +137,19 @@ describe("SP1HeliosAdapter", function () {
         TX_INDEX,
         LOG_INDEX,
       )
-
       const expectedId = "102300351172944368967581048037513912832582585385136646442487813612557882148661"
       const expectedHash = "0x1defdce1a91193956fe019172f08c3f88c340c6472c678c8fc84f14e15643862"
-
-      expect(tx).to.emit(SP1HeliosAdapter.address, "HashStored").withArgs(expectedId, expectedHash)
-      expect(await SP1HeliosAdapter.getHash(sourceChainId, expectedId)).to.equal(expectedHash)
+      expect(tx).to.emit(sp1HeliosAdapter.address, "HashStored").withArgs(expectedId, expectedHash)
+      expect(await sp1HeliosAdapter.getHash(SOURCE_CHAIN_ID, expectedId)).to.equal(expectedHash)
     })
+
     it("Revert with invalid block root", async function () {
-      const { SP1Helios, SP1HeliosAdapter } = await setup()
+      const { sp1Helios, sp1HeliosAdapter } = await setup()
       const INVALID_BLOCK_ROOT = "0x882a3ae01f50fbd2c1951593d5f171eea0ae2ff9006bfb74aa8564f9265f02e6"
-      const setHeaderTx = await SP1Helios.setHeader(SOURCE_SLOT, INVALID_BLOCK_ROOT)
-
-      expect(setHeaderTx).to.emit(SP1Helios.address, "HeadUpdate").withArgs(SOURCE_SLOT, INVALID_BLOCK_ROOT)
-
+      const setHeaderTx = await sp1Helios.setHeader(SOURCE_SLOT, INVALID_BLOCK_ROOT)
+      expect(setHeaderTx).to.emit(sp1Helios.address, "HeadUpdate").withArgs(SOURCE_SLOT, INVALID_BLOCK_ROOT)
       await expect(
-        SP1HeliosAdapter.verifyAndStoreDispatchedMessage(
+        sp1HeliosAdapter.verifyAndStoreDispatchedMessage(
           SOURCE_SLOT,
           SLOT,
           RECEIPT_ROOT_PROOF,
@@ -179,14 +158,13 @@ describe("SP1HeliosAdapter", function () {
           TX_INDEX,
           LOG_INDEX,
         ),
-      ).to.be.revertedWithCustomError(SP1HeliosAdapter, "InvalidReceiptsRoot")
+      ).to.be.revertedWithCustomError(sp1HeliosAdapter, "InvalidReceiptsRoot")
     })
 
     it("Revert when block root is missing", async function () {
-      const { SP1HeliosAdapter } = await setup()
-
+      const { sp1HeliosAdapter } = await setup()
       await expect(
-        SP1HeliosAdapter.verifyAndStoreDispatchedMessage(
+        sp1HeliosAdapter.verifyAndStoreDispatchedMessage(
           SOURCE_SLOT,
           SLOT,
           RECEIPT_ROOT_PROOF,
@@ -195,16 +173,15 @@ describe("SP1HeliosAdapter", function () {
           TX_INDEX,
           LOG_INDEX,
         ),
-      ).to.be.revertedWithCustomError(SP1HeliosAdapter, "HeaderNotAvailable")
+      ).to.be.revertedWithCustomError(sp1HeliosAdapter, "HeaderNotAvailable")
     })
 
     it("Revert with invalid receipt", async function () {
-      const { SP1Helios, SP1HeliosAdapter } = await setup()
-      await SP1Helios.setHeader(SOURCE_SLOT, VALID_BLOCK_ROOT)
-
+      const { sp1Helios, sp1HeliosAdapter } = await setup()
+      await sp1Helios.setHeader(SOURCE_SLOT, VALID_BLOCK_ROOT)
       const INVALID_LOG_INDEX = 5
       await expect(
-        SP1HeliosAdapter.verifyAndStoreDispatchedMessage(
+        sp1HeliosAdapter.verifyAndStoreDispatchedMessage(
           SOURCE_SLOT,
           SLOT,
           RECEIPT_ROOT_PROOF,
@@ -213,58 +190,54 @@ describe("SP1HeliosAdapter", function () {
           TX_INDEX,
           INVALID_LOG_INDEX,
         ),
-      ).to.be.revertedWithCustomError(SP1HeliosAdapter, "ErrorParseReceipt")
+      ).to.be.revertedWithCustomError(sp1HeliosAdapter, "ErrorParseReceipt")
     })
   })
 
   describe("storeBlockHeader()", function () {
     it("Successfully store block header", async function () {
-      const { sourceChainId, SP1Helios, SP1HeliosAdapter } = await setup()
-      const setHeaderTx = await SP1Helios.setHeader(SOURCE_SLOT, VALID_BLOCK_ROOT)
-
-      expect(setHeaderTx).to.emit(SP1Helios.address, "HeadUpdate").withArgs(SOURCE_SLOT, VALID_BLOCK_ROOT)
-
-      const tx = await SP1HeliosAdapter.storeBlockHeader(
+      const { sp1Helios, sp1HeliosAdapter } = await setup()
+      const setHeaderTx = await sp1Helios.setHeader(SOURCE_SLOT, VALID_BLOCK_ROOT)
+      expect(setHeaderTx).to.emit(sp1Helios.address, "HeadUpdate").withArgs(SOURCE_SLOT, VALID_BLOCK_ROOT)
+      const tx = await sp1HeliosAdapter.storeBlockHeader(
         SOURCE_SLOT,
         BLOCK_NUMBER,
         BLOCK_NUMBER_PROOF,
         BLOCK_HASH,
         BLOCK_HASH_PROOF,
       )
-
-      expect(tx).to.emit(SP1HeliosAdapter.address, "HashStored").withArgs(BLOCK_NUMBER, BLOCK_HASH)
-      expect(await SP1HeliosAdapter.getHash(sourceChainId, BLOCK_NUMBER)).to.equal(BLOCK_HASH)
+      expect(tx).to.emit(sp1HeliosAdapter.address, "HashStored").withArgs(BLOCK_NUMBER, BLOCK_HASH)
+      expect(await sp1HeliosAdapter.getHash(SOURCE_CHAIN_ID, BLOCK_NUMBER)).to.equal(BLOCK_HASH)
     })
 
     it("Revert with invalid block number proof", async function () {
-      const { SP1Helios, SP1HeliosAdapter } = await setup()
-      await SP1Helios.setHeader(SOURCE_SLOT, VALID_BLOCK_ROOT)
-
+      const { sp1Helios, sp1HeliosAdapter } = await setup()
+      await sp1Helios.setHeader(SOURCE_SLOT, VALID_BLOCK_ROOT)
       const INVALID_BLOCK_NUMBER = 123456
       await expect(
-        SP1HeliosAdapter.storeBlockHeader(
+        sp1HeliosAdapter.storeBlockHeader(
           SOURCE_SLOT,
           INVALID_BLOCK_NUMBER,
           BLOCK_NUMBER_PROOF,
           BLOCK_HASH,
           BLOCK_HASH_PROOF,
         ),
-      ).to.be.revertedWithCustomError(SP1HeliosAdapter, "InvalidBlockNumberProof")
+      ).to.be.revertedWithCustomError(sp1HeliosAdapter, "InvalidBlockNumberProof")
     })
 
     it("Revert with invalid block hash proof", async function () {
-      const { SP1Helios, SP1HeliosAdapter } = await setup()
-      await SP1Helios.setHeader(SOURCE_SLOT, VALID_BLOCK_ROOT)
+      const { sp1Helios, sp1HeliosAdapter } = await setup()
+      await sp1Helios.setHeader(SOURCE_SLOT, VALID_BLOCK_ROOT)
       const INVALID_BLOCK_HASH = "0x009afc17401bd6c83116e74db07fe0e6b5c98a2e2baa03b341dcacae39a6a7ba"
       await expect(
-        SP1HeliosAdapter.storeBlockHeader(
+        sp1HeliosAdapter.storeBlockHeader(
           SOURCE_SLOT,
           BLOCK_NUMBER,
           BLOCK_NUMBER_PROOF,
           INVALID_BLOCK_HASH,
           BLOCK_HASH_PROOF,
         ),
-      ).to.be.revertedWithCustomError(SP1HeliosAdapter, "InvalidBlockHashProof")
+      ).to.be.revertedWithCustomError(sp1HeliosAdapter, "InvalidBlockHashProof")
     })
   })
 })
