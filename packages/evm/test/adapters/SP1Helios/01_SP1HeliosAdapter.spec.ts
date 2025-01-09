@@ -161,7 +161,7 @@ describe("SP1HeliosAdapter", function () {
       ).to.be.revertedWithCustomError(sp1HeliosAdapter, "InvalidReceiptsRoot")
     })
 
-    it("Revert when block root is missing", async function () {
+    it("Revert when header is not available", async function () {
       const { sp1HeliosAdapter } = await setup()
       await expect(
         sp1HeliosAdapter.verifyAndStoreDispatchedMessage(
