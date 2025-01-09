@@ -1,0 +1,51 @@
+import { JsonRpcBlock } from "@ethereumjs/block"
+
+export const blockHeaderFromRpc = (_block: JsonRpcBlock) => {
+  const {
+    parentHash,
+    sha3Uncles,
+    miner,
+    stateRoot,
+    transactionsRoot,
+    receiptsRoot,
+    logsBloom,
+    difficulty,
+    number,
+    gasLimit,
+    gasUsed,
+    timestamp,
+    extraData,
+    mixHash,
+    nonce,
+    baseFeePerGas,
+    withdrawalsRoot,
+    blobGasUsed,
+    excessBlobGas,
+    parentBeaconBlockRoot,
+    requestsRoot,
+  } = _block
+
+  return {
+    parentHash,
+    uncleHash: sha3Uncles,
+    coinbase: miner,
+    stateRoot,
+    transactionsTrie: transactionsRoot,
+    receiptTrie: receiptsRoot,
+    logsBloom,
+    difficulty,
+    number,
+    gasLimit,
+    gasUsed,
+    timestamp,
+    extraData,
+    mixHash,
+    nonce,
+    baseFeePerGas,
+    withdrawalsRoot,
+    blobGasUsed,
+    excessBlobGas,
+    parentBeaconBlockRoot,
+    requestsRoot,
+  }
+}

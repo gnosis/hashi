@@ -1,5 +1,6 @@
 import "@nomicfoundation/hardhat-chai-matchers"
 import "@nomicfoundation/hardhat-toolbox"
+import "@openzeppelin/hardhat-upgrades"
 import { config as dotenvConfig } from "dotenv"
 import "hardhat-change-network"
 import type { HardhatUserConfig } from "hardhat/config"

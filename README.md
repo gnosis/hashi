@@ -29,19 +29,19 @@ For detailed documentation, [read the full guide here](https://crosschain-allian
 
 - Build custom oracle adapter contracts for any hash oracle mechanism they would like to use.
 - Query an oracle for the hash for a given ID in a given domain. (e.g. header of a block on a given chainId)
-- Query a set of oracles the hash for a given ID in a given domain.
-- Query for a unanimously agreed upon block hash from a set of oracles for a given ID in a given domain.
+- Query a set of adapters the hash for a given ID in a given domain.
+- Query for a unanimously agreed upon block hash from a set of adapters for a given ID in a given domain.
 
 **ShoyuBashi** (所有橋) allows:
 
 - An `owner` account to:
   - Define an instance of Hashi to query.
-  - Define a set of oracles for each domain.
-  - Define a threshold of oracles that must agree on a hash for each domain.
+  - Define a set of adapters for each domain.
+  - Define a threshold of adapters that must agree on a hash for each domain.
   - Change any of the above settings at any time.
 - Anyone to:
-  - Query for a unanimously agreed on hash from that full set of oracles.
-  - Query for a hash agreed upon by a threshold of oracles for a given block on a given chain; the provided oracles must all agree on the hash for the ID, must all be enabled as oracles for the given domain, and must exceed the threshold for the domain.
+  - Query for a unanimously agreed on hash from that full set of adapters.
+  - Query for a hash agreed upon by a threshold of adapters for a given block on a given chain; the provided adapters must all agree on the hash for the ID, must all be enabled as adapters for the given domain, and must exceed the threshold for the domain.
 
 **Yaho** (ヤッホー) allows users to:
 
@@ -51,14 +51,14 @@ For detailed documentation, [read the full guide here](https://crosschain-allian
 - relay previously stored messages to any number of message adapters
 - dispatch messages and relay them to adapters in a single call
 
-**Yaru** (やる) allows `owner` to:
+**Yaru** (やる) allows anyone to:
 
 - execute arbitrary messages passed from Yaho
 
 # Working with Hashi
 
 **Node**
-This repository targets v18 of node. We recommend using [nvm](https://github.com/nvm-sh/nvm) to manage your node version.  
+This repository targets v22 of node. We recommend using [nvm](https://github.com/nvm-sh/nvm) to manage your node version.  
 Once installed, you should change versions automatically with the `.nvmrc` file.
 
 **Docker**
@@ -80,7 +80,7 @@ This monorepo uses [Yarn Workspaces](https://yarnpkg.com/features/workspaces). I
 - Installing dependencies
 
   ```sh
-  git clone https://github.com/gnosis/hashi # Clone the repo
+  git clone https://github.com/gnosis/hashi
   cd hashi
   nvm use
   yarn install
