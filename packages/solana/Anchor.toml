@@ -1,0 +1,40 @@
+[toolchain]
+
+[features]
+resolution = true
+skip-lint = false
+
+[programs.localnet]
+snapshotter = "DbSgaTonU4UeQnZNKmKFM5odd5SUk9EVb1QRhyt2L42M"
+adapter = "Bwf5buDZR4YNskrNsohJ3PenxU8SpN7Sn7T6Ko4RWorb"
+debridge-reporter = "JD61fx69iJgRNpomwGKD7YVDwDrmFZAUQmGyRoeBSTw3"
+hashi = "Bi6Py3p5L3tVh9digUw8jZQHukxoJmWR8KPEvVUCQEXN"
+wormhole-reporter = "76SCe1KQo2317svSnu8sRwLdEFugxT399syVU8zJrCre"
+
+[registry]
+url = "https://api.apr.dev"
+
+[provider]
+cluster = "Localnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
+
+[test]
+startup_wait = 10000
+
+[test.validator]
+url = "https://api.mainnet-beta.solana.com"
+
+### Wormhole Core Bridge
+[[test.validator.clone]]
+address = "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth"
+
+### Wormhole Bridge
+[[test.validator.clone]]
+address = "2yVjuQwpsvdsrywzsJJVs9Ueh4zayyo5DYJbBNc3DDpn"
+
+### Wormhole Fee Collector
+[[test.validator.clone]]
+address = "9bFNrXNb2WTx8fMHXCheaZqkLZ3YCCaiqTftHxeintHy"
