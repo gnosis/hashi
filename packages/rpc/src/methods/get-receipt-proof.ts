@@ -104,7 +104,6 @@ const getReceiptProof = async ({ logIndex, blockNumber, chainId, transactionHash
     const receiptKey = encodeIndex(targetTransactionReceipt!.transactionIndex)
     const proof = await trie.createProof(receiptKey)
 
-    console.log(log)
     return {
       proof: [
         chainId,
