@@ -1,0 +1,27 @@
+[package]
+name = "wormhole-reporter"
+version = "0.1.0"
+description = "Womrhole reporter"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "wormhole_reporter"
+
+[features]
+default = ["mainnet"]
+mainnet = ["wormhole-anchor-sdk/mainnet"]
+devnet = ["wormhole-anchor-sdk/solana-devnet"]
+localnet = ["wormhole-anchor-sdk/tilt-devnet"]
+cpi = ["no-entrypoint"]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+idl-build = ["anchor-lang/idl-build", "wormhole-anchor-sdk/idl-build"]
+
+[dependencies]
+anchor-lang = "0.30.1"
+message = { path = "../../shared/message" }
+wormhole-anchor-sdk = { version = "0.30.1-alpha.3", default-features = false }
+wormhole-io = "0.1.3"
+snapshotter = { path = "../snapshotter", default-features = false, features = ["cpi"] }

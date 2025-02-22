@@ -1,0 +1,18 @@
+[package]
+name = "batch-merkle-tree"
+version = "0.1.0"
+description = "A merkle tree that allows to calculate a root over a batch of leaves"
+edition = "2021"
+
+[features]
+default = []
+cpi = ["no-entrypoint"]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+idl-build = ["anchor-lang/idl-build"]
+
+[dependencies]
+alloy-sol-types = "0.7.0"
+alloy-primitives = "0.7.0"
+anchor-lang = "0.30.1"
