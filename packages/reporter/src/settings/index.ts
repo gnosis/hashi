@@ -5,6 +5,7 @@ import {
   arbitrumSepolia,
   avalanche,
   base,
+  baseSepolia,
   bsc,
   bscTestnet,
   gnosis,
@@ -205,6 +206,9 @@ export const settings = {
           [arbitrumSepolia.name]: {
             LayerZeroAdapter: process.env.SEPOLIA_ARB_LZ_ADAPTER as `0x${string}`,
           },
+          [baseSepolia.name]: {
+            LayerZeroAdapter: process.env.BASE_SEPOLIA_LZ_ADAPTER as `0x${string}`,
+          },
         },
         [goerli.name]: {
           [bscTestnet.name]: {
@@ -384,6 +388,9 @@ export const settings = {
           },
           [arbitrumSepolia.name]: {
             LayerZeroReporter: process.env.SEPOLIA_ARB_LZ_REPORTER as `0x${string}`,
+          },
+          [baseSepolia.name]: {
+            LayerZeroReporter: process.env.SEPOLIA_LZ_REPORTER as `0x${string}`,
           },
         },
         [goerli.name]: {
