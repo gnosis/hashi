@@ -34,11 +34,18 @@ yarn start:dev
 
 ### Building and Running the Docker Image
 
-On the root's `docker-compose.yml`, run the following command:
+Run with docker build
+
+```sh
+cd ../.. # To the root level
+docker build -t hashi_reporter -f packages/reporter/Dockerfile .
+```
+
+Run with docker compose
 
 ```sh
 cd ../..  # To the root level
-docker compose up --build mongodb hashi_reporter
+docker compose up --build hashi_reporter
 ```
 
 ### Viewing Logs
