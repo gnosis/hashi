@@ -118,4 +118,4 @@ PURPOSE.
 
 ## License
 
-Created under the [LGPL-3.0+ license](LICENSE).
+Created under the [LGPL-3.0+ license](LICENSE.md).
