@@ -31,3 +31,10 @@ struct ReceiptProof {
     bytes transactionIndex; // The index of the transaction within the block's transaction list (RLP-encoded).
     uint256 logIndex; // The index of the log entry within the transaction receipt being proven.
 }
+
+struct SolanaAccountProof {
+    uint256 chainId; // The ID of the blockchain where the proof is applicable.
+    uint256 nonce; // A unique identifier used to locate the specific Merkle root in Hashi for which the proof verification is performed.
+    bytes account; // The Solana account data with this format: pubkey, lamports, data, owner, rent_epoch
+    bytes[][] accountProof; // Merkle proof to verify the accunt within the merkle root stored in Hashi
+}

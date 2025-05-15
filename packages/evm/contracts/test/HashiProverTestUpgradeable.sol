@@ -19,5 +19,9 @@ contract HashiProverTestUpgradeable is UUPSUpgradeable, HashiProverUpgradeable {
         return verifyForeignEvent(proof);
     }
 
+    function getSolanaAccount(SolanaAccountProof calldata proof) external view returns (bytes memory) {
+        return verifyForeignSolanaAccount(proof);
+    }
+
     function _authorizeUpgrade(address) internal override {}
 }

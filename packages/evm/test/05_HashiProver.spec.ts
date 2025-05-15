@@ -9,8 +9,11 @@ import {
   RECEIPT_PROOF,
   RECEIPT_PROOF_WITH_ANCESTRAL_BLOCKS,
 } from "./proofs"
+import { createHash, randomBytes } from "crypto"
+import BatchMerkleTree from "./utils/batch-merkle-tree"
 
 const SOURCE_CHAIN_ID = 10
+const SOLANA_CHAIN_ID = 999
 
 let hashi: Contract, adapter: Contract, shoyuBashi: Contract, hashiProvers: Contract[], owner: SignerWithAddress
 
@@ -37,6 +40,7 @@ describe("HashiProver", () => {
     )
 
     await shoyuBashi.enableAdapters(SOURCE_CHAIN_ID, [adapter.address], 1)
+    await shoyuBashi.enableAdapters(SOLANA_CHAIN_ID, [adapter.address], 1)
   })
 
   it("should't be able to get the value if the block is not available", async () => {
@@ -214,6 +218,43 @@ describe("HashiProver", () => {
       )
       expect(await hashiProver.getEventValues(RECEIPT_PROOF_WITH_ANCESTRAL_BLOCKS)).to.be.eq(
         "0xf85a94b981b2c0c3db52c316d30df76cc48fd167ed87edf842a0ecdf3a3effea5783a3c4c2140e677577666428d44ed9d474a0b3a4c9943f8440a000000000000000000000000075cf11467937ce3f2f357ce24ffc3dbf8fd5c22680",
+      )
+    }
+  })
+
+  it("should be able to read a solana account", async () => {
+    // NOTE: this simulates random
+    /**
+     * hashv(&[
+        pubkey.as_ref(),
+        &lamports.to_le_bytes(),
+        data,
+        owner.as_ref(),
+        &rent_epoch.to_le_bytes(),
+    ])
+     */
+    const fakeAccountData = Array.from(Array(25).keys()).map(() => randomBytes(64))
+    const fakeAccountDataHashes = fakeAccountData.map((_accHash) => {
+      const hash = createHash("sha-256")
+      hash.update(_accHash)
+      return hash.digest()
+    })
+
+    const tree = new BatchMerkleTree()
+    tree.pushBatch(fakeAccountDataHashes.slice(0, 10))
+    tree.pushBatch(fakeAccountDataHashes.slice(10, 20))
+    tree.pushBatch(fakeAccountDataHashes.slice(20, 21))
+    const targetAccountHash = fakeAccountDataHashes[20]
+    const targetAccount = fakeAccountData[20]
+    const proof = tree.getHexProof(targetAccountHash)
+
+    const sourceChainId = 999
+    const nonce = 0
+    await adapter.setHashes(sourceChainId, [nonce], [tree.root()])
+
+    for (const hashiProver of hashiProvers) {
+      expect(await hashiProver.getSolanaAccount([sourceChainId, nonce, targetAccount, proof])).to.be.eq(
+        "0x" + targetAccount.toString("hex"),
       )
     }
   })
