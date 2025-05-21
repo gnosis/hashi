@@ -1,4 +1,4 @@
-import { ContractReceipt } from "ethers"
+import { ContractReceipt, utils } from "ethers"
 
 type Configs = {
   data: string
@@ -36,8 +36,61 @@ class Message {
   }
 
   static fromReceipt(_receipt: ContractReceipt) {
-    const events = _receipt.events.filter(({ event }) => event === "MessageDispatched")
-    return events.map(({ args: { messageId, message } }) => new Message({ id: messageId, ...message }))
+    let events = _receipt.events.filter(({ event }) => event === "MessageDispatched")
+    if (events.length) {
+      return events.map(({ args: { messageId, message } }) => new Message({ id: messageId, ...message }))
+    }
+
+    const abiCoder = new utils.AbiCoder()
+    events = _receipt.events.filter(
+      ({ topics }) => topics[0] === "0x218247aabc759e65b5bb92ccc074f9d62cd187259f2a0984c3c9cf91f67ff7cf",
+    )
+    return events.map(({ topics, data }) => {
+      const message = abiCoder.decode(
+        [
+          {
+            components: [
+              {
+                name: "nonce",
+                type: "uint256",
+              },
+              {
+                name: "targetChainId",
+                type: "uint256",
+              },
+              {
+                name: "threshold",
+                type: "uint256",
+              },
+              {
+                name: "sender",
+                type: "address",
+              },
+              {
+                name: "receiver",
+                type: "address",
+              },
+              {
+                name: "data",
+                type: "bytes",
+              },
+              {
+                name: "reporters",
+                type: "address[]",
+              },
+              {
+                name: "adapters",
+                type: "address[]",
+              },
+            ],
+            name: "message",
+            type: "tuple",
+          },
+        ],
+        data,
+      )
+      return new Message({ id: topics[1], ...message[0] })
+    })
   }
 
   serialize() {
