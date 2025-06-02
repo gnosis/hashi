@@ -13,4 +13,10 @@ RUN yarn install
 WORKDIR /usr/src/app/packages/reporter
 RUN yarn compile
 
+EXPOSE 8080
+
+COPY ../../entrypoint.sh /usr/local/bin/entrypoint.sh 
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["yarn", "start:prod"]
