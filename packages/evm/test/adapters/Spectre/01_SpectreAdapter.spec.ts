@@ -115,7 +115,7 @@ describe("SpectreAdapter", function () {
   })
 
   describe("verifyAndStoreDispatchedMessage()", function () {
-    it("Succesfully verifies a valid `MessageDispatched` event and stores hash", async function () {
+    it("Successfully verifies a valid `MessageDispatched` event and stores hash", async function () {
       const { spectreAdapter, spectre, sourceChainId } = await setup()
       await spectre.setRoot(FINALIZED_SLOT, VALID_BLOCK_ROOT)
 

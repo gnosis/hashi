@@ -71,7 +71,7 @@ class Watcher {
           `Detected ${logs.length} new ${this.eventName} events on ${this.client.chain.name}. Processing them ...`,
         )
         await this.onLogs(logs)
-        this.logger.info("Events succesfully processed.")
+        this.logger.info("Events successfully processed.")
       }
 
       this._lastBlock = currentBlock
